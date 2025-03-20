@@ -166,7 +166,7 @@ const ActionFactories = {
         this.maxInvestmentAmount
       );
 
-      let actualReturns;
+      let actualReturns = 0;
 
       if (this.riskLevel === "none" || this.riskLevel === "very_low") {
         // For no risk or very low risk investments, returns are stable
