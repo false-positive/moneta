@@ -59,7 +59,8 @@ export default function ChatInterface() {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" })
-        saveAudioFile(audioBlob)
+        // Directly send the audio blob to the backend
+        sendAudioToBackend(audioBlob)
 
         // Stop all tracks to release the microphone
         stream.getTracks().forEach((track) => track.stop())
@@ -95,33 +96,45 @@ export default function ChatInterface() {
     }
   }
 
-  const saveAudioFile = (audioBlob: Blob) => {
-    // Create a URL for the blob
-    const url = URL.createObjectURL(audioBlob)
+  const sendAudioToBackend = (audioBlob: Blob) => {
+    const filename = `recording-${new Date().toISOString()}.wav`
+    const formData = new FormData()
+    formData.append("audio", audioBlob, filename)
 
-    // Create a download link
-    const a = document.createElement("a")
-    a.style.display = "none"
-    a.href = url
-    a.download = `recording-${new Date().toISOString()}.wav`
-
-    // Add to document, click it, and remove it
-    document.body.appendChild(a)
-    a.click()
-
-    // Clean up
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-
-    // Optionally add a message about the recording
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        text: "Audio recording saved to your downloads folder.",
-        sender: "bot",
-      },
-    ])
+    fetch("http://localhost:5000/transcribe", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok")
+        }
+        return response.json()
+      })
+      .then((data) => {
+        console.log("Audio file uploaded successfully", data)
+        // Assuming the backend returns a field called "message"
+        const responseMessage = data.transcription || "Audio file uploaded successfully."
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            text: responseMessage,
+            sender: "user",
+          },
+        ])
+      })
+      .catch((error) => {
+        console.error("Error uploading audio file:", error)
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            text: "Error uploading audio file.",
+            sender: "bot",
+          },
+        ])
+      })
   }
 
   const formatTime = (seconds: number) => {
@@ -183,4 +196,3 @@ export default function ChatInterface() {
     </Card>
   )
 }
-
