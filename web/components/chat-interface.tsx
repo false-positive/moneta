@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,32 +13,52 @@ type Message = {
 }
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Hello! How can I help you today?", sender: "bot" },
-    { id: 2, text: "I have a question about the layout.", sender: "user" },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const hasLoadedRef = useRef(false)
+
+  // Load saved messages from localStorage on mount
+  useEffect(() => {
+    if (!hasLoadedRef.current) {
+      const saved = localStorage.getItem("chatMessages")
+      if (saved && saved !== "[]") {
+        setMessages(JSON.parse(saved))
+      } else {
+        setMessages([
+          { id: 1, text: "Hello! How can I help you today?", sender: "bot" },
+          { id: 2, text: "I have a question about the layout.", sender: "user" },
+        ])
+      }
+      hasLoadedRef.current = true
+    }
+  }, [])
+
+  // Save messages to localStorage every time they change
+  useEffect(() => {
+    localStorage.setItem("chatMessages", JSON.stringify(messages))
+  }, [messages])
 
   const handleSendMessage = () => {
     if (input.trim()) {
-      setMessages([...messages, { id: messages.length + 1, text: input, sender: "user" }])
+      const newMessage: Message = { id: messages.length + 1, text: input, sender: "user" }
+      setMessages([...messages, newMessage])
       setInput("")
-
+      setIsWaitingForResponse(true)
       // Simulate bot response
       setTimeout(() => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            id: prevMessages.length + 1,
-            text: "Thanks for your message! This is a simulated response.",
-            sender: "bot",
-          },
-        ])
+        const botResponse: Message = {
+          id: messages.length + 2, // ensure a unique id
+          text: "Thanks for your message! This is a simulated response.",
+          sender: "bot",
+        }
+        setMessages((prevMessages) => [...prevMessages, botResponse])
+        setIsWaitingForResponse(false)
       }, 1000)
     }
   }
@@ -61,16 +81,12 @@ export default function ChatInterface() {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" })
         // Directly send the audio blob to the backend
         sendAudioToBackend(audioBlob)
-
-        // Stop all tracks to release the microphone
         stream.getTracks().forEach((track) => track.stop())
       }
 
-      // Start recording
       mediaRecorder.start()
       setIsRecording(true)
 
-      // Start timer
       let seconds = 0
       timerRef.current = setInterval(() => {
         seconds++
@@ -86,8 +102,6 @@ export default function ChatInterface() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
-
-      // Clear timer
       if (timerRef.current) {
         clearInterval(timerRef.current)
         timerRef.current = null
@@ -101,6 +115,8 @@ export default function ChatInterface() {
     const formData = new FormData()
     formData.append("audio", audioBlob, filename)
 
+    setIsWaitingForResponse(true)
+
     fetch("http://localhost:5000/transcribe", {
       method: "POST",
       body: formData,
@@ -112,8 +128,6 @@ export default function ChatInterface() {
         return response.json()
       })
       .then((data) => {
-        console.log("Audio file uploaded successfully", data)
-        // Assuming the backend returns a field called "message"
         const responseMessage = data.transcription || "Audio file uploaded successfully."
         setMessages((prev) => [
           ...prev,
@@ -123,6 +137,7 @@ export default function ChatInterface() {
             sender: "user",
           },
         ])
+        setIsWaitingForResponse(false)
       })
       .catch((error) => {
         console.error("Error uploading audio file:", error)
@@ -134,6 +149,7 @@ export default function ChatInterface() {
             sender: "bot",
           },
         ])
+        setIsWaitingForResponse(false)
       })
   }
 
@@ -155,17 +171,12 @@ export default function ChatInterface() {
                     <User className="h-5 w-5 text-gray-500" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                  }`}
-                >
+                <div className={`max-w-[80%] rounded-lg p-3 ${message.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                   {message.text}
                 </div>
               </div>
             ))}
           </div>
-
           <div className="flex gap-2">
             <Input
               value={input}
@@ -177,17 +188,18 @@ export default function ChatInterface() {
                 }
               }}
               className="flex-1"
-              disabled={isRecording}
+              disabled={isRecording || isWaitingForResponse}
             />
             <Button
               size="icon"
               variant={isRecording ? "destructive" : "outline"}
               onClick={isRecording ? stopRecording : startRecording}
               className={`transition-all duration-300 ${isRecording ? "animate-pulse" : ""}`}
+              disabled={isRecording || isWaitingForResponse}
             >
               {isRecording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </Button>
-            <Button size="icon" onClick={handleSendMessage} disabled={isRecording}>
+            <Button size="icon" onClick={handleSendMessage} disabled={isRecording || isWaitingForResponse}>
               <Send className="h-4 w-4" />
             </Button>
           </div>

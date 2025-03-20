@@ -4,8 +4,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ChatInterface from "@/components/chat-interface"
 import { Info } from "lucide-react"
+import Link from "next/link"
 
 export default function Home() {
+  const handleResetChat = () => {
+    // Remove the saved chat messages from localStorage
+    localStorage.removeItem("chatMessages")
+    // Reload the page to reinitialize the chat with default messages
+    window.location.reload()
+  }
+
   return (
     <main className="flex flex-col h-screen p-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-grow">
@@ -24,7 +32,6 @@ export default function Home() {
               />
             </button>
           </div>
-
           <Card>
             <CardHeader>
               <CardTitle>Information Box</CardTitle>
@@ -37,6 +44,9 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
+          <Button variant="outline" onClick={handleResetChat}>
+            Reset Chat
+          </Button>
         </div>
 
         {/* Right Column (2/3 width on medium screens and up) */}
@@ -47,9 +57,10 @@ export default function Home() {
 
       {/* Centered Next button at the bottom */}
       <div className="flex justify-center py-6">
-        <Button size="lg">Next</Button>
+        <Link href="/choices">
+          <Button size="lg">Next</Button>
+        </Link>
       </div>
     </main>
   )
 }
-
