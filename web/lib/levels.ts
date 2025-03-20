@@ -22,7 +22,8 @@ type Action =
   | PurchaseAction
   | LifeChoiceAction
   | EducationAction
-  | JobSearchAction;
+  | JobSearchAction
+  | NoOpAction;
 
 // Base type for all actions
 type BaseAction = {
@@ -44,7 +45,7 @@ type InvestmentAction = BaseAction & {
   volatility: number; // 0-1, how volatile the returns are
   happinessImpact: number; // base happiness impact
   happinessLossOnBadOutcome?: number; // optional penalty on bad outcome
-  modifier: (state: Step) => Step;
+  modifier: (this: InvestmentAction, state: Step) => Step;
 };
 
 // Job action type
@@ -54,7 +55,7 @@ type JobAction = BaseAction & {
   incomeAmount: number;
   freeTimeReduction: number;
   happinessImpact: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: JobAction, state: Step) => Step;
 };
 
 // Business action type
@@ -77,7 +78,7 @@ type BusinessAction = BaseAction & {
     success: number;
     failure: number;
   };
-  modifier: (state: Step) => Step;
+  modifier: (this: BusinessAction, state: Step) => Step;
 };
 
 // Property action type
@@ -87,7 +88,7 @@ type PropertyAction = BaseAction & {
   rentalYield: number;
   freeTimeReduction: number;
   happinessImpact: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: PropertyAction, state: Step) => Step;
 };
 
 // Entertainment action type
@@ -96,7 +97,7 @@ type EntertainmentAction = BaseAction & {
   cost: number;
   happinessImpact: number;
   freeTimeReduction: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: EntertainmentAction, state: Step) => Step;
 };
 
 // Major purchase action type
@@ -105,7 +106,7 @@ type PurchaseAction = BaseAction & {
   cost: number;
   happinessImpact: number;
   freeTimeImpact: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: PurchaseAction, state: Step) => Step;
 };
 
 // Life choice action type
@@ -118,7 +119,7 @@ type LifeChoiceAction = BaseAction & {
   minBudget: number;
   minHappiness?: number;
   minFreeTime?: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: LifeChoiceAction, state: Step) => Step;
 };
 
 // Education action type
@@ -127,7 +128,7 @@ type EducationAction = BaseAction & {
   cost: number;
   happinessImpact: number;
   freeTimeReduction: number;
-  modifier: (state: Step) => Step;
+  modifier: (this: EducationAction, state: Step) => Step;
 };
 
 // Job search action type
@@ -141,16 +142,294 @@ type JobSearchAction = BaseAction & {
     success: number;
     failure: number;
   };
-  modifier: (state: Step) => Step;
+  modifier: (this: JobSearchAction, state: Step) => Step;
 };
 
+// NoOp action type
+type NoOpAction = BaseAction & {
+  kind: "no_op";
+  modifier: (this: NoOpAction, state: Step) => Step;
+};
+
+// Action factory registry
+const ActionFactories = {
+  // Investment action factory
+  createInvestmentAction: (
+    params: Omit<InvestmentAction, "kind" | "modifier"> & {
+      kind?: "investment";
+    }
+  ): InvestmentAction => ({
+    kind: "investment",
+    modifier: function (state) {
+      const investment = Math.min(
+        state.budget * this.maxInvestmentPercent,
+        this.maxInvestmentAmount
+      );
+
+      let actualReturns;
+
+      if (this.riskLevel === "none" || this.riskLevel === "very_low") {
+        // For no risk or very low risk investments, returns are stable
+        actualReturns = investment * this.baseReturnRate;
+      } else {
+        // For higher risk investments, apply volatility
+        const marketLuck = Math.random();
+
+        if (this.riskLevel === "low") {
+          actualReturns =
+            investment *
+            (marketLuck > 0.2
+              ? this.baseReturnRate
+              : this.baseReturnRate * 0.5);
+        } else if (this.riskLevel === "medium") {
+          if (marketLuck > 0.2) {
+            actualReturns = investment * this.baseReturnRate;
+          } else {
+            actualReturns = -investment * (this.volatility / 2);
+          }
+        } else if (this.riskLevel === "high") {
+          if (marketLuck > 0.6) {
+            actualReturns = investment * this.baseReturnRate;
+          } else if (marketLuck > 0.3) {
+            actualReturns = investment * (this.baseReturnRate / 3);
+          } else {
+            actualReturns = -investment * ((this.volatility * 2) / 3);
+          }
+        } else if (this.riskLevel === "very_high") {
+          if (marketLuck > 0.7) {
+            actualReturns = investment * this.baseReturnRate;
+          } else if (marketLuck > 0.5) {
+            actualReturns = investment * (this.baseReturnRate * 0.43);
+          } else if (marketLuck > 0.3) {
+            actualReturns = 0;
+          } else {
+            actualReturns = -investment * this.volatility;
+          }
+        }
+      }
+
+      return {
+        ...state,
+        budget: state.budget + actualReturns,
+        happiness:
+          state.happiness +
+          (actualReturns > 0
+            ? this.happinessImpact
+            : this.happinessLossOnBadOutcome
+            ? -this.happinessLossOnBadOutcome
+            : 0),
+      };
+    },
+    ...params,
+  }),
+
+  // Job action factory
+  createJobAction: (
+    params: Omit<JobAction, "kind" | "modifier"> & {
+      kind?: "job";
+    }
+  ): JobAction => ({
+    kind: "job",
+    modifier: function (state) {
+      return {
+        ...state,
+        budget: state.budget + this.incomeAmount,
+        freeTime: state.freeTime - this.freeTimeReduction,
+        happiness: state.happiness + this.happinessImpact,
+      };
+    },
+    ...params,
+  }),
+
+  // Business action factory
+  createBusinessAction: (
+    params: Omit<BusinessAction, "kind" | "modifier"> & {
+      kind?: "business";
+    }
+  ): BusinessAction => ({
+    kind: "business",
+    modifier: function (state) {
+      const businessLuck = Math.random();
+      let profit;
+
+      if (businessLuck > this.successProbability.high) {
+        profit = this.initialInvestment * this.returns.high;
+      } else if (businessLuck > this.successProbability.medium) {
+        profit = this.initialInvestment * this.returns.medium;
+      } else {
+        profit = this.initialInvestment * this.returns.low;
+      }
+
+      return {
+        ...state,
+        budget: state.budget + profit - this.initialInvestment,
+        freeTime: state.freeTime - this.freeTimeReduction,
+        happiness:
+          state.happiness +
+          (profit > 0
+            ? this.happinessImpact.success
+            : this.happinessImpact.failure),
+      };
+    },
+    ...params,
+  }),
+
+  // Property action factory
+  createPropertyAction: (
+    params: Omit<PropertyAction, "kind" | "modifier"> & {
+      kind?: "property";
+    }
+  ): PropertyAction => ({
+    kind: "property",
+    modifier: function (state) {
+      const monthlyRent = this.propertyValue * this.rentalYield;
+
+      return {
+        ...state,
+        budget: state.budget - this.propertyValue + monthlyRent,
+        freeTime: state.freeTime - this.freeTimeReduction,
+        happiness: state.happiness + this.happinessImpact,
+      };
+    },
+    ...params,
+  }),
+
+  // Entertainment action factory
+  createEntertainmentAction: (
+    params: Omit<EntertainmentAction, "kind" | "modifier"> & {
+      kind?: "entertainment";
+    }
+  ): EntertainmentAction => ({
+    kind: "entertainment",
+    modifier: function (state) {
+      return {
+        ...state,
+        budget: state.budget - this.cost,
+        happiness: state.happiness + this.happinessImpact,
+        freeTime: state.freeTime - this.freeTimeReduction,
+      };
+    },
+    ...params,
+  }),
+
+  // Purchase action factory
+  createPurchaseAction: (
+    params: Omit<PurchaseAction, "kind" | "modifier"> & {
+      kind?: "purchase";
+    }
+  ): PurchaseAction => ({
+    kind: "purchase",
+    modifier: function (state) {
+      return {
+        ...state,
+        budget: state.budget - this.cost,
+        happiness: state.happiness + this.happinessImpact,
+        freeTime: state.freeTime + this.freeTimeImpact,
+      };
+    },
+    ...params,
+  }),
+
+  // Life choice action factory
+  createLifeChoiceAction: (
+    params: Omit<LifeChoiceAction, "kind" | "modifier"> & {
+      kind?: "life_choice";
+    }
+  ): LifeChoiceAction => ({
+    kind: "life_choice",
+    modifier: function (state) {
+      return {
+        ...state,
+        budget: state.budget - this.initialCost + this.ongoingBudgetImpact,
+        happiness: state.happiness + this.happinessImpact,
+        freeTime: state.freeTime + this.freeTimeImpact,
+      };
+    },
+    ...params,
+  }),
+
+  // Education action factory
+  createEducationAction: (
+    params: Omit<EducationAction, "kind" | "modifier"> & {
+      kind?: "education";
+    }
+  ): EducationAction => ({
+    kind: "education",
+    modifier: function (state) {
+      return {
+        ...state,
+        budget: state.budget - this.cost,
+        happiness: state.happiness + this.happinessImpact,
+        freeTime: state.freeTime - this.freeTimeReduction,
+      };
+    },
+    ...params,
+  }),
+
+  // Job search action factory
+  createJobSearchAction: (
+    params: Omit<JobSearchAction, "kind" | "modifier"> & {
+      kind?: "job_search";
+    }
+  ): JobSearchAction => ({
+    kind: "job_search",
+    modifier: function (state) {
+      const jobSearchLuck = Math.random();
+      const isSuccessful = jobSearchLuck > 1 - this.successRate;
+      const salaryIncrease = isSuccessful ? this.salaryIncrease : 0;
+
+      return {
+        ...state,
+        budget: state.budget + salaryIncrease,
+        happiness:
+          state.happiness +
+          (isSuccessful
+            ? this.happinessImpacts.success
+            : this.happinessImpacts.failure),
+        freeTime: state.freeTime - this.freeTimeReduction,
+      };
+    },
+    ...params,
+  }),
+
+  // NoOp action factory
+  createNoOpAction: (
+    params: Omit<NoOpAction, "kind" | "modifier"> & {
+      kind?: "no_op";
+    }
+  ): NoOpAction => ({
+    kind: "no_op",
+    modifier: function (state) {
+      return state;
+    },
+    ...params,
+  }),
+};
+
+// Helper to get an array of all action types for clients
+const ActionTypes = {
+  investment: "investment",
+  job: "job",
+  business: "business",
+  property: "property",
+  entertainment: "entertainment",
+  purchase: "purchase",
+  life_choice: "life_choice",
+  education: "education",
+  job_search: "job_search",
+  no_op: "no_op",
+} as const;
+
+// Type for action kind (string literal union)
+type ActionKind = (typeof ActionTypes)[keyof typeof ActionTypes];
+
+// Using the factories to create the actions
 const actions: Action[] = [
   // Investment actions
-  {
+  ActionFactories.createInvestmentAction({
     name: "InvestBank",
     shortDescription: "Safe bank account with no returns",
     llmDescription: "Invest in a bank account - Safe but no returns",
-    kind: "investment",
     minBudget: 1000,
     riskLevel: "none",
     maxInvestmentPercent: 1.0,
@@ -158,19 +437,13 @@ const actions: Action[] = [
     baseReturnRate: 0.0,
     volatility: 0,
     happinessImpact: 5,
-    modifier: (state) => {
-      return {
-        ...state,
-        happiness: state.happiness + 5, // Security feeling but no returns
-      };
-    },
     poll: (state) => state.budget > 1000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestSavings",
     shortDescription: "Low-risk savings with minimal returns",
     llmDescription: "Invest in a savings account - Safe with very low returns",
-    kind: "investment",
     minBudget: 1000,
     riskLevel: "very_low",
     maxInvestmentPercent: 0.3,
@@ -178,30 +451,14 @@ const actions: Action[] = [
     baseReturnRate: 0.003,
     volatility: 0,
     happinessImpact: 7,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestSavings"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const returns = investment * action.baseReturnRate;
-
-      return {
-        ...state,
-        budget: state.budget + returns,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.budget > 1000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestPension",
     shortDescription: "Safe pension account with low-medium returns",
     llmDescription:
       "Invest in a pension account - Safe with low-medium returns",
-    kind: "investment",
     minBudget: 5000,
     riskLevel: "low",
     maxInvestmentPercent: 0.2,
@@ -209,29 +466,13 @@ const actions: Action[] = [
     baseReturnRate: 0.025,
     volatility: 0.01,
     happinessImpact: 10,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestPension"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const returns = investment * action.baseReturnRate;
-
-      return {
-        ...state,
-        budget: state.budget + returns,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.budget > 5000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestETF",
     shortDescription: "Medium-risk ETFs with medium returns",
     llmDescription: "Invest in ETFs - Medium risk with medium returns",
-    kind: "investment",
     minBudget: 2000,
     riskLevel: "medium",
     maxInvestmentPercent: 0.4,
@@ -240,38 +481,14 @@ const actions: Action[] = [
     volatility: 0.05,
     happinessImpact: 15,
     happinessLossOnBadOutcome: 10,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestETF"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const marketLuck = Math.random();
-      const actualReturns =
-        marketLuck > 0.2
-          ? investment * action.baseReturnRate
-          : -investment * 0.03;
-
-      return {
-        ...state,
-        budget: state.budget + actualReturns,
-        happiness:
-          state.happiness +
-          (actualReturns > 0
-            ? action.happinessImpact
-            : -action.happinessLossOnBadOutcome!),
-      };
-    },
     poll: (state) => state.budget > 2000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestStocks",
     shortDescription: "High-risk stocks with potentially high returns",
     llmDescription:
       "Invest in stocks - High risk with potentially high returns",
-    kind: "investment",
     minBudget: 2000,
     riskLevel: "high",
     maxInvestmentPercent: 0.25,
@@ -280,43 +497,14 @@ const actions: Action[] = [
     volatility: 0.15,
     happinessImpact: 20,
     happinessLossOnBadOutcome: 20,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestStocks"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const marketLuck = Math.random();
-      let actualReturns;
-
-      if (marketLuck > 0.6) {
-        actualReturns = investment * action.baseReturnRate;
-      } else if (marketLuck > 0.3) {
-        actualReturns = investment * (action.baseReturnRate / 3);
-      } else {
-        actualReturns = -investment * ((action.volatility * 2) / 3);
-      }
-
-      return {
-        ...state,
-        budget: state.budget + actualReturns,
-        happiness:
-          state.happiness +
-          (actualReturns > 0
-            ? action.happinessImpact
-            : -action.happinessLossOnBadOutcome!),
-      };
-    },
     poll: (state) => state.budget > 2000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestCrypto",
     shortDescription: "Very high-risk cryptocurrency with volatile returns",
     llmDescription:
       "Invest in cryptocurrency - Very high risk with volatile returns",
-    kind: "investment",
     minBudget: 1000,
     riskLevel: "very_high",
     maxInvestmentPercent: 0.1,
@@ -325,45 +513,14 @@ const actions: Action[] = [
     volatility: 0.35,
     happinessImpact: 25,
     happinessLossOnBadOutcome: 30,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestCrypto"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const marketLuck = Math.random();
-      let actualReturns;
-
-      if (marketLuck > 0.7) {
-        actualReturns = investment * action.baseReturnRate;
-      } else if (marketLuck > 0.5) {
-        actualReturns = investment * (action.baseReturnRate * 0.43);
-      } else if (marketLuck > 0.3) {
-        actualReturns = 0;
-      } else {
-        actualReturns = -investment * action.volatility;
-      }
-
-      return {
-        ...state,
-        budget: state.budget + actualReturns,
-        happiness:
-          state.happiness +
-          (actualReturns > 0
-            ? action.happinessImpact
-            : -action.happinessLossOnBadOutcome!),
-      };
-    },
     poll: (state) => state.budget > 1000,
-  },
-  {
+  }),
+
+  ActionFactories.createInvestmentAction({
     name: "InvestGold",
     shortDescription: "Medium-high risk gold investment",
     llmDescription:
       "Invest in gold - Medium-high risk, good hedge against market crashes",
-    kind: "investment",
     minBudget: 3000,
     riskLevel: "medium",
     maxInvestmentPercent: 0.15,
@@ -371,122 +528,59 @@ const actions: Action[] = [
     baseReturnRate: 0.07,
     volatility: 0.05,
     happinessImpact: 8,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "InvestGold"
-      ) as InvestmentAction;
-      const investment = Math.min(
-        state.budget * action.maxInvestmentPercent,
-        action.maxInvestmentAmount
-      );
-      const marketLuck = Math.random();
-      const actualReturns =
-        investment *
-        (marketLuck > 0.5
-          ? action.baseReturnRate
-          : action.baseReturnRate * 0.3);
-
-      return {
-        ...state,
-        budget: state.budget + actualReturns,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.budget > 3000,
-  },
+  }),
 
-  // Income stream actions
-  {
+  // Job actions
+  ActionFactories.createJobAction({
     name: "GetBasicJob",
     shortDescription: "40-hour job without education requirement",
     llmDescription: "Get a 40-hour job without education requirement",
-    kind: "job",
     requiredFreeTime: 40,
     incomeAmount: 2500,
     freeTimeReduction: 40,
     happinessImpact: 10,
-    modifier: (state) => {
-      const action = actions.find((a) => a.name === "GetBasicJob") as JobAction;
-      return {
-        ...state,
-        budget: state.budget + action.incomeAmount,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.freeTime > 40,
-  },
-  {
+  }),
+
+  ActionFactories.createJobAction({
     name: "GetEducatedJob",
     shortDescription: "40-hour job requiring education",
     llmDescription: "Get a 40-hour job requiring education",
-    kind: "job",
     requiredFreeTime: 40,
     incomeAmount: 4000,
     freeTimeReduction: 40,
     happinessImpact: 15,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "GetEducatedJob"
-      ) as JobAction;
-      return {
-        ...state,
-        budget: state.budget + action.incomeAmount,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.freeTime > 40,
-  },
-  {
+  }),
+
+  ActionFactories.createJobAction({
     name: "GetIntensiveJob",
     shortDescription: "60-80 hour job without education",
     llmDescription: "Get a 60-80 hour job without education",
-    kind: "job",
     requiredFreeTime: 80,
     incomeAmount: 4000,
     freeTimeReduction: 70,
     happinessImpact: -5,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "GetIntensiveJob"
-      ) as JobAction;
-      return {
-        ...state,
-        budget: state.budget + action.incomeAmount,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.freeTime > 80,
-  },
-  {
+  }),
+
+  ActionFactories.createJobAction({
     name: "GetIntensiveEducatedJob",
     shortDescription: "60-80 hour job requiring education",
     llmDescription: "Get a 60-80 hour job requiring education",
-    kind: "job",
     requiredFreeTime: 80,
     incomeAmount: 7000,
     freeTimeReduction: 70,
     happinessImpact: 5,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "GetIntensiveEducatedJob"
-      ) as JobAction;
-      return {
-        ...state,
-        budget: state.budget + action.incomeAmount,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.freeTime > 80,
-  },
-  {
+  }),
+
+  // Business action
+  ActionFactories.createBusinessAction({
     name: "StartBusiness",
     shortDescription: "Start your own business",
     llmDescription: "Start your own business",
-    kind: "business",
     initialInvestment: 10000,
     minBudget: 10000,
     requiredFreeTime: 60,
@@ -504,215 +598,103 @@ const actions: Action[] = [
       success: 25,
       failure: -15,
     },
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "StartBusiness"
-      ) as BusinessAction;
-      const businessLuck = Math.random();
-      let profit;
-
-      if (businessLuck > action.successProbability.high) {
-        profit = action.initialInvestment * action.returns.high;
-      } else if (businessLuck > action.successProbability.medium) {
-        profit = action.initialInvestment * action.returns.medium;
-      } else {
-        profit = action.initialInvestment * action.returns.low;
-      }
-
-      return {
-        ...state,
-        budget: state.budget + profit - action.initialInvestment,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness:
-          state.happiness +
-          (profit > 0
-            ? action.happinessImpact.success
-            : action.happinessImpact.failure),
-      };
-    },
     poll: (state) => state.budget > 10000 && state.freeTime > 60,
-  },
-  {
+  }),
+
+  // Property action
+  ActionFactories.createPropertyAction({
     name: "RentProperty",
     shortDescription: "Rent out a property",
     llmDescription: "Rent out a property",
-    kind: "property",
     propertyValue: 50000,
     rentalYield: 0.007,
     freeTimeReduction: 5,
     happinessImpact: 15,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "RentProperty"
-      ) as PropertyAction;
-      const monthlyRent = action.propertyValue * action.rentalYield;
-
-      return {
-        ...state,
-        budget: state.budget - action.propertyValue + monthlyRent,
-        freeTime: state.freeTime - action.freeTimeReduction,
-        happiness: state.happiness + action.happinessImpact,
-      };
-    },
     poll: (state) => state.budget > 50000,
-  },
+  }),
 
-  // Expense actions
-  {
+  // Entertainment actions
+  ActionFactories.createEntertainmentAction({
     name: "BasicFun",
     shortDescription: "Basic entertainment",
     llmDescription: "Have some basic entertainment like going to cinema",
-    kind: "entertainment",
     cost: 50,
     happinessImpact: 10,
     freeTimeReduction: 2,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "BasicFun"
-      ) as EntertainmentAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime - action.freeTimeReduction,
-      };
-    },
     poll: (state) => state.budget > 50,
-  },
-  {
+  }),
+
+  ActionFactories.createEntertainmentAction({
     name: "MediumFun",
     shortDescription: "Medium-cost entertainment",
     llmDescription: "Have medium-cost entertainment like a weekend trip",
-    kind: "entertainment",
     cost: 500,
     happinessImpact: 25,
     freeTimeReduction: 10,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "MediumFun"
-      ) as EntertainmentAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime - action.freeTimeReduction,
-      };
-    },
     poll: (state) => state.budget > 500,
-  },
-  {
+  }),
+
+  ActionFactories.createEntertainmentAction({
     name: "ExpensiveFun",
     shortDescription: "Expensive entertainment",
     llmDescription: "Have expensive entertainment like a luxury vacation",
-    kind: "entertainment",
     cost: 5000,
     happinessImpact: 50,
     freeTimeReduction: 20,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "ExpensiveFun"
-      ) as EntertainmentAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime - action.freeTimeReduction,
-      };
-    },
     poll: (state) => state.budget > 5000,
-  },
-  {
+  }),
+
+  // Purchase actions
+  ActionFactories.createPurchaseAction({
     name: "BuyHouse",
     shortDescription: "Purchase a house",
     llmDescription: "Purchase a house",
-    kind: "purchase",
     cost: 100000,
     happinessImpact: 40,
     freeTimeImpact: -10,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "BuyHouse"
-      ) as PurchaseAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime + action.freeTimeImpact,
-      };
-    },
     poll: (state) => state.budget > 100000,
-  },
-  {
+  }),
+
+  ActionFactories.createPurchaseAction({
     name: "BuyCar",
     shortDescription: "Purchase a car",
     llmDescription: "Purchase a car",
-    kind: "purchase",
     cost: 20000,
     happinessImpact: 30,
     freeTimeImpact: 5,
-    modifier: (state) => {
-      const action = actions.find((a) => a.name === "BuyCar") as PurchaseAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime + action.freeTimeImpact,
-      };
-    },
     poll: (state) => state.budget > 20000,
-  },
-  {
+  }),
+
+  // Life choice actions
+  ActionFactories.createLifeChoiceAction({
     name: "HaveKids",
     shortDescription: "Have children",
     llmDescription: "Have children",
-    kind: "life_choice",
     initialCost: 10000,
     ongoingBudgetImpact: 0,
     happinessImpact: 60,
     freeTimeImpact: -40,
     minBudget: 30000,
     minFreeTime: 20,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "HaveKids"
-      ) as LifeChoiceAction;
-      return {
-        ...state,
-        budget: state.budget - action.initialCost + action.ongoingBudgetImpact,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime + action.freeTimeImpact,
-      };
-    },
     poll: (state) => state.budget > 30000 && state.freeTime > 20,
-  },
+  }),
 
-  // Other actions
-  {
+  // Education action
+  ActionFactories.createEducationAction({
     name: "GetEducation",
     shortDescription: "Invest in education",
     llmDescription: "Invest in education",
-    kind: "education",
     cost: 10000,
     happinessImpact: 20,
     freeTimeReduction: 20,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "GetEducation"
-      ) as EducationAction;
-      return {
-        ...state,
-        budget: state.budget - action.cost,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime - action.freeTimeReduction,
-      };
-    },
     poll: (state) => state.budget > 10000 && state.freeTime > 20,
-  },
-  {
+  }),
+
+  // Job search action
+  ActionFactories.createJobSearchAction({
     name: "ChangeJobs",
     shortDescription: "Look for a new job",
     llmDescription: "Look for a new job",
-    kind: "job_search",
     requiredFreeTime: 10,
     freeTimeReduction: 5,
     successRate: 0.5,
@@ -721,49 +703,36 @@ const actions: Action[] = [
       success: 15,
       failure: -5,
     },
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "ChangeJobs"
-      ) as JobSearchAction;
-      const jobSearchLuck = Math.random();
-      const isSuccessful = jobSearchLuck > 1 - action.successRate;
-      const salaryIncrease = isSuccessful ? action.salaryIncrease : 0;
-
-      return {
-        ...state,
-        budget: state.budget + salaryIncrease,
-        happiness:
-          state.happiness +
-          (isSuccessful
-            ? action.happinessImpacts.success
-            : action.happinessImpacts.failure),
-        freeTime: state.freeTime - action.freeTimeReduction,
-      };
-    },
     poll: (state) => state.freeTime > 10,
-  },
-  {
+  }),
+
+  ActionFactories.createLifeChoiceAction({
     name: "GetMarried",
     shortDescription: "Get married",
     llmDescription: "Get married",
-    kind: "life_choice",
     initialCost: 20000,
     ongoingBudgetImpact: 1000,
     happinessImpact: 70,
     freeTimeImpact: -10,
     minBudget: 20000,
     minHappiness: 50,
-    modifier: (state) => {
-      const action = actions.find(
-        (a) => a.name === "GetMarried"
-      ) as LifeChoiceAction;
-      return {
-        ...state,
-        budget: state.budget - action.initialCost + action.ongoingBudgetImpact,
-        happiness: state.happiness + action.happinessImpact,
-        freeTime: state.freeTime + action.freeTimeImpact,
-      };
-    },
     poll: (state) => state.budget > 20000 && state.happiness > 50,
-  },
+  }),
+
+  ActionFactories.createNoOpAction({
+    name: "NoOp",
+    shortDescription: "Do nothing",
+    llmDescription: "Do nothing",
+    poll: (state) => true,
+  }),
 ];
+
+// Export the type registry and factories for client use
+export {
+  ActionTypes,
+  ActionFactories,
+  actions,
+  type Action,
+  type ActionKind,
+  type Step,
+};
