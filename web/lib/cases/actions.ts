@@ -43,7 +43,7 @@ const percentImpact = (percent: number) => impact({ repeatedPercent: percent });
 const absoluteImpact = (absoluteDelta: number) =>
 	impact({ repeatedAbsoluteDelta: absoluteDelta });
 
-type Action = {
+export type Action = {
 	name: string;
 	kind: Kind;
 	shortDescription: string; // Short description for UI display
@@ -198,12 +198,12 @@ export const savingsDepositAction: Action = {
 	remainingTicks: 12, // months
 };
 
-export const allActionsList = [
+export const allActionsList = {
 	lifeAction,
 	waiterJobAction,
 	sweJobAction,
 	savingsDepositAction,
-];
+};
 
 /**
 
