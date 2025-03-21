@@ -122,7 +122,7 @@ export const etfInvestmentOnceAction: Action = {
 	shortDescription: "Buy an ETF fund",
 	llmDescription: "Buy an ETF fund",
 	investmentImpact: impact({
-		repeatedPercent: 7,
+		percentFromHistory: "etf",
 		initialPrice: 10000,
 	}),
 	joyImpact: noImpact,
@@ -137,7 +137,7 @@ export const etfInvestmentRepeatedAction: Action = {
 	shortDescription: "Buy an ETF fund regularly",
 	llmDescription: "Buy an ETF fund regularly",
 	investmentImpact: impact({
-		repeatedPercent: 7,
+		percentFromHistory: "etf",
 		repeatedPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -167,7 +167,7 @@ export const cryptoInvestmentAction: Action = {
 	shortDescription: "Buy a crypto currency",
 	llmDescription: "Buy a crypto currency",
 	investmentImpact: impact({
-		repeatedPercent: 20,
+		percentFromHistory: "btc",
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -182,7 +182,7 @@ export const goldInvestmentAction: Action = {
 	shortDescription: "Buy investment gold",
 	llmDescription: "Buy investment gold",
 	investmentImpact: impact({
-		repeatedPercent: 5,
+		percentFromHistory: "gold",
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
