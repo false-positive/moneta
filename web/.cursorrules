@@ -1,92 +1,97 @@
+# About this project
+
+Moneta is an interactive web platform that helps children and students build financial literacy through realistic simulations. They take on the role of financial advisors, helping a friend manage their money wisely through different life stages. Each decision they make shapes his future - leading to different outcomes and visualizations of his potential life.
+To make learning even more effective, Moneta also includes a financial advisor who guides the user toward educated decisions. For added motivation, the platform has leaderboards where participants can compete and prove they are the best financial strategists!
+
 # Action types
 
 ## Investments
 
 Bank account:
 
-* risk \= low  
-* interest \= 0%  
-* good for: short term payments  
-* bad: loses money due to inflation
+-   risk \= low
+-   interest \= 0%
+-   good for: short term payments
+-   bad: loses money due to inflation
 
 Savings account:
 
-* risk \= low  
-* interest \= low \- 0.1%-0.5%  
-* good for: medium term payments (half to one year)  
-* bad: likely loses money due to inflation.
+-   risk \= low
+-   interest \= low \- 0.1%-0.5%
+-   good for: medium term payments (half to one year)
+-   bad: likely loses money due to inflation.
 
 Pension account:
 
-* risk \= low  
-* interest \= low \- medium: 1-4%  
-* good for: long term stability, and insurance, usually tax-exempt gains  
-* bad for: not so great returns
+-   risk \= low
+-   interest \= low \- medium: 1-4%
+-   good for: long term stability, and insurance, usually tax-exempt gains
+-   bad for: not so great returns
 
 ETF
 
-* risk \= medium  
-* interest \= medium \= 5-10%  
-* good for: long term gains (7+ years)  
-* bad for: not for storing cash short-term
+-   risk \= medium
+-   interest \= medium \= 5-10%
+-   good for: long term gains (7+ years)
+-   bad for: not for storing cash short-term
 
 Stocks
 
-* risk \= high  
-* interest \= high, but volatile \= 10-20%  
-* good for: gambling small amounts of money  
-* bad for: reliable gains
+-   risk \= high
+-   interest \= high, but volatile \= 10-20%
+-   good for: gambling small amounts of money
+-   bad for: reliable gains
 
 Crypto
 
-* risk \= very high  
-* interest \= very high, but volatile \= 30-40%  
-* good for: gambling, small amount of money  
-* bad for: reliable gains
+-   risk \= very high
+-   interest \= very high, but volatile \= 30-40%
+-   good for: gambling, small amount of money
+-   bad for: reliable gains
 
 Gold
 
-* risk \= medium-high  
-* interest \= medium \- 5-10%  
-* good for: limited protecting against stock market crashes  
-* bad for: short-term gains
+-   risk \= medium-high
+-   interest \= medium \- 5-10%
+-   good for: limited protecting against stock market crashes
+-   bad for: short-term gains
 
 We could include more things, but maybe not needed:
 
-* Options, Foreign currencies (FOREX), …
+-   Options, Foreign currencies (FOREX), …
 
 ## Income streams
 
 40 hour job, no education (could get multiple jobs)
 
-* Small income  
-* Plenty of free time (with just one job)
+-   Small income
+-   Plenty of free time (with just one job)
 
 40 hour job with education
 
-* Medium income  
-* Plenty of free time
+-   Medium income
+-   Plenty of free time
 
 60-80 hour job without education
 
-* Medium income  
-* No free time
+-   Medium income
+-   No free time
 
 60-80 hour job with education
 
-* High income  
-* No free time
+-   High income
+-   No free time
 
 Start a business
 
-* Initially small income, eventually very high income (could be exponentially higher)  
-* Generally less free time, more free time as the business matures
+-   Initially small income, eventually very high income (could be exponentially higher)
+-   Generally less free time, more free time as the business matures
 
 Rent out a property to someone
 
-* Requires having a property (costs a bunch)  
-* Low income (depends on the size of the property)  
-* Tons of free time
+-   Requires having a property (costs a bunch)
+-   Low income (depends on the size of the property)
+-   Tons of free time
 
 ## Expenses
 
@@ -94,9 +99,9 @@ Living expenses (bills, groceries, etc.)
 Loans (credit-card debt, mortgage, consumer loan, loan to start a business).  
 Fun
 
-* Little (e.g. cinema)  
-* Mid (e.g. ski weekend)  
-* High (e.g. two weeks on the Maldives)
+-   Little (e.g. cinema)
+-   Mid (e.g. ski weekend)
+-   High (e.g. two weeks on the Maldives)
 
 House  
 Car  
@@ -105,13 +110,13 @@ For simplicity we can assume that the more “stuff” we have, the better off w
 
 ## Other choices
 
-* Spend time and money for increasing education  
-* Change jobs  
-* Get a raise (maybe that’s the same as above)  
-* Get married  
-  * Initially this is a cost (for the wedding)  
-  * But afterwards this could be very financially beneficial (e.g. you share rent and many living costs with your partner).
+-   Spend time and money for increasing education
+-   Change jobs
+-   Get a raise (maybe that’s the same as above)
+-   Get married
+    -   Initially this is a cost (for the wedding)
+    -   But afterwards this could be very financially beneficial (e.g. you share rent and many living costs with your partner).
 
 ## Metrics
 
-* 
+-
