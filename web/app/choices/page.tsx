@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {actions} from "@/lib/cases/actions";
+// @ts-expect-error because this is outdated code
+import { actions } from "@/lib/cases/actions";
 
 export default function QuizPage() {
 	const categorizedActions = actions.reduce((acc, action) => {
@@ -21,7 +22,6 @@ export default function QuizPage() {
 			group = { kind: action.kind, actions: [] };
 			acc.push(group);
 		}
-		// @ts-expect-error because yes
 		group.actions.push(action);
 		return acc;
 	}, [] as { kind: string; actions: never[] }[]);
@@ -76,9 +76,12 @@ export default function QuizPage() {
 					<CardTitle className="text-2xl">
 						{/* Capitalize */}
 						{currentChoice.kind
-							.split('_')
-							.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-							.join(' ')}
+							.split("_")
+							.map(
+								(word) =>
+									word.charAt(0).toUpperCase() + word.slice(1)
+							)
+							.join(" ")}
 					</CardTitle>
 					<CardDescription className="text-lg">
 						What will Iva do?
@@ -130,8 +133,8 @@ export default function QuizPage() {
 									index === currentChoiceIndex
 										? "bg-primary"
 										: actionCat.kind in answers
-											? "bg-muted-foreground"
-											: "bg-muted"
+										? "bg-muted-foreground"
+										: "bg-muted"
 								}`}
 							/>
 						))}
@@ -142,7 +145,7 @@ export default function QuizPage() {
 							onClick={() =>
 								alert(
 									"Quiz completed! Answers: " +
-										JSON.stringify(answers),
+										JSON.stringify(answers)
 								)
 							}
 							className="px-4 py-2"
@@ -150,10 +153,7 @@ export default function QuizPage() {
 							Submit
 						</Button>
 					) : (
-						<Button
-							onClick={goToNextChoice}
-							className="px-4 py-2"
-						>
+						<Button onClick={goToNextChoice} className="px-4 py-2">
 							Next
 							<ChevronRight className="ml-2 h-4 w-4" />
 						</Button>
