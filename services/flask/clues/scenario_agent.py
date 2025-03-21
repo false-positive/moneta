@@ -1,48 +1,12 @@
-import datetime
 import json
 from typing import Dict, List, Any, Tuple
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-# Print current date and time for debugging
-print(f"Script started at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-AGENT_TITLE = "factory foreman"
-
-AGENT_DESCRIPTION = "As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team."
-
-SCENARIO_SETTING = "factory"
-
-# Default scenario configuration embedded in the code
-DEFAULT_SCENARIO = {
-    "description": "A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
-    "metrics": {
-        "production_rate": 120,
-        "defect_rate": 8,
-        "worker_productivity": 25
-    },
-    "targets": {
-        "production_rate_target": 150
-    },
-    "modifiers": {
-    }
-}
-
-METRICS_DESCRIPTION = {
-    "production_rate": "The production rate is the number of widgets produced per hour.",
-    "defect_rate": "The defect rate is the percentage of defective widgets produced.",
-    "worker_productivity": "Worker productivity is the average number of widgets produced per worker per hour."
-}
-
-TARGETS_DESCRIPTION = {
-    "production_rate_target": "The production rate target is the desired number of widgets to be produced per hour."
-}
-
-#TODO Add modifier description
+from services.flask.agent import Agent
 
 class ScenarioAgent:
-    def __init__(self, agent_title: str, agent_description: str, scenario_setting: str, scenario_config: Dict[str, Any] = None, metrics_description: Dict[str, str] = None, targets_description: Dict[str, str] = None):
+    def __init__(self, root_agent: Agent, agent_title: str, agent_description: str, scenario_setting: str, scenario_config: Dict[str, Any] = None, metrics_description: Dict[str, str] = None, targets_description: Dict[str, str] = None):
         """
         Initialize the scenario agent with configuration.
 
@@ -50,65 +14,8 @@ class ScenarioAgent:
             scenario_config: Dictionary containing scenario description, metrics, targets, and modifiers.
                             If None, use the default configuration.
         """
-        if agent_title is None:
-            agent_title = AGENT_TITLE
 
-        if agent_description is None:
-            agent_description = AGENT_DESCRIPTION
-
-        if scenario_setting is None:
-            scenario_setting = SCENARIO_SETTING
-
-        if metrics_description is None:
-            metrics_description = METRICS_DESCRIPTION
-
-        if targets_description is None:
-            targets_description = TARGETS_DESCRIPTION
-
-        # Use default scenario if none provided
-        if scenario_config is None:
-            scenario_config = DEFAULT_SCENARIO
-
-        print("Loading model... This may take a few minutes.")
-        # Load model with more aggressive memory optimization for 8GB VRAM
-        self.model_id = "mistralai/Mistral-7B-Instruct-v0.3"
-
-        # Configure quantization settings
-        quantization_config = BitsAndBytesConfig(
-            load_in_4bit=True,  # Use 4-bit quantization instead of 8-bit
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,  # Use nested quantization
-            bnb_4bit_quant_type="nf4",  # Use normalized float 4 for higher accuracy
-        )
-
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-
-        # Create a device map that will offload some layers to CPU if needed
-        device_map = "auto"
-
-        try:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_id,
-                device_map=device_map,
-                quantization_config=quantization_config,
-            )
-            print("Model loaded successfully!")
-        except Exception as e:
-            print(f"Error loading model with auto device map: {e}")
-            print("Trying with more explicit memory management...")
-
-            # Fallback to a more conservative approach
-            try:
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    self.model_id,
-                    load_in_4bit=True,
-                    torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True,
-                )
-                print("Model loaded with fallback settings!")
-            except Exception as e2:
-                print(f"Error loading model with fallback settings: {e2}")
-                raise RuntimeError("Could not load model with available resources")
+        self.agent = root_agent
 
         # Store scenario information
         self.agent_title = agent_title
@@ -175,7 +82,11 @@ The user is CodenameSource1, and today's date is 2025-03-20.
             agent_response: The agent's response to the user's question
         """
 
-        agent_response_json = json.loads('{' + agent_response + '}')
+        try:
+            agent_response_json = json.loads('{' + agent_response + '}')
+        except Exception as e:
+            return []
+
 
         for key in agent_response_json:
             if key in self.metrics and key not in self.discovered_metrics:
@@ -229,24 +140,24 @@ INSTRUCTIONS:
         try:
             # Create a standalone query to the model
             analysis_messages = [{"role": "user", "content": analysis_prompt}]
-            inputs = self.tokenizer.apply_chat_template(
+            inputs = self.agent.tokenizer.apply_chat_template(
                 analysis_messages,
                 add_generation_prompt=True,
                 return_tensors="pt"
             )
             # Move inputs to the appropriate device
-            if hasattr(self.model, 'device'):
-                inputs = inputs.to(self.model.device)
+            if hasattr(self.agent.model, 'device'):
+                inputs = inputs.to(self.agent.model.device)
             else:
-                first_param = next(self.model.parameters())
+                first_param = next(self.agent.model.parameters())
                 inputs = inputs.to(first_param.device)
             with torch.no_grad():
-                outputs = self.model.generate(
+                outputs = self.agent.model.generate(
                     inputs,
                     max_new_tokens=512,
                     temperature=0.1,  # Low temperature for more deterministic output
                 )
-            analysis_response = self.tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
+            analysis_response = self.agent.tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
             return analysis_response
         except Exception as e:
             print(f"Error during relatedness analysis: {e}")
@@ -275,23 +186,23 @@ INSTRUCTIONS:
             messages = [messages[0]] + messages[-9:]
 
         try:
-            inputs = self.tokenizer.apply_chat_template(
+            inputs = self.agent.tokenizer.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
                 return_tensors="pt"
             )
 
             # Move inputs to the appropriate device
-            if hasattr(self.model, 'device'):
-                inputs = inputs.to(self.model.device)
+            if hasattr(self.agent.model, 'device'):
+                inputs = inputs.to(self.agent.model.device)
             else:
                 # If model is distributed across devices, use the first parameter's device
-                first_param = next(self.model.parameters())
+                first_param = next(self.agent.model.parameters())
                 inputs = inputs.to(first_param.device)
 
             with torch.no_grad():
                 # Use more conservative generation settings
-                outputs = self.model.generate(
+                outputs = self.agent.model.generate(
                     inputs,
                     max_new_tokens=256,  # Reduced from 512 to save memory
                     temperature=0.7,
@@ -299,7 +210,13 @@ INSTRUCTIONS:
                     do_sample=True,
                 )
 
-            response = self.tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
+            response = self.agent.tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
+            if "{" in response:
+                try:
+                    agent_isolated_json = response.split('{', 2)[1].split('}', 2)[0]
+                    response = agent_isolated_json
+                except Exception as e:
+                    pass
 
         except Exception as e:
             print(f"Error during generation: {e}")
@@ -336,107 +253,3 @@ INSTRUCTIONS:
             torch.cuda.empty_cache()
 
 
-def create_custom_scenario(description: str, metrics: Dict[str, int], targets: Dict[str, int],
-                           modifiers: Dict[str, str]) -> Dict:
-    """Helper function to create a custom scenario configuration."""
-    return {
-        "description": description,
-        "metrics": metrics,
-        "targets": targets,
-        "modifiers": modifiers
-    }
-
-
-def run_scenario_agent(scenario_config: Dict[str, Any] = None):
-    """
-    Run the scenario agent with the provided configuration or default.
-
-    Args:
-        scenario_config: Dictionary containing scenario configuration.
-                         If None, use the default configuration.
-    """
-    try:
-        agent = ScenarioAgent(scenario_config)
-
-        print("=" * 80)
-        print("Scenario Agent Initialized")
-        print(f"Scenario: {agent.scenario_description}")
-        print("=" * 80)
-        print("Ask questions to discover metrics, targets, and hidden modifiers.")
-        print("If your question is related to any variables, the agent will reveal them.")
-        print("Type 'exit' to end the session.")
-        print("Type 'status' to see what you've discovered so far.")
-        print("=" * 80)
-
-        while True:
-            user_input = input("\nYour question: ")
-            if user_input.lower() == 'exit':
-                break
-            elif user_input.lower() == 'status':
-                # Display current discovery status
-                status = agent.get_discovery_status()
-                print("\nDiscovery Status:")
-                for category, items in status.items():
-                    discovered = [k for k, v in items.items() if v]
-                    undiscovered = len(items) - len(discovered)
-                    print(f"  {category.capitalize()}: {len(discovered)} discovered, {undiscovered} remaining")
-                    if discovered:
-                        print(f"    Discovered: {', '.join(discovered)}")
-                continue
-
-            response, _ = agent.process_question(user_input)
-
-            print("\nAgent response:")
-            print(response)
-
-            # Clear CUDA cache after processing to free up memory
-            agent.clear_cuda_cache()
-
-            # Check if everything has been discovered
-            if agent.all_discovered():
-                print("\n" + "=" * 80)
-                print("Congratulations! You've discovered all hidden information!")
-                print("=" * 80)
-                break
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        print("\nIf you're experiencing memory issues, try one of these alternatives:")
-        print("1. Use a smaller model like 'microsoft/phi-2' instead of Mistral-7B")
-        print("2. Use an API-based approach with something like OpenAI's API")
-        print("3. Try implementing a similar solution with TinyLlama (2.8GB) which fits on most GPUs")
-
-
-# Usage Examples
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description='Run the Scenario Agent')
-    parser.add_argument('--custom', action='store_true', help='Use custom scenario instead of default')
-    parser.add_argument('--model', type=str, default="mistralai/Mistral-7B-Instruct-v0.3",
-                        help='Model to use (default: mistralai/Mistral-7B-Instruct-v0.3)')
-    args = parser.parse_args()
-
-    if args.custom:
-        # Example of creating a custom scenario
-        custom_scenario = create_custom_scenario(
-            description="A software development team is working on a critical project with tight deadlines. The team's performance varies based on several factors.",
-            metrics={
-                "development_speed": 75,
-                "bug_count": 12,
-                "team_morale": 65
-            },
-            targets={
-                "development_speed_target": 90,
-                "bug_count_target": 5,
-                "team_morale_target": 85
-            },
-            modifiers={
-                "remote_work": "The team recently switched to remote work, causing a temporary 10% decrease in development speed.",
-                "new_tools": "The team adopted new debugging tools that could reduce bug count by 30% if the team is properly trained.",
-                "deadline_pressure": "Management recently moved up the deadline, causing increased stress and affecting team morale."
-            }
-        )
-        run_scenario_agent(custom_scenario)
-    else:
-        run_scenario_agent()  # Use default factory scenario
