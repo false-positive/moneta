@@ -4,8 +4,11 @@ export type Kind = "investment" | "income" | "expense" | "other";
 
 export type Step = {
 	tick: number;
+	// isBankAccountDiscovered: boolean;
 	bankAccount: number;
+	// isJoyDiscovered: boolean;
 	joy: number;
+	// isFreeTimeDiscovered: boolean;
 	freeTime: number;
 	newActions: Action[];
 	oldActiveActions: Action[];

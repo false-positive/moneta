@@ -1,52 +1,27 @@
 import invariant from "tiny-invariant";
 import { Action, computeNextStep, Step } from "./actions";
+import { CaseCards } from "@/components/ui/case-cards";
 
-export type Case = {
+export type CaseDescription = {
 	personName: string;
 	caseLLMDescriptipn: string;
 	stepCount: number;
+	initialStep: Step;
+};
+
+export type Case = {
+	description: CaseDescription;
 	steps: Step[];
 	currentStepIndex: number;
 };
 
-export const defaultCase: Case = {
-	personName: "",
-	caseLLMDescriptipn: "",
-	stepCount: 0,
-	steps: [],
-	currentStepIndex: 0,
-};
-
-export function simulateWithActions(previousCase: Case, actions: Action[]) {
-	const nextCase = { ...previousCase };
-
-	invariant(nextCase.steps.length > 0, "Cannot simulate case with no steps");
-
-	nextCase.steps = nextCase.steps.slice(0, nextCase.currentStepIndex + 1);
-	invariant(
-		nextCase.steps.length === nextCase.currentStepIndex + 1,
-		"Insufficient length of steps array"
-	);
-
-	for (let i = nextCase.currentStepIndex; i < nextCase.stepCount; i++) {
-		nextCase.steps.push(computeNextStep(nextCase.steps[i], actions));
-	}
-
-	return nextCase;
-}
-
-export function simulateFromIndexWithActions(
-	previousCase: Case,
-	actions: Action[],
-	index: number
+export function simulateWithActions(
+	caseDescription: CaseDescription,
+	newActionsPerTick: Action[][]
 ) {
-	const nextCase = { ...previousCase };
-
-	nextCase.currentStepIndex = index - 1;
-	invariant(
-		nextCase.currentStepIndex > 0,
-		"Cannot simulate from index with non-positive index"
-	);
-
-	return simulateWithActions(nextCase, actions);
+	let steps: Step[] = [caseDescription.initialStep];
+	for (const actions of newActionsPerTick) {
+		steps.push(computeNextStep(steps[steps.length - 1], actions));
+	}
+	return steps;
 }
