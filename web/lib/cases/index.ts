@@ -2,6 +2,9 @@ export type Case = {
 	personName: string;
 	caseLLMDescriptipn: string;
 	initialStep: Step;
+	personName: string;
+	caseLLMDescriptipn: string;
+	initialStep: Step;
 };
 
 function computeNextStep(steps: Step[]) {
