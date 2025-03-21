@@ -1,126 +1,141 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Clock, Heart, Wallet, PiggyBank } from "lucide-react";
-
-const metricsData = {
-	2024: {
-		capital: 125000,
-		assets: 250000,
-		cash: 15000,
-		freeTimeHours: 24,
-		joyIndex: 85,
-	},
-	2025: {
-		capital: 150000,
-		assets: 280000,
-		cash: 18000,
-		freeTimeHours: 22,
-		joyIndex: 82,
-	},
-	2026: {
-		capital: 180000,
-		assets: 320000,
-		cash: 22000,
-		freeTimeHours: 20,
-		joyIndex: 80,
-	},
-	2027: {
-		capital: 210000,
-		assets: 370000,
-		cash: 25000,
-		freeTimeHours: 18,
-		joyIndex: 78,
-	},
-	2028: {
-		capital: 250000,
-		assets: 430000,
-		cash: 30000,
-		freeTimeHours: 16,
-		joyIndex: 75,
-	},
-	2029: {
-		capital: 300000,
-		assets: 500000,
-		cash: 35000,
-		freeTimeHours: 20,
-		joyIndex: 82,
-	},
-	2030: {
-		capital: 380000,
-		assets: 580000,
-		cash: 105000,
-		freeTimeHours: 25,
-		joyIndex: 90,
-	},
-	2031: {
-		capital: 400000,
-		assets: 620000,
-		cash: 80000,
-		freeTimeHours: 15,
-		joyIndex: 70,
-	},
-	2032: {
-		capital: 450000,
-		assets: 700000,
-		cash: 90000,
-		freeTimeHours: 22,
-		joyIndex: 85,
-	},
-	2033: {
-		capital: 500000,
-		assets: 780000,
-		cash: 100000,
-		freeTimeHours: 26,
-		joyIndex: 88,
-	},
-	2034: {
-		capital: 550000,
-		assets: 850000,
-		cash: 110000,
-		freeTimeHours: 20,
-		joyIndex: 90,
-	},
-	2035: {
-		capital: 600000,
-		assets: 950000,
-		cash: 120000,
-		freeTimeHours: 30,
-		joyIndex: 95,
-	},
-};
+import type { ActionTiming } from "@/components/timeline";
+import { useEffect } from "react";
 
 interface MetricsDisplayProps {
 	selectedYear: number;
+	timeframe: "years" | "months" | "weeks" | "days";
+	actionTimings?: ActionTiming[];
 }
 
-export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
-	const metrics =
-		metricsData[selectedYear as keyof typeof metricsData] ||
-		metricsData[2024];
+export function MetricsDisplay({
+	selectedYear,
+	timeframe,
+	actionTimings = [],
+}: MetricsDisplayProps) {
+	const activeTimings = actionTimings.filter(
+		(timing) =>
+			timing.startTick <= selectedYear && timing.endTick >= selectedYear
+	);
+
+	const activeActions = activeTimings.map((timing) => timing.action);
+
+	const timeScaling = {
+		years: 1,
+		months: 1 / 12,
+		weeks: 1 / 52,
+		days: 1 / 365,
+	};
+
+	const scaling = timeScaling[timeframe];
+
+	const calculatedMetrics = {
+		monthlyIncome: activeActions.reduce((sum, action) => {
+			if (
+				action.kind === "income" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				return (
+					sum +
+					action.bankAccountImpact.repeatedAbsoluteDelta *
+						(timeframe === "years" ? 1 : 1)
+				);
+			}
+			return sum;
+		}, 0),
+
+		monthlyExpenses: activeActions.reduce((sum, action) => {
+			if (
+				action.kind === "expense" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				return (
+					sum +
+					Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta) *
+						(timeframe === "years" ? 1 : 1)
+				);
+			}
+			return sum;
+		}, 0),
+
+		investmentValue: activeActions.reduce((sum, action) => {
+			if (
+				action.kind === "investment" &&
+				action.investmentImpact.hasImpact
+			) {
+				return sum + action.investmentImpact.initialPrice * scaling;
+			}
+			return sum;
+		}, 0),
+
+		freeTimeHours: activeActions.reduce((hours, action) => {
+			if (action.freeTimeImpact.hasImpact) {
+				return (
+					hours +
+					action.freeTimeImpact.repeatedAbsoluteDelta *
+						(timeframe !== "years" ? scaling : 1)
+				);
+			}
+			return hours;
+		}, 40 * (timeframe !== "years" ? scaling : 1)),
+
+		joyIndex: Math.min(
+			100,
+			Math.max(
+				0,
+				Math.round(
+					activeActions.reduce((joy, action) => {
+						if (action.joyImpact.hasImpact) {
+							return joy + action.joyImpact.repeatedPercent / 100;
+						}
+						return joy;
+					}, 0.5) * 100
+				)
+			)
+		),
+	};
+
+	const defaultMetrics = {
+		capital: 10000,
+		assets: 10000,
+		cash: 5000,
+		freeTimeHours: 40,
+		joyIndex: 50,
+	};
+
+	const metrics = {
+		capital:
+			calculatedMetrics.investmentValue +
+				(calculatedMetrics.monthlyIncome -
+					calculatedMetrics.monthlyExpenses) *
+					12 || defaultMetrics.capital,
+		assets:
+			calculatedMetrics.investmentValue +
+				(calculatedMetrics.monthlyIncome -
+					calculatedMetrics.monthlyExpenses) *
+					12 || defaultMetrics.assets,
+		cash:
+			(calculatedMetrics.monthlyIncome -
+				calculatedMetrics.monthlyExpenses) *
+				6 || defaultMetrics.cash,
+		freeTimeHours:
+			calculatedMetrics.freeTimeHours || defaultMetrics.freeTimeHours,
+		joyIndex: calculatedMetrics.joyIndex || defaultMetrics.joyIndex,
+	};
 
 	const pointChanges = {
-		capital: 12,
-		assets: 12,
-		cash: 7,
-		freeTime: 40,
+		capital: Math.floor(metrics.capital / 10000),
+		assets: Math.floor(metrics.assets / 20000),
+		cash: Math.floor(metrics.cash / 2000),
+		freeTime: Math.max(10, metrics.freeTimeHours),
 		joy: metrics.joyIndex,
 	};
 
 	return (
 		<Card className="border-0 shadow-md h-full bg-gradient-to-b from-purple-50 to-white">
-			<CardHeader className="pb-1 pt-1.5 px-3 bg-purple-600 text-white">
-				<CardTitle className="text-sm font-bold flex justify-between items-center">
-					<span>Financial Quest</span>
-					<div className="flex items-center gap-1 bg-purple-500 rounded-full px-2 py-0.5">
-						<div className="text-yellow-300 text-xs">🏆</div>
-						<span className="text-xs">
-							Level {Math.floor(selectedYear - 2020)}
-						</span>
-					</div>
-				</CardTitle>
-			</CardHeader>
-
 			<CardContent className="p-2 space-y-2">
 				<div className="grid grid-cols-2 gap-2">
 					<div className="bg-white rounded-lg p-2 shadow-sm">
@@ -138,7 +153,7 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 							</div>
 						</div>
 						<div className="text-sm font-bold text-purple-900 ml-1">
-							${metrics.capital.toLocaleString()}
+							${Math.round(metrics.capital).toLocaleString()}
 						</div>
 						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 							<div
@@ -146,7 +161,9 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 								style={{
 									width: `${Math.min(
 										100,
-										(metrics.capital / 1000000) * 100
+										(metrics.capital /
+											(metrics.capital + 200000)) *
+											100
 									)}%`,
 								}}
 							></div>
@@ -168,7 +185,7 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 							</div>
 						</div>
 						<div className="text-sm font-bold text-blue-900 ml-1">
-							${metrics.assets.toLocaleString()}
+							${Math.round(metrics.assets).toLocaleString()}
 						</div>
 						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 							<div
@@ -176,7 +193,9 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 								style={{
 									width: `${Math.min(
 										100,
-										(metrics.assets / 1000000) * 100
+										(metrics.assets /
+											(metrics.assets + 200000)) *
+											100
 									)}%`,
 								}}
 							></div>
@@ -198,7 +217,7 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 							</div>
 						</div>
 						<div className="text-sm font-bold text-teal-900 ml-1">
-							${metrics.cash.toLocaleString()}
+							${Math.round(metrics.cash).toLocaleString()}
 						</div>
 						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 							<div
@@ -206,7 +225,9 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 								style={{
 									width: `${Math.min(
 										100,
-										(metrics.cash / 150000) * 100
+										(metrics.cash /
+											(metrics.cash + 30000)) *
+											100
 									)}%`,
 								}}
 							></div>
@@ -228,7 +249,7 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 							</div>
 						</div>
 						<div className="text-sm font-bold text-orange-900 ml-1">
-							{metrics.freeTimeHours}h/w
+							{metrics.freeTimeHours.toFixed(1)}h/w
 						</div>
 						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 							<div
@@ -260,7 +281,7 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 					</div>
 					<div className="flex justify-between items-center">
 						<div className="text-sm font-bold text-rose-900 ml-1">
-							{metrics.joyIndex}%
+							{metrics.joyIndex.toFixed(0)}%
 						</div>
 						<div className="flex gap-0.5">
 							{[...Array(5)].map((_, i) => (

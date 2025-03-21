@@ -47,8 +47,8 @@ function JourneyNode({
 			key={year}
 			className="absolute flex flex-col items-center cursor-pointer transition-transform"
 			style={{
-				left: `${point[0]}px`,
-				top: `${point[1]}px`,
+				left: `${point[0].toFixed(2)}px`,
+				top: `${point[1].toFixed(2)}px`,
 			}}
 			whileHover={{ scale: 1.1 }}
 			onClick={onClick}
@@ -61,18 +61,6 @@ function JourneyNode({
 				<div className="absolute -bottom-8 bg-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
 					{year}
 				</div>
-
-				{status === "completed" && (
-					<div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1 shadow-md">
-						<Sparkles className="h-3 w-3 text-white" />
-					</div>
-				)}
-
-				{status === "completed" && achievementLevel > 0 && (
-					<div className="absolute -top-8 bg-gradient-to-r from-amber-400 to-amber-600 text-white px-2 py-0.5 rounded-md text-xs font-bold shadow-md">
-						+{achievementLevel} pts
-					</div>
-				)}
 			</div>
 
 			{status === "current" && (
@@ -133,6 +121,8 @@ export function FinancialJourney({
 	}, [years]);
 
 	const pathString = useMemo(() => {
+		if (!pathPoints || pathPoints.length < 2) return "";
+
 		let path = `M ${pathPoints[0][0]} ${pathPoints[0][1]}`;
 
 		for (let i = 1; i < pathPoints.length; i++) {
@@ -141,7 +131,11 @@ export function FinancialJourney({
 
 			const controlX = prevX + (currentX - prevX) * 0.5;
 
-			path += ` C ${controlX} ${prevY}, ${controlX} ${currentY}, ${currentX} ${currentY}`;
+			path += ` C ${controlX.toFixed(6)} ${prevY.toFixed(
+				6
+			)}, ${controlX.toFixed(6)} ${currentY.toFixed(
+				6
+			)}, ${currentX.toFixed(6)} ${currentY.toFixed(6)}`;
 		}
 
 		return path;
@@ -192,7 +186,7 @@ export function FinancialJourney({
 		(year: number) => {
 			const step = steps.find((step) => step.tick === year);
 			if (!step) return 0;
-			return Math.floor((step.joy * 10 + step.budget / 1000) / 2);
+			return Math.floor((step.joy * 10 + step.bankAccount / 1000) / 2);
 		},
 		[steps]
 	);
@@ -323,7 +317,10 @@ export function FinancialJourney({
 						{activeTab === "metrics" && selectedNode && (
 							<MetricsCard
 								selectedYear={selectedNode}
+								currentYear={selectedNode}
+								timeframe="years"
 								steps={steps}
+								actionTimings={actionTimings}
 							/>
 						)}
 

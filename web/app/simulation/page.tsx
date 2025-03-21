@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FinancialJourney } from "@/components/financial-journey";
 import { MetricsCard } from "@/components/metrics-card";
 import { TransactionList } from "@/components/transaction-list";
 import { SpendingGraph } from "@/components/spending-graph";
 import { Timeline, type ActionTiming } from "@/components/timeline";
 import type { Step, Action } from "@/lib/cases/actions";
+import {
+	lifeAction,
+	waiterJobAction,
+	savingsDepositAction,
+	pensionInvestmentAction,
+} from "@/lib/cases/standard-actions";
+import { CaseDescription, simulateWithActions } from "@/lib/cases/index";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Trophy,
-	Sparkles,
 	ArrowRight,
 	ChevronDown,
 	ChevronUp,
@@ -24,146 +30,6 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
-const mockSteps: Step[] = Array.from({ length: 16 }, (_, i) => {
-	const year = 2020 + i;
-	return {
-		tick: year,
-		budget: 5000 + i * 500,
-		isBudgetKnown: true,
-		joy: 0.5 + Math.sin(i * 0.5) * 0.3 + i * 0.02,
-		isJoyKnown: true,
-		freeTime: 40 - i * 1.5 + Math.sin(i * 0.8) * 5,
-		isFreeTimeKnown: true,
-		newActions: [],
-		appliedActions: [] as Action[],
-	};
-});
-
-const mockMonthlySteps: Step[] = Array.from({ length: 12 }, (_, i) => {
-	const month = i + 1;
-	return {
-		tick: month,
-		budget: 5000 + i * 150,
-		isBudgetKnown: true,
-		joy: 0.5 + Math.sin(i * 0.7) * 0.2 + i * 0.01,
-		isJoyKnown: true,
-		freeTime: 40 - i * 0.5 + Math.sin(i * 0.9) * 3,
-		isFreeTimeKnown: true,
-		newActions: [],
-		appliedActions: [] as Action[],
-	};
-});
-
-const mockWeeklySteps: Step[] = Array.from({ length: 52 }, (_, i) => {
-	const week = i + 1;
-	return {
-		tick: week,
-		budget: 5000 + i * 40,
-		isBudgetKnown: true,
-		joy: 0.5 + Math.sin(i * 0.8) * 0.15 + i * 0.005,
-		isJoyKnown: true,
-		freeTime: 40 - i * 0.2 + Math.sin(i * 1.0) * 2,
-		isFreeTimeKnown: true,
-		newActions: [],
-		appliedActions: [] as Action[],
-	};
-});
-
-const mockDailySteps: Step[] = Array.from({ length: 30 }, (_, i) => {
-	const day = i + 1;
-	return {
-		tick: day,
-		budget: 5000 + i * 10,
-		isBudgetKnown: true,
-		joy: 0.5 + Math.sin(i * 0.9) * 0.1 + i * 0.002,
-		isJoyKnown: true,
-		freeTime: 40 - i * 0.1 + Math.sin(i * 1.1) * 1,
-		isFreeTimeKnown: true,
-		newActions: [],
-		appliedActions: [] as Action[],
-	};
-});
-
-const mockActionTimings: ActionTiming[] = [
-	{
-		action: {
-			id: "action-1",
-			name: "Software Developer Job",
-			kind: "job",
-			shortDescription: "Full-time software development position",
-			joyImpact: 0.2,
-		} as Action,
-		startTick: 2020,
-		endTick: 2025,
-	},
-	{
-		action: {
-			id: "action-2",
-			name: "Apartment Rental",
-			kind: "property",
-			shortDescription: "Renting a 2-bedroom apartment",
-			joyImpact: 0.1,
-		} as Action,
-		startTick: 2020,
-		endTick: 2023,
-	},
-	{
-		action: {
-			id: "action-3",
-			name: "Master's Degree",
-			kind: "education",
-			shortDescription: "Part-time master's in computer science",
-			joyImpact: 0.15,
-		} as Action,
-		startTick: 2022,
-		endTick: 2024,
-	},
-	{
-		action: {
-			id: "action-4",
-			name: "Stock Investments",
-			kind: "investment",
-			shortDescription: "Diversified stock portfolio",
-			joyImpact: 0.05,
-		} as Action,
-		startTick: 2021,
-		endTick: 2035,
-	},
-	{
-		action: {
-			id: "action-5",
-			name: "Condo Purchase",
-			kind: "property",
-			shortDescription: "Buying a condominium",
-			joyImpact: -0.1,
-		} as Action,
-		startTick: 2024,
-		endTick: 2035,
-	},
-	{
-		action: {
-			id: "action-7",
-			name: "Senior Developer Role",
-			kind: "job",
-			shortDescription: "Promotion to senior developer",
-			joyImpact: 0.25,
-		} as Action,
-		startTick: 2025,
-		endTick: 2028,
-	},
-	{
-		action: {
-			id: "action-8",
-			name: "Rental Property",
-			kind: "property",
-			shortDescription: "Investment in a rental property",
-			joyImpact: 0.2,
-		} as Action,
-		startTick: 2027,
-		endTick: 2035,
-	},
-];
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -183,25 +49,287 @@ const monthUnits = [
 const weekUnits = Array.from({ length: 52 }, (_, i) => `Week ${i + 1}`);
 const dayUnits = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
+const createHardcodedSimulation = () => {
+	const INITIAL_BANK_ACCOUNT = 20000;
+
+	const initialStep: Step = {
+		tick: 2020,
+		bankAccount: INITIAL_BANK_ACCOUNT,
+		joy: 100,
+		freeTime: 100,
+		newActions: [],
+		oldActiveActions: [{ ...lifeAction }],
+	};
+
+	const caseDescription: CaseDescription = {
+		personName: "Financial Explorer",
+		caseLLMDescriptipn:
+			"A financial simulation exploring different career and investment choices",
+		stepCount: 5,
+		tickKind: "year",
+		initialStep,
+	};
+
+	// Define actions for each year
+	const newActionsPerTick: Action[][] = [
+		// Year 2021 - Add waiter job
+		[
+			{
+				...waiterJobAction,
+				remainingTicks: 3, // 3 years
+			},
+		],
+
+		// Year 2022 - Add savings deposit
+		[
+			{
+				...savingsDepositAction,
+				remainingTicks: 2, // 2 years
+				capital: 1000,
+			},
+		],
+
+		// Year 2023 - No new actions
+		[],
+
+		// Year 2024 - No new actions
+		[],
+
+		// Year 2025 - Start fresh with more investment
+		[
+			{
+				...pensionInvestmentAction,
+				remainingTicks: 3, // 3 years
+				capital: 5000,
+			},
+		],
+	];
+
+	const yearlySteps = simulateWithActions(caseDescription, newActionsPerTick);
+
+	const generateActionTimings = (steps: Step[]): ActionTiming[] => {
+		console.log("[simulation] generateActionTimings", steps);
+		const actionMap = new Map<string, ActionTiming>();
+
+		for (const step of steps) {
+			step.newActions.forEach((action) => {
+				console.log("[simulation] action", action);
+				const actionKey = `${action.name}-${action.kind}`;
+				const endTick =
+					action.remainingTicks === Infinity
+						? step.tick + 15
+						: step.tick + action.remainingTicks;
+
+				console.log("[simulation] actionKey", actionKey);
+				console.log("[simulation] endTick", endTick);
+
+				actionMap.set(actionKey, {
+					action: { ...action },
+					startTick: step.tick,
+					endTick,
+				});
+				console.log("[simulation] actionKey", actionKey);
+			});
+		}
+
+		return Array.from(actionMap.values());
+	};
+
+	const actionTimings = generateActionTimings(yearlySteps);
+
+	return {
+		yearlySteps,
+		actionTimings,
+		caseDescription,
+	};
+};
+
+const generateSubTimeframeSteps = (
+	yearlySteps: Step[],
+	selectedYear?: number
+) => {
+	const monthlySteps: Step[] = [];
+	const weeklySteps: Step[] = [];
+	const dailySteps: Step[] = [];
+
+	// If we have steps from the yearly steps
+	if (yearlySteps.length > 0) {
+		// Find the correct yearly step to base sub-timeframe steps on
+		// Either use the selected year, or fall back to the most recent year
+		const baseYearlyStep = selectedYear
+			? yearlySteps.find((step) => step.tick === selectedYear) ||
+			  yearlySteps[yearlySteps.length - 1]
+			: yearlySteps[yearlySteps.length - 1];
+
+		// Monthly steps - spread the yearly values over 12 months
+		for (let month = 1; month <= 12; month++) {
+			const factor = month / 12;
+			monthlySteps.push({
+				tick: month,
+				bankAccount: baseYearlyStep.bankAccount * factor,
+				joy: baseYearlyStep.joy * (0.9 + 0.1 * factor),
+				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
+				newActions: month === 6 ? [...baseYearlyStep.newActions] : [],
+				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+			});
+		}
+
+		// Weekly steps - 52 weeks
+		for (let week = 1; week <= 52; week++) {
+			const factor = week / 52;
+			weeklySteps.push({
+				tick: week,
+				bankAccount: baseYearlyStep.bankAccount * factor,
+				joy: baseYearlyStep.joy * (0.9 + 0.1 * factor),
+				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
+				newActions: week === 26 ? [...baseYearlyStep.newActions] : [],
+				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+			});
+		}
+
+		// Daily steps - 30 days
+		for (let day = 1; day <= 30; day++) {
+			const factor = day / 30;
+			dailySteps.push({
+				tick: day,
+				bankAccount: (baseYearlyStep.bankAccount * factor) / 12,
+				joy: baseYearlyStep.joy * (0.95 + 0.05 * factor),
+				freeTime: baseYearlyStep.freeTime * (0.95 + 0.05 * factor),
+				newActions: day === 15 ? [...baseYearlyStep.newActions] : [],
+				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+			});
+		}
+	}
+
+	return { monthlySteps, weeklySteps, dailySteps };
+};
+
 export default function Simulation() {
-	const [currentYear, setCurrentYear] = useState(2025);
-	const [selectedYear, setSelectedYear] = useState(2025);
+	const [currentYear, setCurrentYear] = useState(2020);
+	const [selectedYear, setSelectedYear] = useState(2020);
+
+	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
+	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
+	const [isFinancialDataOpen, setIsFinancialDataOpen] = useState(true);
+	const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+	const [yearlySteps, setYearlySteps] = useState<Step[]>([]);
+	const [monthlySteps, setMonthlySteps] = useState<Step[]>([]);
+	const [weeklySteps, setWeeklySteps] = useState<Step[]>([]);
+	const [dailySteps, setDailySteps] = useState<Step[]>([]);
+	const [actionTimings, setActionTimings] = useState<ActionTiming[]>([]);
+	const [caseDescription, setCaseDescription] = useState<CaseDescription>();
 	const [timeframe, setTimeframe] = useState<
 		"years" | "months" | "weeks" | "days"
 	>("years");
-	const [isYearStatsOpen, setIsYearStatsOpen] = useState(false);
-	const [isTimelineOpen, setIsTimelineOpen] = useState(false);
-	const [isFinancialDataOpen, setIsFinancialDataOpen] = useState(false);
-	const [isQuestsOpen, setIsQuestsOpen] = useState(false);
+
+	useEffect(() => {
+		const currentYearStep = yearlySteps.find(
+			(step) => step.tick === currentYear
+		);
+		if (currentYearStep) {
+			console.log("[simulation] Current Year Information:", {
+				year: currentYear,
+				bankAccount: currentYearStep.bankAccount,
+				joy: currentYearStep.joy,
+				freeTime: currentYearStep.freeTime,
+				newActions: currentYearStep.newActions,
+				activeActions: currentYearStep.oldActiveActions,
+				allActions: [
+					...currentYearStep.oldActiveActions,
+					...currentYearStep.newActions,
+				],
+			});
+		} else {
+			console.log("No data for year:", currentYear);
+		}
+	}, [currentYear, yearlySteps]);
+
+	useEffect(() => {
+		const currentYearStep = yearlySteps.find(
+			(step) => step.tick === currentYear
+		);
+		if (currentYearStep) {
+			console.log("Current Year Information:", {
+				year: currentYear,
+				bankAccount: currentYearStep.bankAccount,
+				joy: currentYearStep.joy,
+				freeTime: currentYearStep.freeTime,
+				newActions: currentYearStep.newActions,
+				activeActions: currentYearStep.oldActiveActions,
+				allActions: [
+					...currentYearStep.oldActiveActions,
+					...currentYearStep.newActions,
+				],
+			});
+
+			// Log active action timings for debugging
+			const activeTimings = actionTimings.filter(
+				(timing) =>
+					timing.startTick <= currentYear &&
+					timing.endTick >= currentYear
+			);
+
+			console.log(
+				"[simulation] Active action timings for year",
+				currentYear,
+				":",
+				activeTimings
+			);
+		} else {
+			console.log("No data for year:", currentYear);
+		}
+	}, [currentYear, yearlySteps, actionTimings]);
+
+	useEffect(() => {
+		const { yearlySteps, actionTimings, caseDescription } =
+			createHardcodedSimulation();
+		const { monthlySteps, weeklySteps, dailySteps } =
+			generateSubTimeframeSteps(yearlySteps);
+
+		const firstYear = yearlySteps[0]?.tick || 2020;
+		setCurrentYear(firstYear);
+		setSelectedYear(firstYear);
+
+		setYearlySteps(yearlySteps);
+		setCaseDescription(caseDescription);
+		setMonthlySteps(monthlySteps);
+		setWeeklySteps(weeklySteps);
+		setDailySteps(dailySteps);
+		setActionTimings(actionTimings);
+	}, []);
+
+	useEffect(() => {
+		if (yearlySteps.length > 0) {
+			const { monthlySteps, weeklySteps, dailySteps } =
+				generateSubTimeframeSteps(yearlySteps, selectedYear);
+
+			setMonthlySteps(monthlySteps);
+			setWeeklySteps(weeklySteps);
+			setDailySteps(dailySteps);
+		}
+	}, [selectedYear, yearlySteps]);
+
+	useEffect(() => {
+		if (timeframe === "years") {
+			setCurrentYear(selectedYear);
+		}
+	}, [selectedYear, timeframe]);
+
+	const handleYearSelect = (year: number) => {
+		setSelectedYear(year);
+		if (timeframe === "years") {
+			setCurrentYear(year);
+		}
+	};
 
 	const currentSteps =
 		timeframe === "years"
-			? mockSteps
+			? yearlySteps
 			: timeframe === "months"
-			? mockMonthlySteps
+			? monthlySteps
 			: timeframe === "weeks"
-			? mockWeeklySteps
-			: mockDailySteps;
+			? weeklySteps
+			: dailySteps;
 
 	const currentUnits =
 		timeframe === "years"
@@ -232,20 +360,9 @@ export default function Simulation() {
 						<span className="bg-indigo-600 text-white p-2 rounded-lg">
 							<Trophy className="h-6 w-6" />
 						</span>
-						{/* TODO: Iva - fix not hardcoded */}
-						Case 1
+						{caseDescription?.personName}'s Financial Journey
 					</h1>
 
-					<div className="flex items-center gap-4">
-						<div className="flex items-center gap-2 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm">
-							<Sparkles className="h-4 w-4 text-amber-500" />
-							<span>Level {Math.floor(currentYear - 2020)}</span>
-						</div>
-
-						<div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm">
-							<Trophy className="h-4 w-4 text-emerald-500" />
-							<span>Points: {(currentYear - 2020) * 125}</span>
-						</div>
 					</div>
 				</div>
 
@@ -262,9 +379,9 @@ export default function Simulation() {
 								<FinancialJourney
 									steps={currentSteps}
 									timeUnits={currentUnits}
-									actionTimings={mockActionTimings}
+									actionTimings={actionTimings}
 									currentYear={selectedYear}
-									onYearSelect={setSelectedYear}
+									onYearSelect={handleYearSelect}
 								/>
 							</div>
 						</div>
@@ -296,12 +413,12 @@ export default function Simulation() {
 										unitType={timeframe}
 										onUnitClick={(unit) => {
 											if (typeof unit === "number") {
-												setSelectedYear(unit);
+												handleYearSelect(unit);
 											} else {
-												setSelectedYear(1);
+												handleYearSelect(1);
 											}
 										}}
-										actionTimings={mockActionTimings}
+										actionTimings={actionTimings}
 									/>
 								</div>
 							</CollapsibleContent>
@@ -331,7 +448,16 @@ export default function Simulation() {
 								<div className="p-2">
 									<MetricsCard
 										selectedYear={selectedYear}
-										steps={currentSteps}
+										steps={currentSteps.map((step) => ({
+											...step,
+											oldActiveActions: [
+												...step.oldActiveActions,
+												...step.newActions,
+											],
+										}))}
+										actionTimings={actionTimings}
+										timeframe={timeframe}
+										currentYear={currentYear}
 									/>
 								</div>
 							</CollapsibleContent>
@@ -385,6 +511,31 @@ export default function Simulation() {
 										<TransactionList
 											selectedTimeframe={timeframe}
 											selectedUnit={selectedYear}
+											actions={
+												currentSteps.find(
+													(step) =>
+														step?.tick ===
+														selectedYear
+												)
+													? [
+															...(currentSteps.find(
+																(step) =>
+																	step?.tick ===
+																	selectedYear
+															)?.newActions ||
+																[]),
+															...(currentSteps.find(
+																(step) =>
+																	step?.tick ===
+																	selectedYear
+															)
+																?.oldActiveActions ||
+																[]),
+													  ]
+													: []
+											}
+											actionTimings={actionTimings}
+											currentYear={currentYear}
 										/>
 									</TabsContent>
 
@@ -395,7 +546,9 @@ export default function Simulation() {
 										<SpendingGraph
 											timeUnits={currentUnits}
 											selectedUnit={selectedYear}
-											actionTimings={mockActionTimings}
+											actionTimings={actionTimings}
+											timeframe={timeframe}
+											currentYear={currentYear}
 										/>
 									</TabsContent>
 								</Tabs>
@@ -428,9 +581,7 @@ export default function Simulation() {
 											<h3 className="font-bold text-amber-800 text-sm">
 												Diversify Investments
 											</h3>
-											<span className="bg-amber-200 text-amber-800 px-2 py-0.5 rounded text-xs">
-												+50 pts
-											</span>
+											
 										</div>
 										<p className="text-amber-700 text-xs mt-1">
 											Allocate your portfolio across
@@ -449,9 +600,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-emerald-800 text-sm">
 												Emergency Fund
 											</h3>
-											<span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
+											{/* <span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
 												+75 pts
-											</span>
+											</span> */}
 										</div>
 										<p className="text-emerald-700 text-xs mt-1">
 											Save 6 months of expenses in a
@@ -470,9 +621,6 @@ export default function Simulation() {
 											<h3 className="font-bold text-purple-800 text-sm">
 												Retirement Planning
 											</h3>
-											<span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
-												+100 pts
-											</span>
 										</div>
 										<p className="text-purple-700 text-xs mt-1">
 											Set up automatic contributions to

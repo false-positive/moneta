@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -10,9 +10,8 @@ import {
 	DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { Action, Step } from "@/lib/cases/actions";
+import { type Action, type Step } from "@/lib/cases/actions";
 
-// Export the ActionTiming interface so it can be imported by other components
 export interface ActionTiming {
 	action: Action;
 	startTick: number;
@@ -30,11 +29,12 @@ interface TimelineProps {
 }
 
 const getActionColors = (
-	joyValue: number,
+	joyImpact: any,
 	kind: string,
 	isSelected: boolean = false
 ) => {
-	// Base colors based on joy value
+	const joyValue = joyImpact.hasImpact ? joyImpact.repeatedPercent : 0;
+
 	if (joyValue > 0) {
 		return {
 			bg: isSelected ? "bg-emerald-200" : "bg-emerald-100",
@@ -86,6 +86,10 @@ export function Timeline({
 		setSelectedAction(action);
 		setEventDetailsOpen(true);
 	};
+
+	useEffect(() => {
+		console.log("[timeline] actionTimings", actionTimings);
+	}, [actionTimings]);
 
 	return (
 		<div className="w-full overflow-x-auto">
@@ -144,65 +148,63 @@ export function Timeline({
 					className="space-y-2"
 					style={{ width: `${timeUnits.length * 80}px` }}
 				>
-					{actionTimings.map((timing) => {
-						const startUnit = timing.startTick;
-						const endUnit = timing.endTick;
+					{actionTimings
+						.filter((timing) => timing.action.name !== "Life")
+						.map((timing, index) => {
+							const startUnit = timing.startTick;
+							const endUnit = timing.endTick;
 
-						const startIndex = timeUnits.indexOf(startUnit);
-						const endIndex = timeUnits.indexOf(endUnit);
+							const startIndex = timeUnits.indexOf(startUnit);
+							const endIndex = timeUnits.indexOf(endUnit);
 
-						const left = startIndex * 80;
-						const width = (endIndex - startIndex + 1) * 80;
+							const left = startIndex * 80;
+							const width = (endIndex - startIndex + 0.3) * 80;
 
-						const joyImpact =
-							timing.action.kind === "business"
-								? (timing.action as any).joyImpact.success
-								: (timing.action as any).joyImpact;
+							const joyImpact = timing.action.joyImpact;
 
-						const colors = getActionColors(
-							joyImpact,
-							timing.action.kind,
-							selectedUnit === startUnit ||
-								selectedUnit === endUnit
-						);
+							const colors = getActionColors(
+								joyImpact,
+								timing.action.kind,
+								selectedUnit === startUnit ||
+									selectedUnit === endUnit
+							);
 
-						return (
-							<div
-								key={timing.action.id}
-								className="flex items-center"
-							>
-								<div className="w-4 flex-shrink-0"></div>
-								<div className="flex-1 relative h-6 p-1">
-									<div
-										className={`absolute h-6 rounded-full border flex items-center justify-center text-xs font-medium transition-all cursor-pointer hover:shadow-md overflow-hidden ${colors.bg} ${colors.border} ${colors.text}`}
-										style={{
-											left: `${left}px`,
-											width: `${width}px`,
-											opacity:
-												Number(selectedUnit) >=
-													startUnit &&
-												Number(selectedUnit) <= endUnit
-													? 1
-													: 0.7,
-											transform:
-												Number(selectedUnit) >=
-													startUnit &&
-												Number(selectedUnit) <= endUnit
-													? "scale(1.05)"
-													: "scale(1)",
-										}}
-										onClick={() =>
-											handleActionClick(timing.action)
-										}
-									>
-										<span className="text-center whitespace-nowrap overflow-hidden text-ellipsis px-2 text-[10px]">
-											{timing.action.name}
-										</span>
+							return (
+								<div key={index} className="flex items-center">
+									<div className="w-4 flex-shrink-0"></div>
+									<div className="flex-1 relative h-6 p-1">
+										<div
+											className={`absolute h-6 rounded-full border flex items-center justify-center text-xs font-medium transition-all cursor-pointer hover:shadow-md overflow-hidden ${colors.bg} ${colors.border} ${colors.text}`}
+											style={{
+												left: `${left}px`,
+												width: `${width}px`,
+												opacity:
+													Number(selectedUnit) >=
+														startUnit &&
+													Number(selectedUnit) <=
+														endUnit
+														? 1
+														: 0.7,
+												transform:
+													Number(selectedUnit) >=
+														startUnit &&
+													Number(selectedUnit) <=
+														endUnit
+														? "scale(1.05)"
+														: "scale(1)",
+											}}
+											onClick={() =>
+												handleActionClick(timing.action)
+											}
+										>
+											<span className="text-center whitespace-nowrap overflow-hidden text-ellipsis px-2 text-[10px]">
+												{timing.action.name}
+											</span>
+										</div>
 									</div>
 								</div>
-							</div>
-						);
-					})}
+							);
+						})}
 				</div>
 			</div>
 
