@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Mic, User, Square } from "lucide-react";
@@ -49,33 +48,58 @@ export default function ChatInterface() {
 
 	const handleSendMessage = () => {
 		if (input.trim()) {
-			const newMessage: Message = {
+			const userMessage: Message = {
 				id: messages.length + 1,
 				text: input,
 				sender: "user",
 			};
-			setMessages([...messages, newMessage]);
+			// Add the user message and clear the input
+			setMessages((prev) => [...prev, userMessage]);
+			const messageToSend = input;
 			setInput("");
 			setIsWaitingForResponse(true);
-			// Simulate bot response
-			setTimeout(() => {
-				const botResponse: Message = {
-					id: messages.length + 2, // ensure a unique id
-					text: "Thanks for your message! This is a simulated response.",
-					sender: "bot",
-				};
-				setMessages((prevMessages) => [...prevMessages, botResponse]);
-				setIsWaitingForResponse(false);
-			}, 1000);
+
+			// Send the user message to the backend
+			fetch("http://192.168.7.18:5000/discover", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ question: messageToSend }),
+			})
+				.then((response) => {
+					if (!response.ok) {
+						throw new Error("Network response was not ok");
+					}
+					return response.json();
+				})
+				.then((data) => {
+					console.log(data)
+					const botResponseText = data.response || "No response from backend";
+					const botResponse: Message = {
+						id: messages.length + 2, // ensure a unique id
+						text: botResponseText,
+						sender: "bot",
+					};
+					setMessages((prevMessages) => [...prevMessages, botResponse]);
+					setIsWaitingForResponse(false);
+				})
+				.catch((error) => {
+					console.error("Error sending message:", error);
+					const errorResponse: Message = {
+						id: messages.length + 2, // ensure a unique id
+						text: "Error communicating with the server.",
+						sender: "bot",
+					};
+					setMessages((prevMessages) => [...prevMessages, errorResponse]);
+					setIsWaitingForResponse(false);
+				});
 		}
 	};
 
 	const startRecording = async () => {
 		try {
-			const stream = await navigator.mediaDevices.getUserMedia({
-				audio: true,
-			});
-
+			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 			const mediaRecorder = new MediaRecorder(stream);
 			mediaRecorderRef.current = mediaRecorder;
 			audioChunksRef.current = [];
@@ -90,7 +114,6 @@ export default function ChatInterface() {
 				const audioBlob = new Blob(audioChunksRef.current, {
 					type: "audio/wav",
 				});
-				// Directly send the audio blob to the backend
 				sendAudioToBackend(audioBlob);
 				stream.getTracks().forEach((track) => track.stop());
 			};
@@ -105,9 +128,7 @@ export default function ChatInterface() {
 			}, 1000);
 		} catch (error) {
 			console.error("Error accessing microphone:", error);
-			alert(
-				"Could not access microphone. Please check your permissions.",
-			);
+			alert("Could not access microphone. Please check your permissions.");
 		}
 	};
 
@@ -170,32 +191,58 @@ export default function ChatInterface() {
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60);
 		const secs = seconds % 60;
-		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+		return `${mins.toString().padStart(2, "0")}:${secs
+			.toString()
+			.padStart(2, "0")}`;
 	};
 
 	return (
-		<Card className="h-full flex flex-col">
-			<CardContent className="p-4 flex-grow flex flex-col">
-				<div className="flex flex-col h-full">
+		<div className="">
+			<div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mb-6">
+				{/* Gradient Header */}
+				<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 flex items-center justify-between">
+					<h2 className="text-white font-bold text-lg">Chat Interface</h2>
+					{isWaitingForResponse && (
+						<span className="text-sm text-white animate-pulse">
+              Waiting for response...
+            </span>
+					)}
+				</div>
+
+				{/* Chat Body */}
+				<div className="p-4 h-[600px] flex flex-col">
+					{/* Messages */}
 					<div className="flex-1 overflow-y-auto mb-4 space-y-4">
-						{messages.map((message) => (
-							<div
-								key={message.id}
-								className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-							>
-								{message.sender === "bot" && (
-									<div className="flex items-center mr-2">
-										<User className="h-5 w-5 text-gray-500" />
-									</div>
-								)}
+						{messages.map((message) => {
+							const isUser = message.sender === "user";
+							return (
 								<div
-									className={`max-w-[80%] rounded-lg p-3 ${message.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+									key={message.id}
+									className={`flex ${
+										isUser ? "justify-end" : "justify-start"
+									}`}
 								>
-									{message.text}
+									{!isUser && (
+										<div className="flex items-center mr-2">
+											<User className="h-5 w-5 text-gray-500" />
+										</div>
+									)}
+									<div
+										className={`max-w-[80%] rounded-lg p-3 
+                      ${
+											isUser
+												? "bg-emerald-50 text-emerald-800"
+												: "bg-purple-50 text-purple-800"
+										}`}
+									>
+										{message.text}
+									</div>
 								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
+
+					{/* Input & Controls */}
 					<div className="flex gap-2">
 						<Input
 							value={input}
@@ -213,13 +260,15 @@ export default function ChatInterface() {
 							className="flex-1"
 							disabled={isRecording || isWaitingForResponse}
 						/>
+
+						{/* Mic Button */}
 						<Button
 							size="icon"
 							variant={isRecording ? "destructive" : "outline"}
-							onClick={
-								isRecording ? stopRecording : startRecording
-							}
-							className={`transition-all duration-300 ${isRecording ? "animate-pulse" : ""}`}
+							onClick={isRecording ? stopRecording : startRecording}
+							className={`transition-all duration-300 ${
+								isRecording ? "animate-pulse" : ""
+							}`}
 							disabled={isWaitingForResponse}
 						>
 							{isRecording ? (
@@ -228,6 +277,8 @@ export default function ChatInterface() {
 								<Mic className="h-4 w-4" />
 							)}
 						</Button>
+
+						{/* Send Button */}
 						<Button
 							size="icon"
 							onClick={handleSendMessage}
@@ -237,7 +288,7 @@ export default function ChatInterface() {
 						</Button>
 					</div>
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+		</div>
 	);
 }

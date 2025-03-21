@@ -1,4 +1,5 @@
-import {Action, allActionsList} from "@/lib/cases/actions";
+import {Action} from "@/lib/cases/actions";
+import {allActionsList} from "@/lib/cases/standard-actions";
 
 export interface Node {
   id: string
