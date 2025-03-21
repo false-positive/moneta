@@ -1,0 +1,26 @@
+{
+  "agent_title": "factory foreman",
+  "agent_description": "As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
+  "scenario_setting": "factory",
+  "default_scenario": {
+    "description": "A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
+    "metrics": {
+      "production_rate": 120,
+      "defect_rate": 8,
+      "worker_productivity": 25
+    },
+    "targets": {
+      "production_rate_target": 150
+    },
+    "modifiers": {}
+  },
+  "metrics_description": {
+    "production_rate": "The production rate is the number of widgets produced per hour.",
+    "defect_rate": "The defect rate is the percentage of defective widgets produced.",
+    "worker_productivity": "Worker productivity is the average number of widgets produced per worker per hour."
+  },
+  "targets_description": {
+    "production_rate_target": "The production rate target is the desired number of widgets to be produced per hour."
+  },
+  "question": "What is the current production rate and target?"
+}
