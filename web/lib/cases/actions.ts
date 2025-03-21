@@ -1,4 +1,4 @@
-type Step = {
+export type Step = {
 	tick: number;
 	budget: number;
 	isBudgetKnown: boolean;
@@ -13,7 +13,7 @@ type Step = {
 };
 
 // Base Action type with discriminated union via 'kind' property
-type Action =
+export type Action =
 	| InvestmentAction
 	| JobAction
 	| BusinessAction
@@ -26,7 +26,7 @@ type Action =
 	| NoOpAction;
 
 // Base type for all actions
-type BaseAction = {
+export type BaseAction = {
 	id: string;
 	name: string;
 	shortDescription: string; // Short description for UI display
@@ -37,7 +37,7 @@ type BaseAction = {
 };
 
 // Investment action type
-type InvestmentAction = BaseAction & {
+export type InvestmentAction = BaseAction & {
 	kind: "investment";
 	minBudget: number;
 	riskLevel: "none" | "very_low" | "low" | "medium" | "high" | "very_high";
@@ -51,7 +51,7 @@ type InvestmentAction = BaseAction & {
 };
 
 // Job action type
-type JobAction = BaseAction & {
+export type JobAction = BaseAction & {
 	kind: "job";
 	requiredFreeTime: number;
 	incomeAmount: number;
@@ -61,7 +61,7 @@ type JobAction = BaseAction & {
 };
 
 // Business action type
-type BusinessAction = BaseAction & {
+export type BusinessAction = BaseAction & {
 	kind: "business";
 	initialInvestment: number;
 	minBudget: number;
@@ -84,7 +84,7 @@ type BusinessAction = BaseAction & {
 };
 
 // Property action type
-type PropertyAction = BaseAction & {
+export type PropertyAction = BaseAction & {
 	kind: "property";
 	propertyValue: number;
 	rentalYield: number;
@@ -94,7 +94,7 @@ type PropertyAction = BaseAction & {
 };
 
 // Entertainment action type
-type EntertainmentAction = BaseAction & {
+export type EntertainmentAction = BaseAction & {
 	kind: "entertainment";
 	cost: number;
 	joyImpact: number;
@@ -103,7 +103,7 @@ type EntertainmentAction = BaseAction & {
 };
 
 // Major purchase action type
-type PurchaseAction = BaseAction & {
+export type PurchaseAction = BaseAction & {
 	kind: "purchase";
 	cost: number;
 	joyImpact: number;
@@ -112,7 +112,7 @@ type PurchaseAction = BaseAction & {
 };
 
 // Life choice action type
-type LifeChoiceAction = BaseAction & {
+export type LifeChoiceAction = BaseAction & {
 	kind: "life_choice";
 	initialCost: number;
 	ongoingBudgetImpact: number;
@@ -125,7 +125,7 @@ type LifeChoiceAction = BaseAction & {
 };
 
 // Education action type
-type EducationAction = BaseAction & {
+export type EducationAction = BaseAction & {
 	kind: "education";
 	cost: number;
 	joyImpact: number;
@@ -134,7 +134,7 @@ type EducationAction = BaseAction & {
 };
 
 // Job search action type
-type JobSearchAction = BaseAction & {
+export type JobSearchAction = BaseAction & {
 	kind: "job_search";
 	requiredFreeTime: number;
 	freeTimeReduction: number;
@@ -148,7 +148,7 @@ type JobSearchAction = BaseAction & {
 };
 
 // NoOp action type
-type NoOpAction = BaseAction & {
+export type NoOpAction = BaseAction & {
 	kind: "no_op";
 	modifier: (this: NoOpAction, state: Step) => Step;
 };
@@ -813,11 +813,4 @@ const actions: Action[] = [
 ];
 
 // Export the type registry and factories for client use
-export {
-	ActionTypes,
-	ActionFactories,
-	actions,
-	type Action,
-	type ActionKind,
-	type Step,
-};
+export { ActionTypes, ActionFactories, actions };
