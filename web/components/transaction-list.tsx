@@ -380,122 +380,150 @@ export function TransactionList({
 		defaultTransactions;
 
 	const currentTransactions = allTransactions.filter(
-		(transaction) => transaction.isActive,
+		(transaction) => transaction.isActive
 	);
 
 	const historyTransactions = allTransactions.filter(
-		(transaction) => !transaction.isActive,
+		(transaction) => !transaction.isActive
 	);
 
+	const getTransactionColor = (type: string) => {
+		if (type === "income") {
+			return {
+				bg: "bg-emerald-100",
+				text: "text-emerald-600",
+				sign: "+",
+			};
+		}
+		return {
+			bg: "bg-rose-100",
+			text: "text-rose-600",
+			sign: "-",
+		};
+	};
+
 	return (
-		<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-			<TabsList className="grid w-full grid-cols-2 mb-4">
-				<TabsTrigger value="current">Current</TabsTrigger>
-				<TabsTrigger value="history">History</TabsTrigger>
-			</TabsList>
+		<div className="bg-white rounded-lg p-2 shadow-md">
+			<h3 className="text-xs font-bold text-indigo-900 mb-2">
+				Transactions
+			</h3>
 
-			<TabsContent value="current" className="space-y-3">
-				{currentTransactions.length > 0 ? (
-					currentTransactions.map((item) => (
-						<div
-							key={item.id}
-							className="flex items-center justify-between p-3 bg-[#f7f7f7] rounded-lg"
-						>
-							<div className="flex items-center gap-3">
+			<Tabs
+				value={activeTab}
+				onValueChange={setActiveTab}
+				className="w-full"
+			>
+				<TabsList className="grid w-full grid-cols-2 mb-2 bg-indigo-100 p-0.5 rounded-lg h-7">
+					<TabsTrigger
+						value="current"
+						className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md text-xs h-6"
+					>
+						Current
+					</TabsTrigger>
+					<TabsTrigger
+						value="history"
+						className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md text-xs h-6"
+					>
+						History
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent
+					value="current"
+					className="space-y-1.5 max-h-[200px] overflow-y-auto"
+				>
+					{currentTransactions.length > 0 ? (
+						currentTransactions.map((item) => {
+							const colors = getTransactionColor(item.type);
+
+							return (
 								<div
-									className={`w-10 h-10 rounded-full flex items-center justify-center ${
-										item.type === "income"
-											? "bg-[#e6f9e6]"
-											: "bg-[#ffebeb]"
-									}`}
+									key={item.id}
+									className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-gray-100 shadow-sm"
 								>
+									<div className="flex items-center gap-2">
+										<div
+											className={`w-7 h-7 rounded-full flex items-center justify-center ${colors.bg}`}
+										>
+											<span
+												className={`text-sm font-bold ${colors.text}`}
+											>
+												{colors.sign}
+											</span>
+										</div>
+										<div>
+											<p className="font-medium text-gray-800 text-xs">
+												{item.name}
+											</p>
+											<p className="text-[10px] text-gray-500">
+												{item.date}
+											</p>
+										</div>
+									</div>
 									<span
-										className={`text-lg ${
-											item.type === "income"
-												? "text-[#58CC02]"
-												: "text-[#ff4b4b]"
-										}`}
+										className={`font-bold text-xs ${colors.text}`}
 									>
-										{item.type === "income" ? "+" : "-"}
+										{colors.sign}$
+										{item.amount.toLocaleString()}
 									</span>
 								</div>
-								<div>
-									<p className="font-medium text-[#3c3c3c]">
-										{item.name}
-									</p>
-									<p className="text-xs text-[#6f7780]">
-										{item.date}
-									</p>
-								</div>
-							</div>
-							<span
-								className={`font-bold ${
-									item.type === "income"
-										? "text-[#58CC02]"
-										: "text-[#ff4b4b]"
-								}`}
-							>
-								{item.type === "income" ? "+" : "-"}$
-								{item.amount.toLocaleString()}
-							</span>
+							);
+						})
+					) : (
+						<div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg text-xs">
+							<p>No current transactions for {selectedUnit}</p>
 						</div>
-					))
-				) : (
-					<div className="text-center py-6 text-[#6f7780]">
-						No current transactions for {selectedUnit}
-					</div>
-				)}
-			</TabsContent>
+					)}
+				</TabsContent>
 
-			<TabsContent value="history" className="space-y-3">
-				{historyTransactions.length > 0 ? (
-					historyTransactions.map((item) => (
-						<div
-							key={item.id}
-							className="flex items-center justify-between p-3 bg-[#f7f7f7] rounded-lg opacity-70"
-						>
-							<div className="flex items-center gap-3">
+				<TabsContent
+					value="history"
+					className="space-y-1.5 max-h-[200px] overflow-y-auto"
+				>
+					{historyTransactions.length > 0 ? (
+						historyTransactions.map((item) => {
+							const colors = getTransactionColor(item.type);
+
+							return (
 								<div
-									className={`w-10 h-10 rounded-full flex items-center justify-center ${
-										item.type === "income"
-											? "bg-[#e6f9e6]"
-											: "bg-[#ffebeb]"
-									}`}
+									key={item.id}
+									className="flex items-center justify-between p-1.5 bg-gray-50 rounded-lg border border-gray-100 opacity-70"
 								>
+									<div className="flex items-center gap-2">
+										<div
+											className={`w-7 h-7 rounded-full flex items-center justify-center ${colors.bg}`}
+										>
+											<span
+												className={`text-sm font-bold ${colors.text}`}
+											>
+												{colors.sign}
+											</span>
+										</div>
+										<div>
+											<p className="font-medium text-gray-700 text-xs">
+												{item.name}
+											</p>
+											<p className="text-[10px] text-gray-500">
+												{item.date}{" "}
+											</p>
+										</div>
+									</div>
 									<span
-										className={`text-lg ${
-											item.type === "income"
-												? "text-[#58CC02]"
-												: "text-[#ff4b4b]"
-										}`}
+										className={`font-bold text-xs ${colors.text}`}
 									>
-										{item.type === "income" ? "+" : "-"}
+										{colors.sign}$
+										{item.amount.toLocaleString()}
 									</span>
 								</div>
-								<div>
-									<p className="font-medium text-[#3c3c3c]">
-										{item.name}
-									</p>
-								</div>
-							</div>
-							<span
-								className={`font-bold ${
-									item.type === "income"
-										? "text-[#58CC02]"
-										: "text-[#ff4b4b]"
-								}`}
-							>
-								{item.type === "income" ? "+" : "-"}$
-								{item.amount.toLocaleString()}
-							</span>
+							);
+						})
+					) : (
+						<div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg text-xs">
+							<p>No historical transactions for {selectedUnit}</p>
 						</div>
-					))
-				) : (
-					<div className="text-center py-6 text-[#6f7780]">
-						No historical transactions for {selectedUnit}
-					</div>
-				)}
-			</TabsContent>
-		</Tabs>
+					)}
+				</TabsContent>
+			</Tabs>
+		</div>
 	);
 }

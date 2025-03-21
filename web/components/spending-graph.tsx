@@ -11,6 +11,7 @@ import {
 	Legend,
 	ResponsiveContainer,
 	ReferenceLine,
+	Cell,
 	AreaChart,
 	Area,
 } from "recharts";
@@ -24,7 +25,7 @@ import {
 	DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Action } from "@/lib/cases/actions";
+import type { Action } from "@/lib/cases/actions";
 import type { ActionTiming } from "@/components/timeline";
 
 interface TimelineEvent {
@@ -66,23 +67,29 @@ export function SpendingGraph({
 		let amount = 0;
 		let type = "expense";
 
+		// Determine if action generates income or expense
 		if (action.kind === "job") {
-			amount = (action as any).incomeAmount * 12;
+			amount = (action as any).incomeAmount * 12; // Annual income
 			type = "income";
 		} else if (action.kind === "property") {
 			amount =
-				(action as any).propertyValue * (action as any).rentalYield;
+				(action as any).propertyValue * (action as any).rentalYield; // Annual rental income
 			type = "income";
 		} else if (action.kind === "education") {
 			amount = (action as any).cost;
+			type = "expense";
 		} else if (action.kind === "investment") {
+			// IVA: to do - change maybe?
 			amount = (action as any).maxInvestmentAmount || 0;
+			type = "expense";
 		} else if (action.kind === "business") {
+			// IVA: to do - change maybe?
 			amount = (action as any).initialInvestment;
+			type = "expense"; // Initially an expense
 		}
 
 		return {
-			id: parseInt(action.id.split("-")[1]),
+			id: Number.parseInt(action.id.split("-")[1]), // Extract numeric part of ID
 			type,
 			name: action.name,
 			startUnit: timing.startTick,
@@ -97,92 +104,16 @@ export function SpendingGraph({
 		};
 	});
 
+	// Combine action events with existing events
 	const allEvents = [...events, ...actionEvents];
 
-	const getEventColor = (event: TimelineEvent, opacity = 1) => {
-		const seededRandom = (seed: number) => {
-			const x = Math.sin(seed) * 10000;
-			return x - Math.floor(x);
-		};
-
-		const combineSeed = (str: string, num: number) => {
-			let hash = 0;
-			for (let i = 0; i < str.length; i++) {
-				hash = (hash << 5) - hash + str.charCodeAt(i);
-				hash |= 0;
-			}
-			return hash + num * 1000;
-		};
-
-		const seed = combineSeed(event.name + event.type, event.id);
-		const BASE_EVENTS = 47;
-		const position = seed % BASE_EVENTS;
-		const normalizedPosition = position / BASE_EVENTS;
-		const nameHash = combineSeed(event.name, 0);
-		const phaseOffset = (nameHash % 17) / 17;
-
-		const PHI = 0.618033988749895;
-		let hue = ((normalizedPosition + phaseOffset) * 360 * PHI) % 360;
-
-		if (event.type === "income") {
-			hue = 90 + (hue % 180);
-		} else {
-			if (hue > 90 && hue < 270) {
-				hue = (hue + 180) % 360;
-			}
-		}
-
-		const saturationBase = event.type === "income" ? 80 : 75;
-		const saturationVariation = 20;
-		const saturation =
-			saturationBase + seededRandom(seed * 13) * saturationVariation;
-
-		const lightnessBase = event.type === "income" ? 42 : 55;
-		const lightnessVariation = 18;
-		const lightness =
-			lightnessBase + seededRandom(seed * 7) * lightnessVariation;
-
-		function hslToRgb(h: number, s: number, l: number): number[] {
-			h /= 360;
-			s /= 100;
-			l /= 100;
-
-			let r, g, b;
-
-			if (s === 0) {
-				r = g = b = l;
-			} else {
-				const hue2rgb = (p: number, q: number, t: number) => {
-					if (t < 0) t += 1;
-					if (t > 1) t -= 1;
-					if (t < 1 / 6) return p + (q - p) * 6 * t;
-					if (t < 1 / 2) return q;
-					if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-					return p;
-				};
-
-				const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-				const p = 2 * l - q;
-
-				r = hue2rgb(p, q, h + 1 / 3);
-				g = hue2rgb(p, q, h);
-				b = hue2rgb(p, q, h - 1 / 3);
-			}
-
-			return [
-				Math.round(r * 255),
-				Math.round(g * 255),
-				Math.round(b * 255),
-			];
-		}
-
-		const rgb = hslToRgb(hue, saturation, lightness);
-		return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${opacity})`;
-	};
-
+	// Generate chart data using all events
 	const barChartData = timeUnits.map((unit) => {
 		const unitData: any = {
 			unit,
+			income: 0,
+			expense: 0,
+			net: 0,
 			isSelected: unit === selectedUnit,
 		};
 
@@ -204,24 +135,19 @@ export function SpendingGraph({
 									1
 						  );
 
-				unitData[`${event.type}_${event.id}`] = value;
-
-				if (!unitData.totalIncome) unitData.totalIncome = 0;
-				if (!unitData.totalExpense) unitData.totalExpense = 0;
-				if (!unitData.events) unitData.events = [];
-
 				if (event.type === "income") {
-					unitData.totalIncome += value;
+					unitData.income += value;
+					unitData.net += value;
 				} else {
-					unitData.totalExpense += value;
+					unitData.expense += value;
+					unitData.net -= value;
 				}
 
+				if (!unitData.events) unitData.events = [];
 				unitData.events.push(event);
 			}
 		});
 
-		unitData.net =
-			(unitData.totalIncome || 0) - (unitData.totalExpense || 0);
 		return unitData;
 	});
 
@@ -236,6 +162,7 @@ export function SpendingGraph({
 		});
 
 		allEvents.forEach((event) => {
+			// Check if the event is active in this unit
 			if (
 				typeof event.startUnit === "number" &&
 				event.startUnit <= Number(unit) &&
@@ -263,152 +190,123 @@ export function SpendingGraph({
 	const incomeEvents = allEvents.filter((event) => event.type === "income");
 	const expenseEvents = allEvents.filter((event) => event.type === "expense");
 
+	const getEventColor = (event: TimelineEvent, opacity = 1) => {
+		// Unique color palette for incomes and expenses
+		const incomeColors = [
+			[79, 70, 229], // Indigo #4F46E5
+			[16, 185, 129], // Emerald #10B981
+			[6, 182, 212], // Cyan #06B6D4
+			[59, 130, 246], // Blue #3B82F6
+			[14, 165, 233], // Sky #0EA5E9
+			[20, 184, 166], // Teal #14B8A6
+		];
+
+		const expenseColors = [
+			[244, 63, 94], // Rose #F43F5E
+			[249, 115, 22], // Orange #F97316
+			[234, 88, 12], // Amber #EA580C
+			[217, 70, 239], // Fuchsia #D946EF
+			[168, 85, 247], // Purple #A855F7
+			[236, 72, 153], // Pink #EC4899
+		];
+
+		// Select color from palette based on event ID
+		const palette = event.type === "income" ? incomeColors : expenseColors;
+		const colorIndex = event.id % palette.length;
+		const baseColor = palette[colorIndex];
+
+		return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity})`;
+	};
+
+	// Handle clicking on a bar
+	const handleBarClick = (data: any) => {
+		// If the unit has events, show the first one
+		if (data.events && data.events.length > 0) {
+			setSelectedEvent(data.events[0]);
+			setDetailsOpen(true);
+		}
+	};
+
+	// Handle clicking on an area
 	const handleAreaClick = (event: TimelineEvent) => {
 		setSelectedEvent(event);
 		setDetailsOpen(true);
 	};
 
+	// Handle clicking on an action
+	const handleActionClick = (action: any) => {
+		setSelectedAction(action);
+		setActionDetailsOpen(true);
+	};
+
+	// Custom tooltip component for bar chart
 	const CustomBarTooltip = ({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
 			const data = payload[0].payload;
 
-			const incomeEntries = payload.filter(
-				(entry: any) =>
-					entry.dataKey.startsWith("income_") && entry.value > 0
-			);
-
-			const expenseEntries = payload.filter(
-				(entry: any) =>
-					entry.dataKey.startsWith("expense_") && entry.value > 0
-			);
-
 			return (
-				<div className="bg-white p-4 border rounded-md shadow-md max-w-[300px]">
-					<p className="font-bold border-b pb-1 mb-2">{label}</p>
-
-					{incomeEntries.length > 0 && (
-						<div className="mb-3">
-							<p className="font-semibold text-[#58CC02] border-b border-dashed border-gray-200 pb-1 mb-1">
-								Total Income: $
-								{(data.totalIncome || 0).toLocaleString()}
-							</p>
-							<div className="space-y-1 ml-1">
-								{incomeEntries.map((entry: any) => {
-									const eventId = Number.parseInt(
-										entry.dataKey.split("_")[1]
-									);
-									const event = allEvents.find(
-										(e) => e.id === eventId
-									);
-
-									if (event) {
-										return (
-											<div
-												key={entry.dataKey}
-												className="flex items-center gap-2"
-											>
-												<span
-													className="inline-block w-3 h-3 rounded-full"
-													style={{
-														backgroundColor:
-															entry.color,
-													}}
-												></span>
-												<span className="font-medium">
-													{event.name}:
-												</span>
-												<span>
-													$
-													{entry.value.toLocaleString()}
-												</span>
-											</div>
-										);
-									}
-									return null;
-								})}
-							</div>
-						</div>
-					)}
-
-					{expenseEntries.length > 0 && (
-						<div className="mb-3">
-							<p className="font-semibold text-[#ff4b4b] border-b border-dashed border-gray-200 pb-1 mb-1">
-								Total Expenses: $
-								{(data.totalExpense || 0).toLocaleString()}
-							</p>
-							<div className="space-y-1 ml-1">
-								{expenseEntries.map((entry: any) => {
-									const eventId = Number.parseInt(
-										entry.dataKey.split("_")[1]
-									);
-									const event = allEvents.find(
-										(e) => e.id === eventId
-									);
-
-									if (event) {
-										return (
-											<div
-												key={entry.dataKey}
-												className="flex items-center gap-2"
-											>
-												<span
-													className="inline-block w-3 h-3 rounded-full"
-													style={{
-														backgroundColor:
-															entry.color,
-													}}
-												></span>
-												<span className="font-medium">
-													{event.name}:
-												</span>
-												<span>
-													$
-													{entry.value.toLocaleString()}
-												</span>
-											</div>
-										);
-									}
-									return null;
-								})}
-							</div>
-						</div>
-					)}
-
+				<div className="bg-white p-2 border rounded-md shadow-md text-xs">
+					<p className="font-bold">{label}</p>
+					<p className="text-emerald-600 font-semibold">
+						Income: ${data.income.toLocaleString()}
+					</p>
+					<p className="text-rose-600 font-semibold">
+						Expense: ${data.expense.toLocaleString()}
+					</p>
 					<p
-						className={`font-bold pt-1 border-t ${
-							data.net >= 0 ? "text-[#58CC02]" : "text-[#ff4b4b]"
+						className={`font-bold ${
+							data.net >= 0 ? "text-emerald-600" : "text-rose-600"
 						}`}
 					>
 						Net: ${data.net.toLocaleString()}
 					</p>
+					{data.events && data.events.length > 0 && (
+						<div className="mt-1 pt-1 border-t">
+							<p className="font-semibold">Active Events:</p>
+							<ul className="text-[10px] space-y-0.5">
+								{data.events
+									.slice(0, 3)
+									.map((event: TimelineEvent) => (
+										<li
+											key={event.id}
+											className="flex items-center gap-1"
+										>
+											<span
+												className="inline-block w-2 h-2 rounded-full"
+												style={{
+													backgroundColor:
+														getEventColor(event),
+												}}
+											></span>
+											<span>{event.name}</span>
+										</li>
+									))}
+								{data.events.length > 3 && (
+									<li className="text-gray-500">
+										+{data.events.length - 3} more
+									</li>
+								)}
+							</ul>
+						</div>
+					)}
 				</div>
 			);
 		}
+
 		return null;
 	};
 
+	// Custom tooltip component for area chart
 	const CustomAreaTooltip = ({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
-			const incomeEntries = payload.filter(
-				(entry: any) =>
-					entry.dataKey.startsWith("income_") && entry.value > 0
-			);
-
-			const expenseEntries = payload.filter(
-				(entry: any) =>
-					entry.dataKey.startsWith("expense_") && entry.value > 0
-			);
-
 			return (
-				<div className="bg-white p-4 border rounded-md shadow-md max-w-[300px]">
-					<p className="font-bold border-b pb-1 mb-2">{label}</p>
-
-					{incomeEntries.length > 0 && (
-						<div className="mb-2">
-							<p className="font-semibold text-[#58CC02]">
-								Income
-							</p>
-							{incomeEntries.map((entry: any, index: number) => {
+				<div className="bg-white p-2 border rounded-md shadow-md text-xs">
+					<p className="font-bold">{label}</p>
+					<div className="mt-1">
+						{payload
+							.filter((entry: any) => entry.value > 0)
+							.slice(0, 4)
+							.map((entry: any, index: number) => {
 								const eventId = Number.parseInt(
 									entry.dataKey.split("_")[1]
 								);
@@ -418,154 +316,150 @@ export function SpendingGraph({
 
 								if (event) {
 									return (
-										<div
+										<p
 											key={index}
-											className="flex items-center gap-2 ml-2"
+											className="flex items-center gap-1"
+											style={{ color: entry.color }}
 										>
 											<span
-												className="inline-block w-3 h-3 rounded-full"
+												className="inline-block w-2 h-2 rounded-full"
 												style={{
 													backgroundColor:
 														entry.color,
 												}}
 											></span>
-											<span className="font-medium">
-												{event.name}:
-											</span>
 											<span>
-												${entry.value.toLocaleString()}
+												{event.name}: $
+												{Math.round(
+													entry.value
+												).toLocaleString()}
 											</span>
-										</div>
+										</p>
 									);
 								}
 								return null;
 							})}
-						</div>
-					)}
-
-					{expenseEntries.length > 0 && (
-						<div>
-							<p className="font-semibold text-[#ff4b4b]">
-								Expenses
+						{payload.filter((entry: any) => entry.value > 0)
+							.length > 4 && (
+							<p className="text-gray-500 text-[10px]">
+								+
+								{payload.filter((entry: any) => entry.value > 0)
+									.length - 4}{" "}
+								more
 							</p>
-							{expenseEntries.map((entry: any, index: number) => {
-								const eventId = Number.parseInt(
-									entry.dataKey.split("_")[1]
-								);
-								const event = allEvents.find(
-									(e) => e.id === eventId
-								);
-
-								if (event) {
-									return (
-										<div
-											key={index}
-											className="flex items-center gap-2 ml-2"
-										>
-											<span
-												className="inline-block w-3 h-3 rounded-full"
-												style={{
-													backgroundColor:
-														entry.color,
-												}}
-											></span>
-											<span className="font-medium">
-												{event.name}:
-											</span>
-											<span>
-												${entry.value.toLocaleString()}
-											</span>
-										</div>
-									);
-								}
-								return null;
-							})}
-						</div>
-					)}
-
-					{payload.length === 0 && <p>No data for this period</p>}
+						)}
+					</div>
 				</div>
 			);
 		}
+
 		return null;
 	};
 
 	return (
-		<div className="h-full flex flex-col">
+		<div className="h-full flex flex-col bg-white rounded-lg p-2 shadow-md">
+			<h3 className="text-xs font-bold text-indigo-900 mb-2">
+				Financial Analysis
+			</h3>
+
 			<Tabs
 				value={activeTab}
 				onValueChange={setActiveTab}
 				className="flex-1 flex flex-col"
 			>
-				<TabsList className="mb-4">
-					<TabsTrigger value="overview">Overview</TabsTrigger>
-					<TabsTrigger value="details">Detailed View</TabsTrigger>
+				<TabsList className="mb-2 bg-indigo-100 p-0.5 rounded-lg h-7">
+					<TabsTrigger
+						value="overview"
+						className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md text-xs h-6"
+					>
+						Overview
+					</TabsTrigger>
+					<TabsTrigger
+						value="details"
+						className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md text-xs h-6"
+					>
+						Details
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="overview" className="flex-1 flex flex-col">
-					<div className="flex-1 min-h-[300px]">
+					<div className="flex-1 min-h-[180px]">
 						<ResponsiveContainer width="100%" height="100%">
 							<BarChart
 								data={barChartData}
 								margin={{
-									top: 20,
-									right: 30,
-									left: 20,
+									top: 5,
+									right: 5,
+									left: 0,
 									bottom: 5,
 								}}
-								barGap={2}
-								barSize={12}
+								barSize={6}
 							>
 								<CartesianGrid
 									strokeDasharray="3 3"
 									opacity={0.2}
 								/>
-								<XAxis dataKey="unit" />
+								<XAxis dataKey="unit" tick={{ fontSize: 10 }} />
 								<YAxis
 									tickFormatter={(value) =>
 										`$${
 											value >= 1000
-												? (value / 1000).toFixed(1) +
+												? (value / 1000).toFixed(0) +
 												  "k"
 												: value
 										}`
 									}
+									tick={{ fontSize: 10 }}
 								/>
 								<Tooltip content={<CustomBarTooltip />} />
-								<Legend />
+								<Legend wrapperStyle={{ fontSize: 10 }} />
+								<Bar
+									name="Income"
+									dataKey="income"
+									fill="#10B981"
+									onClick={handleBarClick}
+									cursor="pointer"
+									radius={[2, 2, 0, 0]}
+								>
+									{barChartData.map((entry, index) => (
+										<Cell
+											key={`income-${index}`}
+											fill={
+												entry.isSelected
+													? "#059669"
+													: "#10B981"
+											}
+											opacity={entry.isSelected ? 1 : 0.8}
+										/>
+									))}
+								</Bar>
+								<Bar
+									name="Expense"
+									dataKey="expense"
+									fill="#F43F5E"
+									onClick={handleBarClick}
+									cursor="pointer"
+									radius={[2, 2, 0, 0]}
+								>
+									{barChartData.map((entry, index) => (
+										<Cell
+											key={`expense-${index}`}
+											fill={
+												entry.isSelected
+													? "#E11D48"
+													: "#F43F5E"
+											}
+											opacity={entry.isSelected ? 1 : 0.8}
+										/>
+									))}
+								</Bar>
 								<ReferenceLine y={0} stroke="#000" />
-
-								{incomeEvents.map((event) => (
-									<Bar
-										key={`income_${event.id}`}
-										dataKey={`income_${event.id}`}
-										name={event.name}
-										stackId="income"
-										fill={getEventColor(event, 0.9)}
-										stroke={getEventColor(event)}
-										strokeWidth={1}
-									/>
-								))}
-
-								{expenseEvents.map((event) => (
-									<Bar
-										key={`expense_${event.id}`}
-										dataKey={`expense_${event.id}`}
-										name={event.name}
-										stackId="expense"
-										fill={getEventColor(event, 0.9)}
-										stroke={getEventColor(event)}
-										strokeWidth={1}
-									/>
-								))}
-
-								{barChartData.findIndex(
-									(d: any) => d.isSelected
-								) !== -1 && (
+								{barChartData.findIndex((d) => d.isSelected) !==
+									-1 && (
 									<ReferenceLine
 										x={selectedUnit}
-										stroke="#6b46c1"
-										strokeWidth={2}
+										stroke="#6366F1"
+										strokeWidth={1}
 										strokeDasharray="3 3"
 									/>
 								)}
@@ -575,14 +469,22 @@ export function SpendingGraph({
 				</TabsContent>
 
 				<TabsContent value="details" className="flex-1 flex flex-col">
-					<div className="flex-1 min-h-[300px]">
+					<div className="flex-1 min-h-[180px]">
 						<Tabs
 							defaultValue="income"
 							className="h-full flex flex-col"
 						>
-							<TabsList className="mb-2">
-								<TabsTrigger value="income">Income</TabsTrigger>
-								<TabsTrigger value="expense">
+							<TabsList className="mb-1 bg-indigo-100 p-0.5 rounded-lg h-6">
+								<TabsTrigger
+									value="income"
+									className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white rounded-md text-[10px] h-5"
+								>
+									Income
+								</TabsTrigger>
+								<TabsTrigger
+									value="expense"
+									className="data-[state=active]:bg-rose-600 data-[state=active]:text-white rounded-md text-[10px] h-5"
+								>
 									Expenses
 								</TabsTrigger>
 							</TabsList>
@@ -592,9 +494,9 @@ export function SpendingGraph({
 									<AreaChart
 										data={areaChartData}
 										margin={{
-											top: 20,
-											right: 30,
-											left: 20,
+											top: 5,
+											right: 5,
+											left: 0,
 											bottom: 5,
 										}}
 									>
@@ -602,42 +504,47 @@ export function SpendingGraph({
 											strokeDasharray="3 3"
 											opacity={0.2}
 										/>
-										<XAxis dataKey="unit" />
+										<XAxis
+											dataKey="unit"
+											tick={{ fontSize: 10 }}
+										/>
 										<YAxis
 											tickFormatter={(value) =>
 												`$${
 													value >= 1000
 														? (
 																value / 1000
-														  ).toFixed(1) + "k"
+														  ).toFixed(0) + "k"
 														: value
 												}`
 											}
+											tick={{ fontSize: 10 }}
 										/>
 										<Tooltip
 											content={<CustomAreaTooltip />}
 										/>
-										<Legend />
+										<Legend
+											wrapperStyle={{ fontSize: 10 }}
+										/>
 										{incomeEvents.map((event, index) => (
 											<Area
 												key={event.id}
 												type="monotone"
 												dataKey={`income_${event.id}`}
 												name={event.name}
-												stackId={index % 3}
-												fill={getEventColor(
-													event,
-													0.75
-												)}
+												stackId={`income_${
+													event.id % 3
+												}`}
+												fill={getEventColor(event, 0.7)}
 												stroke={getEventColor(event)}
-												strokeWidth={2}
+												strokeWidth={1}
 												activeDot={{
 													onClick: () =>
 														handleAreaClick(event),
 													style: {
 														cursor: "pointer",
 													},
-													r: 6,
+													r: 4,
 												}}
 											/>
 										))}
@@ -646,8 +553,8 @@ export function SpendingGraph({
 										) !== -1 && (
 											<ReferenceLine
 												x={selectedUnit}
-												stroke="#6b46c1"
-												strokeWidth={2}
+												stroke="#6366F1"
+												strokeWidth={1}
 												strokeDasharray="3 3"
 											/>
 										)}
@@ -660,9 +567,9 @@ export function SpendingGraph({
 									<AreaChart
 										data={areaChartData}
 										margin={{
-											top: 20,
-											right: 30,
-											left: 20,
+											top: 5,
+											right: 5,
+											left: 0,
 											bottom: 5,
 										}}
 									>
@@ -670,42 +577,47 @@ export function SpendingGraph({
 											strokeDasharray="3 3"
 											opacity={0.2}
 										/>
-										<XAxis dataKey="unit" />
+										<XAxis
+											dataKey="unit"
+											tick={{ fontSize: 10 }}
+										/>
 										<YAxis
 											tickFormatter={(value) =>
 												`$${
 													value >= 1000
 														? (
 																value / 1000
-														  ).toFixed(1) + "k"
+														  ).toFixed(0) + "k"
 														: value
 												}`
 											}
+											tick={{ fontSize: 10 }}
 										/>
 										<Tooltip
 											content={<CustomAreaTooltip />}
 										/>
-										<Legend />
+										<Legend
+											wrapperStyle={{ fontSize: 10 }}
+										/>
 										{expenseEvents.map((event, index) => (
 											<Area
 												key={event.id}
 												type="monotone"
 												dataKey={`expense_${event.id}`}
 												name={event.name}
-												stackId={`e${index % 3}`}
-												fill={getEventColor(
-													event,
-													0.75
-												)}
+												stackId={`expense_${
+													event.id % 3
+												}`}
+												fill={getEventColor(event, 0.7)}
 												stroke={getEventColor(event)}
-												strokeWidth={2}
+												strokeWidth={1}
 												activeDot={{
 													onClick: () =>
 														handleAreaClick(event),
 													style: {
 														cursor: "pointer",
 													},
-													r: 6,
+													r: 4,
 												}}
 											/>
 										))}
@@ -714,8 +626,8 @@ export function SpendingGraph({
 										) !== -1 && (
 											<ReferenceLine
 												x={selectedUnit}
-												stroke="#6b46c1"
-												strokeWidth={2}
+												stroke="#6366F1"
+												strokeWidth={1}
 												strokeDasharray="3 3"
 											/>
 										)}
@@ -727,35 +639,36 @@ export function SpendingGraph({
 				</TabsContent>
 			</Tabs>
 
+			{/* Action Details Dialog */}
 			<Dialog
 				open={actionDetailsOpen}
 				onOpenChange={setActionDetailsOpen}
 			>
-				<DialogContent className="sm:max-w-[500px]">
+				<DialogContent className="sm:max-w-[400px] bg-white border-0 shadow-md">
 					<DialogHeader>
-						<DialogTitle className="text-[#6b46c1]">
+						<DialogTitle className="text-sm font-bold text-indigo-700">
 							{selectedAction?.name}
 						</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="text-xs text-gray-600">
 							{selectedAction?.shortDescription}
 						</DialogDescription>
 					</DialogHeader>
 
-					<div className="space-y-4 py-4">
-						<div>
-							<div className="text-sm text-muted-foreground">
+					<div className="space-y-2 py-2">
+						<div className="bg-indigo-50 p-2 rounded-lg">
+							<div className="text-xs text-indigo-700 font-medium">
 								Action Type
 							</div>
-							<div className="text-lg font-semibold">
+							<div className="text-sm font-semibold text-indigo-900 capitalize">
 								{selectedAction?.kind}
 							</div>
 						</div>
 						{selectedAction && selectedAction.kind === "job" && (
-							<div>
-								<div className="text-sm text-muted-foreground">
+							<div className="bg-emerald-50 p-2 rounded-lg">
+								<div className="text-xs text-emerald-700 font-medium">
 									Monthly Income
 								</div>
-								<div className="text-lg font-semibold text-[#58CC02]">
+								<div className="text-sm font-semibold text-emerald-900">
 									$
 									{(
 										selectedAction as any
@@ -766,11 +679,11 @@ export function SpendingGraph({
 						)}
 						{selectedAction &&
 							selectedAction.kind === "education" && (
-								<div>
-									<div className="text-sm text-muted-foreground">
+								<div className="bg-rose-50 p-2 rounded-lg">
+									<div className="text-xs text-rose-700 font-medium">
 										Total Cost
 									</div>
-									<div className="text-lg font-semibold text-[#ff4b4b]">
+									<div className="text-sm font-semibold text-rose-900">
 										$
 										{(
 											selectedAction as any
@@ -778,139 +691,71 @@ export function SpendingGraph({
 									</div>
 								</div>
 							)}
-						{selectedAction &&
-							selectedAction.kind === "business" && (
-								<div>
-									<div className="text-sm text-muted-foreground">
-										Initial Investment
-									</div>
-									<div className="text-lg font-semibold text-[#ff4b4b]">
-										$
-										{(
-											selectedAction as any
-										).initialInvestment.toLocaleString()}
-									</div>
-								</div>
-							)}
-						{selectedAction &&
-							selectedAction.kind === "investment" && (
-								<div>
-									<div className="text-sm text-muted-foreground">
-										Maximum Investment
-									</div>
-									<div className="text-lg font-semibold text-[#ff4b4b]">
-										$
-										{(
-											selectedAction as any
-										).maxInvestmentAmount.toLocaleString()}
-									</div>
-								</div>
-							)}
-						{selectedAction &&
-							selectedAction.kind === "property" && (
-								<div>
-									<div className="text-sm text-muted-foreground">
-										Property Value
-									</div>
-									<div className="text-lg font-semibold">
-										$
-										{(
-											selectedAction as any
-										).propertyValue.toLocaleString()}
-									</div>
-								</div>
-							)}
 					</div>
 
 					<DialogFooter>
-						<Button onClick={() => setActionDetailsOpen(false)}>
+						<Button
+							onClick={() => setActionDetailsOpen(false)}
+							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs py-1 h-7"
+						>
 							Close
 						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 
+			{/* Existing Event Details Dialog */}
 			<Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-				<DialogContent className="sm:max-w-[500px]">
+				<DialogContent className="sm:max-w-[400px] bg-white border-0 shadow-md">
 					<DialogHeader>
 						<DialogTitle
 							className={
 								selectedEvent?.type === "income"
-									? "text-[#58CC02]"
-									: "text-[#ff4b4b]"
+									? "text-sm font-bold text-emerald-700"
+									: "text-sm font-bold text-rose-700"
 							}
 						>
 							{selectedEvent?.name}
 						</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="text-xs text-gray-600">
 							{selectedEvent?.startUnit === selectedEvent?.endUnit
 								? `Period: ${selectedEvent?.startUnit}`
 								: `Period: ${selectedEvent?.startUnit} - ${selectedEvent?.endUnit}`}
 						</DialogDescription>
 					</DialogHeader>
 
-					<div className="space-y-4 py-4">
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<div className="text-sm text-muted-foreground">
+					<div className="space-y-2 py-2">
+						<div className="grid grid-cols-2 gap-2">
+							<div className="bg-gray-50 p-2 rounded-lg">
+								<div className="text-xs text-gray-500">
 									Amount
 								</div>
-								<div className="text-lg font-semibold">
+								<div className="text-sm font-semibold text-gray-900">
 									${selectedEvent?.amount?.toLocaleString()}
 								</div>
 							</div>
 
 							{selectedEvent?.monthlyPayment &&
 								selectedEvent.monthlyPayment > 0 && (
-									<div>
-										<div className="text-sm text-muted-foreground">
-											Monthly Payment
+									<div className="bg-gray-50 p-2 rounded-lg">
+										<div className="text-xs text-gray-500">
+											Monthly
 										</div>
-										<div className="text-lg font-semibold">
+										<div className="text-sm font-semibold text-gray-900">
 											$
 											{selectedEvent?.monthlyPayment?.toLocaleString()}
-											/month
+											/mo
 										</div>
 									</div>
 								)}
-
-							{selectedEvent?.interestRate && (
-								<div>
-									<div className="text-sm text-muted-foreground">
-										Interest Rate
-									</div>
-									<div className="text-lg font-semibold">
-										{selectedEvent?.interestRate}
-									</div>
-								</div>
-							)}
-
-							{selectedEvent?.source && (
-								<div>
-									<div className="text-sm text-muted-foreground">
-										Source
-									</div>
-									<div className="text-lg font-semibold">
-										{selectedEvent?.source}
-									</div>
-								</div>
-							)}
 						</div>
-
-						{selectedEvent?.description && (
-							<div>
-								<div className="text-sm text-muted-foreground">
-									Description
-								</div>
-								<div className="text-base">
-									{selectedEvent?.description}
-								</div>
-							</div>
-						)}
 					</div>
 
 					<DialogFooter>
-						<Button onClick={() => setDetailsOpen(false)}>
+						<Button
+							onClick={() => setDetailsOpen(false)}
+							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs py-1 h-7"
+						>
 							Close
 						</Button>
 					</DialogFooter>

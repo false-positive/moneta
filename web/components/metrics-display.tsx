@@ -78,7 +78,7 @@ const metricsData = {
 		capital: 550000,
 		assets: 850000,
 		cash: 110000,
-		freeTimeHours: 28,
+		freeTimeHours: 20,
 		joyIndex: 90,
 	},
 	2035: {
@@ -99,93 +99,180 @@ export function MetricsDisplay({ selectedYear }: MetricsDisplayProps) {
 		metricsData[selectedYear as keyof typeof metricsData] ||
 		metricsData[2024];
 
+	const pointChanges = {
+		capital: 12,
+		assets: 12,
+		cash: 7,
+		freeTime: 40,
+		joy: metrics.joyIndex,
+	};
+
 	return (
-		<Card className="border-0 shadow-sm h-full">
-			<CardHeader className="pb-2">
-				<CardTitle className="text-lg font-medium text-[#3c3c3c]">
-					Metrics for {selectedYear}
+		<Card className="border-0 shadow-md h-full bg-gradient-to-b from-purple-50 to-white">
+			<CardHeader className="pb-1 pt-1.5 px-3 bg-purple-600 text-white">
+				<CardTitle className="text-sm font-bold flex justify-between items-center">
+					<span>Financial Quest</span>
+					<div className="flex items-center gap-1 bg-purple-500 rounded-full px-2 py-0.5">
+						<div className="text-yellow-300 text-xs">🏆</div>
+						<span className="text-xs">
+							Level {Math.floor(selectedYear - 2020)}
+						</span>
+					</div>
 				</CardTitle>
 			</CardHeader>
-			<CardContent>
-				<div className="space-y-6">
-					<div className="flex items-center gap-4">
-						<div className="w-12 h-12 rounded-full bg-[#e6f9e6] flex items-center justify-center flex-shrink-0">
-							<DollarSign className="h-6 w-6 text-[#58CC02]" />
-						</div>
-						<div className="flex-1">
-							<div className="text-sm text-[#6f7780]">
-								Capital
-							</div>
-							<div className="text-xl font-bold text-[#3c3c3c]">
-								${metrics.capital.toLocaleString()}
-							</div>
-						</div>
-					</div>
 
-					<div className="flex items-center gap-4">
-						<div className="w-12 h-12 rounded-full bg-[#e6f9e6] flex items-center justify-center flex-shrink-0">
-							<Wallet className="h-6 w-6 text-[#58CC02]" />
-						</div>
-						<div className="flex-1">
-							<div className="text-sm text-[#6f7780]">Assets</div>
-							<div className="text-xl font-bold text-[#3c3c3c]">
-								${metrics.assets.toLocaleString()}
-							</div>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-4">
-						<div className="w-12 h-12 rounded-full bg-[#e6f9e6] flex items-center justify-center flex-shrink-0">
-							<PiggyBank className="h-6 w-6 text-[#58CC02]" />
-						</div>
-						<div className="flex-1">
-							<div className="text-sm text-[#6f7780]">Cash</div>
-							<div className="text-xl font-bold text-[#3c3c3c]">
-								${metrics.cash.toLocaleString()}
-							</div>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-4">
-						<div className="w-12 h-12 rounded-full bg-[#e6f9e6] flex items-center justify-center flex-shrink-0">
-							<Clock className="h-6 w-6 text-[#58CC02]" />
-						</div>
-						<div className="flex-1">
-							<div className="text-sm text-[#6f7780]">
-								Free Time
-							</div>
-							<div className="text-xl font-bold text-[#3c3c3c]">
-								{metrics.freeTimeHours} hours/week
-							</div>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-4">
-						<div className="w-12 h-12 rounded-full bg-[#e6f9e6] flex items-center justify-center flex-shrink-0">
-							<Heart className="h-6 w-6 text-[#58CC02]" />
-						</div>
-						<div className="flex-1">
-							<div className="text-sm text-[#6f7780]">Joy</div>
-							<div className="flex items-center">
-								<div className="text-xl font-bold text-[#3c3c3c] mr-2">
-									{metrics.joyIndex}%
+			<CardContent className="p-2 space-y-2">
+				<div className="grid grid-cols-2 gap-2">
+					<div className="bg-white rounded-lg p-2 shadow-sm">
+						<div className="flex items-center justify-between mb-1">
+							<div className="flex items-center gap-1.5">
+								<div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center">
+									<DollarSign className="h-3.5 w-3.5 text-purple-600" />
 								</div>
-								<div className="flex">
-									{[...Array(5)].map((_, i) => (
-										<div
-											key={i}
-											className={`w-2 h-6 mx-0.5 rounded-full ${
-												i <
-												Math.round(
-													metrics.joyIndex / 20
-												)
-													? "bg-[#58CC02]"
-													: "bg-[#e5e5e5]"
-											}`}
-										></div>
-									))}
-								</div>
+								<span className="text-xs font-bold text-purple-900">
+									Capital
+								</span>
 							</div>
+							<div className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full text-xs font-bold">
+								+{pointChanges.capital}
+							</div>
+						</div>
+						<div className="text-sm font-bold text-purple-900 ml-1">
+							${metrics.capital.toLocaleString()}
+						</div>
+						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+							<div
+								className="h-full bg-purple-600 rounded-full"
+								style={{
+									width: `${Math.min(
+										100,
+										(metrics.capital / 1000000) * 100
+									)}%`,
+								}}
+							></div>
+						</div>
+					</div>
+
+					<div className="bg-white rounded-lg p-2 shadow-sm">
+						<div className="flex items-center justify-between mb-1">
+							<div className="flex items-center gap-1.5">
+								<div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+									<Wallet className="h-3.5 w-3.5 text-blue-600" />
+								</div>
+								<span className="text-xs font-bold text-blue-900">
+									Assets
+								</span>
+							</div>
+							<div className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-xs font-bold">
+								+{pointChanges.assets}
+							</div>
+						</div>
+						<div className="text-sm font-bold text-blue-900 ml-1">
+							${metrics.assets.toLocaleString()}
+						</div>
+						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+							<div
+								className="h-full bg-blue-600 rounded-full"
+								style={{
+									width: `${Math.min(
+										100,
+										(metrics.assets / 1000000) * 100
+									)}%`,
+								}}
+							></div>
+						</div>
+					</div>
+
+					<div className="bg-white rounded-lg p-2 shadow-sm">
+						<div className="flex items-center justify-between mb-1">
+							<div className="flex items-center gap-1.5">
+								<div className="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center">
+									<PiggyBank className="h-3.5 w-3.5 text-teal-600" />
+								</div>
+								<span className="text-xs font-bold text-teal-900">
+									Cash
+								</span>
+							</div>
+							<div className="bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full text-xs font-bold">
+								+{pointChanges.cash}
+							</div>
+						</div>
+						<div className="text-sm font-bold text-teal-900 ml-1">
+							${metrics.cash.toLocaleString()}
+						</div>
+						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+							<div
+								className="h-full bg-teal-600 rounded-full"
+								style={{
+									width: `${Math.min(
+										100,
+										(metrics.cash / 150000) * 100
+									)}%`,
+								}}
+							></div>
+						</div>
+					</div>
+
+					<div className="bg-white rounded-lg p-2 shadow-sm">
+						<div className="flex items-center justify-between mb-1">
+							<div className="flex items-center gap-1.5">
+								<div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
+									<Clock className="h-3.5 w-3.5 text-orange-600" />
+								</div>
+								<span className="text-xs font-bold text-orange-900">
+									Free Time
+								</span>
+							</div>
+							<div className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full text-xs font-bold">
+								+{pointChanges.freeTime}
+							</div>
+						</div>
+						<div className="text-sm font-bold text-orange-900 ml-1">
+							{metrics.freeTimeHours}h/w
+						</div>
+						<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
+							<div
+								className="h-full bg-orange-600 rounded-full"
+								style={{
+									width: `${Math.min(
+										100,
+										(metrics.freeTimeHours / 40) * 100
+									)}%`,
+								}}
+							></div>
+						</div>
+					</div>
+				</div>
+
+				<div className="bg-white rounded-lg p-2 shadow-sm">
+					<div className="flex items-center justify-between mb-1">
+						<div className="flex items-center gap-1.5">
+							<div className="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center">
+								<Heart className="h-3.5 w-3.5 text-rose-600" />
+							</div>
+							<span className="text-xs font-bold text-rose-900">
+								Joy
+							</span>
+						</div>
+						<div className="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full text-xs font-bold">
+							+{metrics.joyIndex}
+						</div>
+					</div>
+					<div className="flex justify-between items-center">
+						<div className="text-sm font-bold text-rose-900 ml-1">
+							{metrics.joyIndex}%
+						</div>
+						<div className="flex gap-0.5">
+							{[...Array(5)].map((_, i) => (
+								<div
+									key={i}
+									className={`w-4 h-5 rounded-sm ${
+										i < Math.round(metrics.joyIndex / 20)
+											? "bg-rose-500"
+											: "bg-gray-200"
+									}`}
+								></div>
+							))}
 						</div>
 					</div>
 				</div>
