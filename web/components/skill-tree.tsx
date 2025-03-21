@@ -5,61 +5,7 @@ import * as d3 from "d3"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Define the data structure for our skill tree,
-// now with an optional icon field for each node.
-interface Node {
-  id: string
-  name: string
-  level: number
-  description: string
-  unlocked: boolean
-  icon?: string
-  x?: number
-  y?: number
-  fx?: number | null
-  fy?: number | null
-}
-
-interface Link {
-  source: string
-  target: string
-}
-
-// Sample data with each node having a different icon.
-const initialNodes: Node[] = [
-  {
-    id: "core",
-    name: "Core Skill",
-    level: 1,
-    description: "The foundation of all other skills",
-    unlocked: true,
-    x: 300,
-    y: 200,
-    icon: "/icons/core.svg",
-  },
-  { id: "skill1", name: "Skill 1", level: 0, description: "First branch skill", unlocked: false, x: 275, y: 175, icon: "/icons/skill1.svg" },
-  { id: "skill2", name: "Skill 2", level: 0, description: "Second branch skill", unlocked: false, x: 325, y: 175, icon: "/icons/skill2.svg" },
-  { id: "skill3", name: "Skill 3", level: 0, description: "Third branch skill", unlocked: false, x: 275, y: 225, icon: "/icons/skill3.svg" },
-  { id: "skill4", name: "Skill 4", level: 0, description: "Fourth branch skill", unlocked: false, x: 325, y: 225, icon: "/icons/skill4.svg" },
-  { id: "skill1a", name: "Skill 1A", level: 0, description: "Advanced skill from branch 1", unlocked: false, x: 100, y: 120, icon: "/icons/skill1a.svg" },
-  { id: "skill1b", name: "Skill 1B", level: 0, description: "Advanced skill from branch 1", unlocked: false, x: 100, y: 200, icon: "/icons/skill1b.svg" },
-  { id: "skill2a", name: "Skill 2A", level: 0, description: "Advanced skill from branch 2", unlocked: false, x: 350, y: 150, icon: "/icons/skill2a.svg" },
-  { id: "skill2c", name: "Skill 2C", level: 0, description: "Advanced skill from branch 2", unlocked: false, x: 375, y: 175, icon: "/icons/skill2c.svg" },
-  { id: "skill2d", name: "Skill 2D", level: 0, description: "Advanced skill from branch 2", unlocked: false, x: 325, y: 125, icon: "/icons/skill2d.svg" },
-]
-
-const links: Link[] = [
-  { source: "core", target: "skill1" },
-  { source: "core", target: "skill2" },
-  { source: "core", target: "skill3" },
-  { source: "core", target: "skill4" },
-  { source: "skill1", target: "skill1a" },
-  { source: "skill1", target: "skill1b" },
-  { source: "skill2", target: "skill2a" },
-  { source: "skill2c", target: "skill2a" },
-  { source: "skill2d", target: "skill2a" },
-]
+import { initialNodes, links, Node } from "@/lib/cases/skill-tree"
 
 export default function SkillTree() {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -71,7 +17,6 @@ export default function SkillTree() {
   const canUnlock = (nodeId: string): boolean => {
     if (availablePoints <= 0) return false
 
-    // Check if any parent nodes are unlocked
     const parentLinks = links.filter((link) => link.target === nodeId)
     if (parentLinks.length === 0) return false
 
@@ -85,25 +30,29 @@ export default function SkillTree() {
   const unlockSkill = (nodeId: string) => {
     if (!canUnlock(nodeId) || availablePoints <= 0) return
 
-    setNodes((prev) =>
-      prev.map((node) => (node.id === nodeId ? { ...node, unlocked: true, level: 1 } : node)),
-    )
+    setNodes((prev) => {
+      const updatedNodes = prev.map((node) =>
+        node.id === nodeId ? { ...node, unlocked: true } : node,
+      )
+      // If the unlocked node is currently selected, update selectedNode
+      if (selectedNode && selectedNode.id === nodeId) {
+        setSelectedNode(updatedNodes.find((node) => node.id === nodeId) || null)
+      }
+      return updatedNodes
+    })
     setAvailablePoints((prev) => prev - 1)
   }
 
-  // Function to upgrade a skill
-  const upgradeSkill = (nodeId: string) => {
-    if (availablePoints <= 0) return
-
-    setNodes((prev) =>
-      prev.map((node) =>
-        node.id === nodeId && node.unlocked && node.level < 3 ? { ...node, level: node.level + 1 } : node,
-      ),
-    )
-    setAvailablePoints((prev) => prev - 1)
+  const getCategoryColor = (node: Node) => {
+    console.log(node.actionObject.kind)
+    if (node.actionObject.kind === "investment") return "#f59e0b"
+    if (node.actionObject.kind === "income") return "#10b981"
+    if (node.actionObject.kind === "expense") return "#ef4444"
+    if (node.actionObject.kind === "other") return "#34d399"
+    return "#3730a3"
   }
 
-  // Dummy submit handler – you can add your submission logic here
+  // Dummy submit handler
   const handleSubmit = () => {
     console.log("Submit button clicked")
     // Add your submission logic here.
@@ -130,11 +79,11 @@ export default function SkillTree() {
     // Create a group for the graph
     const g = svg.append("g")
 
-    // Define the rhombus size – smaller to allow for closer positioning
+    // Define the rhombus size
     const baseSize = 22
     const getNodeSize = (node: Node) => baseSize
 
-    // Create the links first so they appear behind nodes
+    // Draw links (behind nodes)
     g.append("g")
       .selectAll("line")
       .data(links)
@@ -160,7 +109,7 @@ export default function SkillTree() {
         return target?.y || 0
       })
 
-    // Create the nodes
+    // Create node groups
     const nodeSelection = g
       .append("g")
       .selectAll("g")
@@ -172,7 +121,7 @@ export default function SkillTree() {
         setSelectedNode(d)
       })
 
-    // Add the rhombus shape to each node
+    // Draw the rhombus shape for each node
     nodeSelection
       .append("path")
       .attr("d", (d) => {
@@ -181,16 +130,15 @@ export default function SkillTree() {
       })
       .attr("fill", (d) => {
         if (!d.unlocked) return "#ccc"
-        if (d.level === 0) return "#6366f1"
-        if (d.level === 1) return "#4f46e5"
-        if (d.level === 2) return "#4338ca"
-        return "#3730a3"
+
+        return getCategoryColor(d)
       })
-      .attr("stroke", (d) => (canUnlock(d.id) && !d.unlocked ? "#10b981" : "#333"))
+      .attr("stroke", (d) => (getCategoryColor(d)))
       .attr("stroke-width", (d) => (canUnlock(d.id) && !d.unlocked ? 3 : 1.5))
 
+
+
     // Append the icon inside the rhombus.
-    // Use the node's icon field, or fall back to a default icon.
     const iconSize = 16
     nodeSelection
       .append("image")
@@ -200,14 +148,15 @@ export default function SkillTree() {
       .attr("width", iconSize)
       .attr("height", iconSize)
 
-    // Add node labels below the rhombus
+    // Add node labels below the rhombus (if needed)
     nodeSelection
       .append("text")
       .attr("text-anchor", "middle")
       .attr("dy", (d) => getNodeSize(d) + 15)
       .attr("fill", "currentColor")
       .attr("font-size", "10px")
-      // .text((d) => d.name)
+    // Uncomment below if you want to display the name
+    // .text((d) => d.name)
 
     // Add zoom functionality
     svg.call(
@@ -258,7 +207,7 @@ export default function SkillTree() {
                   <p className="text-sm text-muted-foreground">{selectedNode.description}</p>
                   <div className="mt-2">
                     <Badge variant={selectedNode.unlocked ? "default" : "outline"}>
-                      {selectedNode.unlocked ? `Level ${selectedNode.level}` : "Locked"}
+                      {selectedNode.unlocked ? "Unlocked" : "Locked"}
                     </Badge>
                   </div>
                 </div>
@@ -271,16 +220,6 @@ export default function SkillTree() {
                       disabled={availablePoints <= 0}
                     >
                       Unlock Skill
-                    </Button>
-                  )}
-
-                  {selectedNode.unlocked && selectedNode.level < 3 && (
-                    <Button
-                      onClick={() => upgradeSkill(selectedNode.id)}
-                      className="w-full"
-                      disabled={availablePoints <= 0}
-                    >
-                      Upgrade to Level {selectedNode.level + 1}
                     </Button>
                   )}
                 </div>
