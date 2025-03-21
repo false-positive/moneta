@@ -1,44 +1,27 @@
-export type Case = {
+import invariant from "tiny-invariant";
+import { Action, computeNextStep, Step } from "./actions";
+import { CaseCards } from "@/components/ui/case-cards";
+
+export type CaseDescription = {
 	personName: string;
 	caseLLMDescriptipn: string;
-	initialStep: Step;
-	personName: string;
-	caseLLMDescriptipn: string;
+	stepCount: number;
 	initialStep: Step;
 };
 
-function computeNextStep(steps: Step[]) {
-	let nextStep = steps[steps.length - 1];
-	if (!nextStep) {
-		throw new Error("No steps");
+export type Case = {
+	description: CaseDescription;
+	steps: Step[];
+	currentStepIndex: number;
+};
+
+export function simulateWithActions(
+	caseDescription: CaseDescription,
+	newActionsPerTick: Action[][]
+) {
+	let steps: Step[] = [caseDescription.initialStep];
+	for (const actions of newActionsPerTick) {
+		steps.push(computeNextStep(steps[steps.length - 1], actions));
 	}
-
-	nextStep.appliedActions = nextStep.appliedActions.filter((action) =>
-		action.isAvailable(nextStep)
-	);
-	nextStep.newActions = nextStep.newActions.filter((action) =>
-		action.isAvailable(nextStep)
-	);
-
-	for (const action of nextStep.appliedActions) {
-		action.timesApplied++;
-		nextStep = action.modifier(nextStep);
-	}
-
-	return nextStep;
-}
-
-export function applyNewAction(steps: Step[], action: Action) {
-	return steps.map((step) => {
-		if (action.isAvailable(step)) {
-			return (
-				action.modifier as (this: typeof action, state: Step) => Step
-			).call(action, step);
-		}
-		return step;
-	});
-}
-
-export function applyNoOp(steps: Step[]) {
-	return step;
+	return steps;
 }
