@@ -2,11 +2,14 @@ import invariant from "tiny-invariant";
 import { Action, computeNextStep, Step } from "./actions";
 import { CaseCards } from "@/components/ui/case-cards";
 
+export type TickKind = "week" | "month" | "year";
+
 export type CaseDescription = {
 	personName: string;
 	caseLLMDescriptipn: string;
 	stepCount: number;
 	initialStep: Step;
+	tickKind: TickKind;
 };
 
 export type Case = {
@@ -21,7 +24,13 @@ export function simulateWithActions(
 ) {
 	let steps: Step[] = [caseDescription.initialStep];
 	for (const actions of newActionsPerTick) {
-		steps.push(computeNextStep(steps[steps.length - 1], actions));
+		steps.push(
+			computeNextStep(
+				steps[steps.length - 1],
+				actions,
+				caseDescription.tickKind
+			)
+		);
 	}
 	return steps;
 }

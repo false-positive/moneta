@@ -22,6 +22,7 @@ test("simulate with actions", () => {
 			oldActiveActions: [lifeAction],
 		},
 		stepCount: 5,
+		tickKind: "week",
 	};
 
 	const job = (ticks: number) => ({
@@ -97,4 +98,5 @@ test("simulate with actions", () => {
 	expect(steps[5].freeTime).toBe(100);
 	expect(steps[5].newActions).toEqual([]);
 	expect(steps[5].oldActiveActions).toEqual([lifeAction]);
+	expect(steps[5].tick).toBe(5);
 });
