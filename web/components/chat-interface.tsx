@@ -220,7 +220,7 @@ export default function ChatInterface() {
 								isRecording ? stopRecording : startRecording
 							}
 							className={`transition-all duration-300 ${isRecording ? "animate-pulse" : ""}`}
-							disabled={isRecording || isWaitingForResponse}
+							disabled={isWaitingForResponse}
 						>
 							{isRecording ? (
 								<Square className="h-4 w-4" />
