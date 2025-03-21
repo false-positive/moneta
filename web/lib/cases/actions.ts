@@ -30,6 +30,7 @@ type BaseAction = {
   name: string;
   shortDescription: string; // Short description for UI display
   llmDescription: string; // Detailed description for LLM context
+  timesApplied: number;
   kind: string;
   poll: (state: Step) => boolean;
 };
@@ -159,7 +160,9 @@ const ActionFactories = {
       kind?: "investment";
     }
   ): InvestmentAction => ({
+    ...params,
     kind: "investment",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
       const investment = Math.min(
         state.budget * this.maxInvestmentPercent,
@@ -208,6 +211,8 @@ const ActionFactories = {
         }
       }
 
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget + actualReturns,
@@ -220,7 +225,6 @@ const ActionFactories = {
             : 0),
       };
     },
-    ...params,
   }),
 
   // Job action factory
@@ -229,16 +233,22 @@ const ActionFactories = {
       kind?: "job";
     }
   ): JobAction => ({
+    ...params,
     kind: "job",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget + this.incomeAmount,
-        freeTime: state.freeTime - this.freeTimeReduction,
+        freeTime:
+          this.timesApplied > 1
+            ? state.freeTime
+            : state.freeTime - this.freeTimeReduction,
         joy: state.joy + this.joyImpact,
       };
     },
-    ...params,
   }),
 
   // Business action factory
@@ -247,7 +257,9 @@ const ActionFactories = {
       kind?: "business";
     }
   ): BusinessAction => ({
+    ...params,
     kind: "business",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
       const businessLuck = Math.random();
       let profit;
@@ -260,6 +272,8 @@ const ActionFactories = {
         profit = this.initialInvestment * this.returns.low;
       }
 
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget + profit - this.initialInvestment,
@@ -269,7 +283,6 @@ const ActionFactories = {
           (profit > 0 ? this.joyImpact.success : this.joyImpact.failure),
       };
     },
-    ...params,
   }),
 
   // Property action factory
@@ -278,9 +291,13 @@ const ActionFactories = {
       kind?: "property";
     }
   ): PropertyAction => ({
+    ...params,
     kind: "property",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
       const monthlyRent = this.propertyValue * this.rentalYield;
+
+      this.timesApplied++;
 
       return {
         ...state,
@@ -289,7 +306,6 @@ const ActionFactories = {
         joy: state.joy + this.joyImpact,
       };
     },
-    ...params,
   }),
 
   // Entertainment action factory
@@ -298,8 +314,12 @@ const ActionFactories = {
       kind?: "entertainment";
     }
   ): EntertainmentAction => ({
+    ...params,
     kind: "entertainment",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget - this.cost,
@@ -307,7 +327,6 @@ const ActionFactories = {
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
-    ...params,
   }),
 
   // Purchase action factory
@@ -316,8 +335,12 @@ const ActionFactories = {
       kind?: "purchase";
     }
   ): PurchaseAction => ({
+    ...params,
     kind: "purchase",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget - this.cost,
@@ -325,7 +348,6 @@ const ActionFactories = {
         freeTime: state.freeTime + this.freeTimeImpact,
       };
     },
-    ...params,
   }),
 
   // Life choice action factory
@@ -334,8 +356,12 @@ const ActionFactories = {
       kind?: "life_choice";
     }
   ): LifeChoiceAction => ({
+    ...params,
     kind: "life_choice",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget - this.initialCost + this.ongoingBudgetImpact,
@@ -343,7 +369,6 @@ const ActionFactories = {
         freeTime: state.freeTime + this.freeTimeImpact,
       };
     },
-    ...params,
   }),
 
   // Education action factory
@@ -352,8 +377,12 @@ const ActionFactories = {
       kind?: "education";
     }
   ): EducationAction => ({
+    ...params,
     kind: "education",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
+
       return {
         ...state,
         budget: state.budget - this.cost,
@@ -361,7 +390,6 @@ const ActionFactories = {
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
-    ...params,
   }),
 
   // Job search action factory
@@ -370,11 +398,15 @@ const ActionFactories = {
       kind?: "job_search";
     }
   ): JobSearchAction => ({
+    ...params,
     kind: "job_search",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
       const jobSearchLuck = Math.random();
       const isSuccessful = jobSearchLuck > 1 - this.successRate;
       const salaryIncrease = isSuccessful ? this.salaryIncrease : 0;
+
+      this.timesApplied++;
 
       return {
         ...state,
@@ -385,7 +417,6 @@ const ActionFactories = {
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
-    ...params,
   }),
 
   // NoOp action factory
@@ -394,11 +425,13 @@ const ActionFactories = {
       kind?: "no_op";
     }
   ): NoOpAction => ({
+    ...params,
     kind: "no_op",
+    timesApplied: params.timesApplied || 0,
     modifier: function (state) {
+      this.timesApplied++;
       return state;
     },
-    ...params,
   }),
 };
 
@@ -434,6 +467,7 @@ const actions: Action[] = [
     volatility: 0,
     joyImpact: 5,
     poll: (state) => state.budget > 1000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -448,6 +482,7 @@ const actions: Action[] = [
     volatility: 0,
     joyImpact: 7,
     poll: (state) => state.budget > 1000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -463,6 +498,7 @@ const actions: Action[] = [
     volatility: 0.01,
     joyImpact: 10,
     poll: (state) => state.budget > 5000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -478,6 +514,7 @@ const actions: Action[] = [
     joyImpact: 15,
     joyLossOnBadOutcome: 10,
     poll: (state) => state.budget > 2000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -494,6 +531,7 @@ const actions: Action[] = [
     joyImpact: 20,
     joyLossOnBadOutcome: 20,
     poll: (state) => state.budget > 2000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -510,6 +548,7 @@ const actions: Action[] = [
     joyImpact: 25,
     joyLossOnBadOutcome: 30,
     poll: (state) => state.budget > 1000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createInvestmentAction({
@@ -525,6 +564,7 @@ const actions: Action[] = [
     volatility: 0.05,
     joyImpact: 8,
     poll: (state) => state.budget > 3000,
+    timesApplied: 0,
   }),
 
   // Job actions
@@ -537,6 +577,7 @@ const actions: Action[] = [
     freeTimeReduction: 40,
     joyImpact: 10,
     poll: (state) => state.freeTime > 40,
+    timesApplied: 0,
   }),
 
   ActionFactories.createJobAction({
@@ -548,6 +589,7 @@ const actions: Action[] = [
     freeTimeReduction: 40,
     joyImpact: 15,
     poll: (state) => state.freeTime > 40,
+    timesApplied: 0,
   }),
 
   ActionFactories.createJobAction({
@@ -559,6 +601,7 @@ const actions: Action[] = [
     freeTimeReduction: 70,
     joyImpact: -5,
     poll: (state) => state.freeTime > 80,
+    timesApplied: 0,
   }),
 
   ActionFactories.createJobAction({
@@ -570,6 +613,7 @@ const actions: Action[] = [
     freeTimeReduction: 70,
     joyImpact: 5,
     poll: (state) => state.freeTime > 80,
+    timesApplied: 0,
   }),
 
   // Business action
@@ -595,6 +639,7 @@ const actions: Action[] = [
       failure: -15,
     },
     poll: (state) => state.budget > 10000 && state.freeTime > 60,
+    timesApplied: 0,
   }),
 
   // Property action
@@ -607,6 +652,7 @@ const actions: Action[] = [
     freeTimeReduction: 5,
     joyImpact: 15,
     poll: (state) => state.budget > 50000,
+    timesApplied: 0,
   }),
 
   // Entertainment actions
@@ -618,6 +664,7 @@ const actions: Action[] = [
     joyImpact: 10,
     freeTimeReduction: 2,
     poll: (state) => state.budget > 50,
+    timesApplied: 0,
   }),
 
   ActionFactories.createEntertainmentAction({
@@ -628,6 +675,7 @@ const actions: Action[] = [
     joyImpact: 25,
     freeTimeReduction: 10,
     poll: (state) => state.budget > 500,
+    timesApplied: 0,
   }),
 
   ActionFactories.createEntertainmentAction({
@@ -638,6 +686,7 @@ const actions: Action[] = [
     joyImpact: 50,
     freeTimeReduction: 20,
     poll: (state) => state.budget > 5000,
+    timesApplied: 0,
   }),
 
   // Purchase actions
@@ -649,6 +698,7 @@ const actions: Action[] = [
     joyImpact: 40,
     freeTimeImpact: -10,
     poll: (state) => state.budget > 100000,
+    timesApplied: 0,
   }),
 
   ActionFactories.createPurchaseAction({
@@ -659,6 +709,7 @@ const actions: Action[] = [
     joyImpact: 30,
     freeTimeImpact: 5,
     poll: (state) => state.budget > 20000,
+    timesApplied: 0,
   }),
 
   // Life choice actions
@@ -673,6 +724,7 @@ const actions: Action[] = [
     minBudget: 30000,
     minFreeTime: 20,
     poll: (state) => state.budget > 30000 && state.freeTime > 20,
+    timesApplied: 0,
   }),
 
   // Education action
@@ -684,6 +736,7 @@ const actions: Action[] = [
     joyImpact: 20,
     freeTimeReduction: 20,
     poll: (state) => state.budget > 10000 && state.freeTime > 20,
+    timesApplied: 0,
   }),
 
   // Job search action
@@ -700,6 +753,7 @@ const actions: Action[] = [
       failure: -5,
     },
     poll: (state) => state.freeTime > 10,
+    timesApplied: 0,
   }),
 
   ActionFactories.createLifeChoiceAction({
@@ -713,6 +767,7 @@ const actions: Action[] = [
     minBudget: 20000,
     minJoy: 50,
     poll: (state) => state.budget > 20000 && state.joy > 50,
+    timesApplied: 0,
   }),
 
   ActionFactories.createNoOpAction({
@@ -720,6 +775,7 @@ const actions: Action[] = [
     shortDescription: "Do nothing",
     llmDescription: "Do nothing",
     poll: (state) => true,
+    timesApplied: 0,
   }),
 ];
 
