@@ -19,8 +19,8 @@ const sampleCase: Case = {
     tick: 0,
     budget: 5000,
     isBudgetKnown: true,
-    happiness: 50,
-    isHappinessKnown: true,
+    joy: 50,
+    isJoyKnown: true,
     freeTime: 100,
     isFreeTimeKnown: true,
     newActions: [],
@@ -105,12 +105,8 @@ export default function EngineTestPage() {
       : budget > 2000
       ? "text-yellow-600"
       : "text-red-600";
-  const getHappinessColor = (happiness: number) =>
-    happiness > 70
-      ? "text-green-600"
-      : happiness > 30
-      ? "text-yellow-600"
-      : "text-red-600";
+  const getJoyColor = (joy: number) =>
+    joy > 70 ? "text-green-600" : joy > 30 ? "text-yellow-600" : "text-red-600";
   const getFreeTimeColor = (freeTime: number) =>
     freeTime > 50
       ? "text-green-600"
@@ -137,7 +133,7 @@ export default function EngineTestPage() {
 
     return {
       budget: getDiff(current.budget, previous.budget),
-      happiness: getDiff(current.happiness, previous.happiness),
+      joy: getDiff(current.joy, previous.joy),
       freeTime: getDiff(current.freeTime, previous.freeTime),
     };
   };
@@ -171,16 +167,14 @@ export default function EngineTestPage() {
               </div>
             </div>
             <div className="flex justify-between">
-              <span>Happiness:</span>
+              <span>Joy:</span>
               <div>
                 <span
-                  className={`font-medium ${getHappinessColor(
-                    currentStep?.happiness
-                  )}`}
+                  className={`font-medium ${getJoyColor(currentStep?.joy)}`}
                 >
-                  {currentStep?.happiness}
+                  {currentStep?.joy}
                 </span>
-                {diffs && <span className="ml-2">{diffs.happiness}</span>}
+                {diffs && <span className="ml-2">{diffs.joy}</span>}
               </div>
             </div>
             <div className="flex justify-between">
@@ -281,7 +275,7 @@ export default function EngineTestPage() {
                     Budget
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Happiness
+                    Joy
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Free Time
@@ -317,9 +311,8 @@ export default function EngineTestPage() {
                         getDiff(step.budget, caseSteps[index].budget)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {step.happiness}{" "}
-                      {index > 0 &&
-                        getDiff(step.happiness, caseSteps[index].happiness)}
+                      {step.joy}{" "}
+                      {index > 0 && getDiff(step.joy, caseSteps[index].joy)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {step.freeTime}{" "}

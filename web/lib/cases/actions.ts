@@ -2,8 +2,8 @@ type Step = {
   tick: number;
   budget: number;
   isBudgetKnown: boolean;
-  happiness: number;
-  isHappinessKnown: boolean;
+  joy: number;
+  isJoyKnown: boolean;
   freeTime: number;
   isFreeTimeKnown: boolean;
   // Actions, which were introduced in this step
@@ -43,8 +43,8 @@ type InvestmentAction = BaseAction & {
   maxInvestmentAmount: number; // max amount regardless of percentage
   baseReturnRate: number; // average return rate
   volatility: number; // 0-1, how volatile the returns are
-  happinessImpact: number; // base happiness impact
-  happinessLossOnBadOutcome?: number; // optional penalty on bad outcome
+  joyImpact: number; // base joy impact
+  joyLossOnBadOutcome?: number; // optional penalty on bad outcome
   modifier: (this: InvestmentAction, state: Step) => Step;
 };
 
@@ -54,7 +54,7 @@ type JobAction = BaseAction & {
   requiredFreeTime: number;
   incomeAmount: number;
   freeTimeReduction: number;
-  happinessImpact: number;
+  joyImpact: number;
   modifier: (this: JobAction, state: Step) => Step;
 };
 
@@ -74,7 +74,7 @@ type BusinessAction = BaseAction & {
     medium: number; // Return multiplier for medium success
     low: number; // Return multiplier for low success
   };
-  happinessImpact: {
+  joyImpact: {
     success: number;
     failure: number;
   };
@@ -87,7 +87,7 @@ type PropertyAction = BaseAction & {
   propertyValue: number;
   rentalYield: number;
   freeTimeReduction: number;
-  happinessImpact: number;
+  joyImpact: number;
   modifier: (this: PropertyAction, state: Step) => Step;
 };
 
@@ -95,7 +95,7 @@ type PropertyAction = BaseAction & {
 type EntertainmentAction = BaseAction & {
   kind: "entertainment";
   cost: number;
-  happinessImpact: number;
+  joyImpact: number;
   freeTimeReduction: number;
   modifier: (this: EntertainmentAction, state: Step) => Step;
 };
@@ -104,7 +104,7 @@ type EntertainmentAction = BaseAction & {
 type PurchaseAction = BaseAction & {
   kind: "purchase";
   cost: number;
-  happinessImpact: number;
+  joyImpact: number;
   freeTimeImpact: number;
   modifier: (this: PurchaseAction, state: Step) => Step;
 };
@@ -114,10 +114,10 @@ type LifeChoiceAction = BaseAction & {
   kind: "life_choice";
   initialCost: number;
   ongoingBudgetImpact: number;
-  happinessImpact: number;
+  joyImpact: number;
   freeTimeImpact: number;
   minBudget: number;
-  minHappiness?: number;
+  minJoy?: number;
   minFreeTime?: number;
   modifier: (this: LifeChoiceAction, state: Step) => Step;
 };
@@ -126,7 +126,7 @@ type LifeChoiceAction = BaseAction & {
 type EducationAction = BaseAction & {
   kind: "education";
   cost: number;
-  happinessImpact: number;
+  joyImpact: number;
   freeTimeReduction: number;
   modifier: (this: EducationAction, state: Step) => Step;
 };
@@ -138,7 +138,7 @@ type JobSearchAction = BaseAction & {
   freeTimeReduction: number;
   successRate: number;
   salaryIncrease: number;
-  happinessImpacts: {
+  joyImpacts: {
     success: number;
     failure: number;
   };
@@ -211,12 +211,12 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget + actualReturns,
-        happiness:
-          state.happiness +
+        joy:
+          state.joy +
           (actualReturns > 0
-            ? this.happinessImpact
-            : this.happinessLossOnBadOutcome
-            ? -this.happinessLossOnBadOutcome
+            ? this.joyImpact
+            : this.joyLossOnBadOutcome
+            ? -this.joyLossOnBadOutcome
             : 0),
       };
     },
@@ -235,7 +235,7 @@ const ActionFactories = {
         ...state,
         budget: state.budget + this.incomeAmount,
         freeTime: state.freeTime - this.freeTimeReduction,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
       };
     },
     ...params,
@@ -264,11 +264,9 @@ const ActionFactories = {
         ...state,
         budget: state.budget + profit - this.initialInvestment,
         freeTime: state.freeTime - this.freeTimeReduction,
-        happiness:
-          state.happiness +
-          (profit > 0
-            ? this.happinessImpact.success
-            : this.happinessImpact.failure),
+        joy:
+          state.joy +
+          (profit > 0 ? this.joyImpact.success : this.joyImpact.failure),
       };
     },
     ...params,
@@ -288,7 +286,7 @@ const ActionFactories = {
         ...state,
         budget: state.budget - this.propertyValue + monthlyRent,
         freeTime: state.freeTime - this.freeTimeReduction,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
       };
     },
     ...params,
@@ -305,7 +303,7 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget - this.cost,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
@@ -323,7 +321,7 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget - this.cost,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
         freeTime: state.freeTime + this.freeTimeImpact,
       };
     },
@@ -341,7 +339,7 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget - this.initialCost + this.ongoingBudgetImpact,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
         freeTime: state.freeTime + this.freeTimeImpact,
       };
     },
@@ -359,7 +357,7 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget - this.cost,
-        happiness: state.happiness + this.happinessImpact,
+        joy: state.joy + this.joyImpact,
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
@@ -381,11 +379,9 @@ const ActionFactories = {
       return {
         ...state,
         budget: state.budget + salaryIncrease,
-        happiness:
-          state.happiness +
-          (isSuccessful
-            ? this.happinessImpacts.success
-            : this.happinessImpacts.failure),
+        joy:
+          state.joy +
+          (isSuccessful ? this.joyImpacts.success : this.joyImpacts.failure),
         freeTime: state.freeTime - this.freeTimeReduction,
       };
     },
@@ -436,7 +432,7 @@ const actions: Action[] = [
     maxInvestmentAmount: Number.MAX_SAFE_INTEGER,
     baseReturnRate: 0.0,
     volatility: 0,
-    happinessImpact: 5,
+    joyImpact: 5,
     poll: (state) => state.budget > 1000,
   }),
 
@@ -450,7 +446,7 @@ const actions: Action[] = [
     maxInvestmentAmount: 10000,
     baseReturnRate: 0.003,
     volatility: 0,
-    happinessImpact: 7,
+    joyImpact: 7,
     poll: (state) => state.budget > 1000,
   }),
 
@@ -465,7 +461,7 @@ const actions: Action[] = [
     maxInvestmentAmount: 20000,
     baseReturnRate: 0.025,
     volatility: 0.01,
-    happinessImpact: 10,
+    joyImpact: 10,
     poll: (state) => state.budget > 5000,
   }),
 
@@ -479,8 +475,8 @@ const actions: Action[] = [
     maxInvestmentAmount: 30000,
     baseReturnRate: 0.07,
     volatility: 0.05,
-    happinessImpact: 15,
-    happinessLossOnBadOutcome: 10,
+    joyImpact: 15,
+    joyLossOnBadOutcome: 10,
     poll: (state) => state.budget > 2000,
   }),
 
@@ -495,8 +491,8 @@ const actions: Action[] = [
     maxInvestmentAmount: 25000,
     baseReturnRate: 0.15,
     volatility: 0.15,
-    happinessImpact: 20,
-    happinessLossOnBadOutcome: 20,
+    joyImpact: 20,
+    joyLossOnBadOutcome: 20,
     poll: (state) => state.budget > 2000,
   }),
 
@@ -511,8 +507,8 @@ const actions: Action[] = [
     maxInvestmentAmount: 10000,
     baseReturnRate: 0.35,
     volatility: 0.35,
-    happinessImpact: 25,
-    happinessLossOnBadOutcome: 30,
+    joyImpact: 25,
+    joyLossOnBadOutcome: 30,
     poll: (state) => state.budget > 1000,
   }),
 
@@ -527,7 +523,7 @@ const actions: Action[] = [
     maxInvestmentAmount: 15000,
     baseReturnRate: 0.07,
     volatility: 0.05,
-    happinessImpact: 8,
+    joyImpact: 8,
     poll: (state) => state.budget > 3000,
   }),
 
@@ -539,7 +535,7 @@ const actions: Action[] = [
     requiredFreeTime: 40,
     incomeAmount: 2500,
     freeTimeReduction: 40,
-    happinessImpact: 10,
+    joyImpact: 10,
     poll: (state) => state.freeTime > 40,
   }),
 
@@ -550,7 +546,7 @@ const actions: Action[] = [
     requiredFreeTime: 40,
     incomeAmount: 4000,
     freeTimeReduction: 40,
-    happinessImpact: 15,
+    joyImpact: 15,
     poll: (state) => state.freeTime > 40,
   }),
 
@@ -561,7 +557,7 @@ const actions: Action[] = [
     requiredFreeTime: 80,
     incomeAmount: 4000,
     freeTimeReduction: 70,
-    happinessImpact: -5,
+    joyImpact: -5,
     poll: (state) => state.freeTime > 80,
   }),
 
@@ -572,7 +568,7 @@ const actions: Action[] = [
     requiredFreeTime: 80,
     incomeAmount: 7000,
     freeTimeReduction: 70,
-    happinessImpact: 5,
+    joyImpact: 5,
     poll: (state) => state.freeTime > 80,
   }),
 
@@ -594,7 +590,7 @@ const actions: Action[] = [
       medium: 0.1,
       low: -0.3,
     },
-    happinessImpact: {
+    joyImpact: {
       success: 25,
       failure: -15,
     },
@@ -609,7 +605,7 @@ const actions: Action[] = [
     propertyValue: 50000,
     rentalYield: 0.007,
     freeTimeReduction: 5,
-    happinessImpact: 15,
+    joyImpact: 15,
     poll: (state) => state.budget > 50000,
   }),
 
@@ -619,7 +615,7 @@ const actions: Action[] = [
     shortDescription: "Basic entertainment",
     llmDescription: "Have some basic entertainment like going to cinema",
     cost: 50,
-    happinessImpact: 10,
+    joyImpact: 10,
     freeTimeReduction: 2,
     poll: (state) => state.budget > 50,
   }),
@@ -629,7 +625,7 @@ const actions: Action[] = [
     shortDescription: "Medium-cost entertainment",
     llmDescription: "Have medium-cost entertainment like a weekend trip",
     cost: 500,
-    happinessImpact: 25,
+    joyImpact: 25,
     freeTimeReduction: 10,
     poll: (state) => state.budget > 500,
   }),
@@ -639,7 +635,7 @@ const actions: Action[] = [
     shortDescription: "Expensive entertainment",
     llmDescription: "Have expensive entertainment like a luxury vacation",
     cost: 5000,
-    happinessImpact: 50,
+    joyImpact: 50,
     freeTimeReduction: 20,
     poll: (state) => state.budget > 5000,
   }),
@@ -650,7 +646,7 @@ const actions: Action[] = [
     shortDescription: "Purchase a house",
     llmDescription: "Purchase a house",
     cost: 100000,
-    happinessImpact: 40,
+    joyImpact: 40,
     freeTimeImpact: -10,
     poll: (state) => state.budget > 100000,
   }),
@@ -660,7 +656,7 @@ const actions: Action[] = [
     shortDescription: "Purchase a car",
     llmDescription: "Purchase a car",
     cost: 20000,
-    happinessImpact: 30,
+    joyImpact: 30,
     freeTimeImpact: 5,
     poll: (state) => state.budget > 20000,
   }),
@@ -672,7 +668,7 @@ const actions: Action[] = [
     llmDescription: "Have children",
     initialCost: 10000,
     ongoingBudgetImpact: 0,
-    happinessImpact: 60,
+    joyImpact: 60,
     freeTimeImpact: -40,
     minBudget: 30000,
     minFreeTime: 20,
@@ -685,7 +681,7 @@ const actions: Action[] = [
     shortDescription: "Invest in education",
     llmDescription: "Invest in education",
     cost: 10000,
-    happinessImpact: 20,
+    joyImpact: 20,
     freeTimeReduction: 20,
     poll: (state) => state.budget > 10000 && state.freeTime > 20,
   }),
@@ -699,7 +695,7 @@ const actions: Action[] = [
     freeTimeReduction: 5,
     successRate: 0.5,
     salaryIncrease: 500,
-    happinessImpacts: {
+    joyImpacts: {
       success: 15,
       failure: -5,
     },
@@ -712,11 +708,11 @@ const actions: Action[] = [
     llmDescription: "Get married",
     initialCost: 20000,
     ongoingBudgetImpact: 1000,
-    happinessImpact: 70,
+    joyImpact: 70,
     freeTimeImpact: -10,
     minBudget: 20000,
-    minHappiness: 50,
-    poll: (state) => state.budget > 20000 && state.happiness > 50,
+    minJoy: 50,
+    poll: (state) => state.budget > 20000 && state.joy > 50,
   }),
 
   ActionFactories.createNoOpAction({
