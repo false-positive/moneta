@@ -32,7 +32,6 @@ export default function ChatInterface() {
       } else {
         setMessages([
           { id: 1, text: "Hello! How can I help you today?", sender: "bot" },
-          { id: 2, text: "I have a question about the layout.", sender: "user" },
         ])
       }
       hasLoadedRef.current = true
