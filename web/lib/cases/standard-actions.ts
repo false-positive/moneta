@@ -88,15 +88,24 @@ export const pensionInvestmentAction: Action = {
 	remainingTicks: 12, // months
 };
 
+export const etfInvestmentOnceAction: Action = {
+	...noOpAction,
+	name: "ETF Investment - One-off",
+	kind: "investment",
+	shortDescription: "Buy an ETF fund",
+	llmDescription: "Buy an ETF fund",
+	investmentImpact: impact({
+		percentFromHistory: "etf",
+		initialPrice: 10000,
+	}),
+	joyImpact: noImpact,
+	freeTimeImpact: noImpact,
+	remainingTicks: 10, // years
+};
+
 export const allActionsList = {
 	lifeAction,
 	waiterJobAction,
 	sweJobAction,
 	savingsDepositAction,
 };
-
-/**
-
-- Risk
-- Poi
- */

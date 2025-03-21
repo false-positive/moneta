@@ -19,7 +19,7 @@ test("life action", () => {
 		oldActiveActions: [lifeAction],
 	};
 
-	const nextStep = computeNextStep(initialStep, []);
+	const nextStep = computeNextStep(initialStep, [], "month");
 
 	expect(nextStep.bankAccount).toBe(
 		(INITIAL_BANK_ACCOUNT - 1000) * (1 - 2 / 100 / 12)
@@ -42,7 +42,7 @@ test("waiter job action", () => {
 		oldActiveActions: [],
 	};
 
-	const nextStep = computeNextStep(initialStep, [waiterJobAction]);
+	const nextStep = computeNextStep(initialStep, [waiterJobAction], "month");
 
 	expect(nextStep.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep.joy).toBe(95);
@@ -68,9 +68,9 @@ test("waiter job action with multiple ticks", () => {
 		remainingTicks: ticks,
 	});
 
-	const nextStep1 = computeNextStep(initialStep, [job(2)]);
-	const nextStep2 = computeNextStep(nextStep1, []);
-	const nextStep3 = computeNextStep(nextStep2, []);
+	const nextStep1 = computeNextStep(initialStep, [job(2)], "month");
+	const nextStep2 = computeNextStep(nextStep1, [], "month");
+	const nextStep3 = computeNextStep(nextStep2, [], "month");
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep1.joy).toBe(95);
@@ -109,9 +109,9 @@ test("savings deposit action with multiple ticks", () => {
 		capital,
 	});
 
-	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)]);
-	const nextStep2 = computeNextStep(nextStep1, []);
-	const nextStep3 = computeNextStep(nextStep2, []);
+	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)], "month");
+	const nextStep2 = computeNextStep(nextStep1, [], "month");
+	const nextStep3 = computeNextStep(nextStep2, [], "month");
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
@@ -158,7 +158,7 @@ test("multiple overlapping actions", () => {
 		capital,
 	});
 
-	const nextStep1 = computeNextStep(initialStep, []);
+	const nextStep1 = computeNextStep(initialStep, [], "month");
 
 	const inflation = 1 - 2 / 100 / 12;
 
@@ -171,7 +171,7 @@ test("multiple overlapping actions", () => {
 	expect(nextStep1.newActions).toEqual([]);
 	expect(nextStep1.oldActiveActions).toEqual([lifeAction]);
 
-	const nextStep2 = computeNextStep(nextStep1, [job(2)]);
+	const nextStep2 = computeNextStep(nextStep1, [job(2)], "month");
 	expectedBankAccount = (expectedBankAccount - 1000) * inflation + 1000;
 	expectedJoy = expectedJoy * 0.9 * 0.95;
 
@@ -181,7 +181,7 @@ test("multiple overlapping actions", () => {
 	expect(nextStep2.newActions).toEqual([job(2)]);
 	expect(nextStep2.oldActiveActions).toEqual([lifeAction, job(1)]);
 
-	const nextStep3 = computeNextStep(nextStep2, [invest(2, 1000)]);
+	const nextStep3 = computeNextStep(nextStep2, [invest(2, 1000)], "month");
 	expectedBankAccount =
 		(expectedBankAccount - 1000) * inflation + 1000 - 1000;
 	expectedJoy = expectedJoy * 0.9 * 0.95;
@@ -196,7 +196,7 @@ test("multiple overlapping actions", () => {
 		invest(1, 1000 * 1.002),
 	]);
 
-	const nextStep4 = computeNextStep(nextStep3, []);
+	const nextStep4 = computeNextStep(nextStep3, [], "month");
 	expectedBankAccount = (expectedBankAccount - 1000) * inflation;
 	expectedJoy = expectedJoy * 0.9;
 
@@ -209,7 +209,7 @@ test("multiple overlapping actions", () => {
 		invest(0, 1000 * 1.002 * 1.002),
 	]);
 
-	const nextStep5 = computeNextStep(nextStep4, []);
+	const nextStep5 = computeNextStep(nextStep4, [], "month");
 	expectedBankAccount =
 		(expectedBankAccount - 1000) * inflation + 1000 * 1.002 * 1.002;
 	expectedJoy = expectedJoy * 0.9;
@@ -239,9 +239,9 @@ test("pension deposit action with multiple ticks", () => {
 		capital,
 	});
 
-	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)]);
-	const nextStep2 = computeNextStep(nextStep1, []);
-	const nextStep3 = computeNextStep(nextStep2, []);
+	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)], "month");
+	const nextStep2 = computeNextStep(nextStep1, [], "month");
+	const nextStep3 = computeNextStep(nextStep2, [], "month");
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
