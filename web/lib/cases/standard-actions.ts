@@ -66,7 +66,22 @@ export const savingsDepositAction: Action = {
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
 		repeatedPercent: 0.2,
-		initialValue: 1000,
+		initialPrice: 1000,
+	}),
+	joyImpact: noImpact,
+	freeTimeImpact: noImpact,
+	remainingTicks: 12, // months
+};
+
+export const pensionInvestmentAction: Action = {
+	...noOpAction,
+	name: "Pension Investment",
+	kind: "investment",
+	shortDescription: "Pension fund contribution cost",
+	llmDescription: "Pension fund contribution cost",
+	investmentImpact: impact({
+		repeatedPercent: 2,
+		repeatedPrice: 1000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,

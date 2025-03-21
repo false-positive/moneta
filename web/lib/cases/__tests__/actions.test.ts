@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { Step, computeNextStep } from "../actions";
 import {
 	lifeAction,
+	pensionInvestmentAction,
 	savingsDepositAction,
 	waiterJobAction,
 } from "../standard-actions";
@@ -218,4 +219,47 @@ test("multiple overlapping actions", () => {
 	expect(nextStep5.freeTime).toBe(100);
 	expect(nextStep5.newActions).toEqual([]);
 	expect(nextStep5.oldActiveActions).toEqual([lifeAction]);
+});
+
+test("pension deposit action with multiple ticks", () => {
+	const INITIAL_BANK_ACCOUNT = 2000;
+
+	const initialStep: Step = {
+		tick: 0,
+		bankAccount: INITIAL_BANK_ACCOUNT,
+		joy: 100,
+		freeTime: 100,
+		newActions: [],
+		oldActiveActions: [],
+	};
+
+	const invest = (ticks: number, capital: number) => ({
+		...pensionInvestmentAction,
+		remainingTicks: ticks,
+		capital,
+	});
+
+	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)]);
+	const nextStep2 = computeNextStep(nextStep1, []);
+	const nextStep3 = computeNextStep(nextStep2, []);
+
+	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
+	expect(nextStep1.joy).toBe(100);
+	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
+	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.02)]);
+
+	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 2000);
+	expect(nextStep2.joy).toBe(100);
+	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.newActions).toEqual([]);
+	expect(nextStep2.oldActiveActions).toEqual([
+		invest(0, 1000 * 1.02 * 1.02 + 1000 * 1.02),
+	]);
+
+	expect(nextStep3.bankAccount).toBeCloseTo(1000 * 1.02 * 1.02 + 1000 * 1.02);
+	expect(nextStep3.joy).toBe(100);
+	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.newActions).toEqual([]);
+	expect(nextStep3.oldActiveActions).toEqual([]);
 });

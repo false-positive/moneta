@@ -19,7 +19,8 @@ export type MetricImpact = {
 	repeatedAbsoluteDelta: number;
 	repeatedPercent: number;
 
-	initialValue: number;
+	initialPrice: number;
+	repeatedPrice: number;
 };
 
 export const noImpact: MetricImpact = {
@@ -30,7 +31,8 @@ export const noImpact: MetricImpact = {
 	repeatedAbsoluteDelta: 0,
 	repeatedPercent: 0,
 
-	initialValue: 0,
+	initialPrice: 0,
+	repeatedPrice: 0,
 };
 
 export const impact = (partialImpact: Partial<MetricImpact>) => ({
@@ -73,7 +75,8 @@ function applyAction(action: Action, step: Step, isNew: boolean) {
 	const newAction = { ...action };
 	newAction.capital = calculateMetric(
 		action.investmentImpact,
-		isNew ? action.investmentImpact.initialValue : action.capital
+		action.investmentImpact.repeatedPrice +
+			(isNew ? action.investmentImpact.initialPrice : action.capital)
 	);
 	newAction.remainingTicks--;
 
@@ -81,7 +84,8 @@ function applyAction(action: Action, step: Step, isNew: boolean) {
 		...step,
 		bankAccount:
 			calculateMetric(action.bankAccountImpact, step.bankAccount) -
-			(isNew ? newAction.investmentImpact.initialValue : 0),
+			(isNew ? newAction.investmentImpact.initialPrice : 0) -
+			newAction.investmentImpact.repeatedPrice,
 		joy: calculateMetric(action.joyImpact, step.joy),
 		freeTime: calculateMetric(action.freeTimeImpact, step.freeTime),
 
