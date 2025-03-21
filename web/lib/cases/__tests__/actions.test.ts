@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import {
 	computeNextStep,
 	lifeAction,
+	savingsDepositAction,
 	waiterJobAction,
 	type Step,
 } from "../actions";
@@ -85,6 +86,51 @@ test("waiter job action with multiple ticks", () => {
 
 	expect(nextStep3.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 2000);
 	expect(nextStep3.joy).toBe(90.25);
+	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.newActions).toEqual([]);
+	expect(nextStep3.oldActiveActions).toEqual([]);
+});
+
+test("savings deposit action with multiple ticks", () => {
+	const INITIAL_BANK_ACCOUNT = 2000;
+
+	const initialStep: Step = {
+		tick: 0,
+		bankAccount: INITIAL_BANK_ACCOUNT,
+		joy: 100,
+		freeTime: 100,
+		newActions: [],
+		oldActiveActions: [],
+	};
+
+	const invest = (ticks: number, capital: number) => ({
+		...savingsDepositAction,
+		remainingTicks: ticks,
+		capital,
+	});
+
+	const nextStep1 = computeNextStep(initialStep, [invest(2, 0)]);
+	const nextStep2 = computeNextStep(nextStep1, []);
+	const nextStep3 = computeNextStep(nextStep2, []);
+
+	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
+	expect(nextStep1.joy).toBe(100);
+	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
+	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.002)]);
+
+	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
+	expect(nextStep2.joy).toBe(100);
+	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.newActions).toEqual([]);
+	expect(nextStep2.oldActiveActions).toEqual([
+		invest(0, 1000 * 1.002 * 1.002),
+	]);
+
+	expect(nextStep3.bankAccount).toBeCloseTo(
+		INITIAL_BANK_ACCOUNT - 1000 + 1000 * Math.pow(1.002, 2)
+	);
+	expect(nextStep3.joy).toBe(100);
 	expect(nextStep3.freeTime).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
 	expect(nextStep3.oldActiveActions).toEqual([]);

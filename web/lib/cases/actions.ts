@@ -72,7 +72,7 @@ function applyAction(action: Action, step: Step, isNew: boolean) {
 	const newAction = { ...action };
 	newAction.capital = calculateMetric(
 		action.investmentImpact,
-		isNew ? action.capital : action.investmentImpact.initialValue
+		isNew ? action.investmentImpact.initialValue : action.capital
 	);
 	newAction.remainingTicks--;
 
@@ -193,8 +193,8 @@ export const savingsDepositAction: Action = {
 		repeatedPercent: 0.2,
 		initialValue: 1000,
 	}),
-	joyImpact: percentImpact(-5),
-	freeTimeImpact: absoluteImpact(10), // hours per week
+	joyImpact: noImpact,
+	freeTimeImpact: noImpact,
 	remainingTicks: 12, // months
 };
 
