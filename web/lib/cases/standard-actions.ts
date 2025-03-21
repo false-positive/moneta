@@ -1,0 +1,87 @@
+import {
+	Action,
+	noImpact,
+	impact,
+	absoluteImpact,
+	percentImpact,
+} from "./actions";
+
+const noOpAction: Action = {
+	name: "No Op",
+	kind: "other",
+	shortDescription: "Do nothing",
+	llmDescription: "Do nothing",
+	bankAccountImpact: noImpact,
+	capital: 0,
+	investmentImpact: noImpact,
+	joyImpact: noImpact,
+	freeTimeImpact: noImpact,
+	remainingTicks: 1,
+};
+
+export const lifeAction: Action = {
+	...noOpAction,
+	name: "Life",
+	kind: "expense",
+	shortDescription: "Pay for living expenses",
+	llmDescription: "Pay for living expenses",
+	bankAccountImpact: impact({
+		repeatedAbsoluteDelta: -1000,
+		repeatedPercent: -2 / 12,
+	}), // levs per month + inflation per month
+	joyImpact: percentImpact(-10),
+	freeTimeImpact: absoluteImpact(100), // hours per week
+	remainingTicks: Infinity,
+};
+
+export const waiterJobAction: Action = {
+	...noOpAction,
+	name: "Job as a waiter",
+	kind: "income",
+	shortDescription: "Work as a waiter",
+	llmDescription: "Work as a waiter",
+	bankAccountImpact: absoluteImpact(1000), // levs per month
+	joyImpact: percentImpact(-5),
+	freeTimeImpact: absoluteImpact(-20), // hours per week
+	remainingTicks: Infinity,
+};
+
+export const sweJobAction: Action = {
+	...noOpAction,
+	name: "Job as a software engineer",
+	kind: "income",
+	shortDescription: "Work as a software engineer",
+	llmDescription: "Work as a software engineer",
+	bankAccountImpact: absoluteImpact(5000), // levs per month
+	joyImpact: percentImpact(-10),
+	freeTimeImpact: absoluteImpact(-40), // hours per week
+	remainingTicks: Infinity,
+};
+
+export const savingsDepositAction: Action = {
+	...noOpAction,
+	name: "Savings Deposit",
+	kind: "income",
+	shortDescription: "Deposit money into a savings account",
+	llmDescription: "Deposit money into a savings account",
+	investmentImpact: impact({
+		repeatedPercent: 0.2,
+		initialValue: 1000,
+	}),
+	joyImpact: noImpact,
+	freeTimeImpact: noImpact,
+	remainingTicks: 12, // months
+};
+
+export const allActionsList = {
+	lifeAction,
+	waiterJobAction,
+	sweJobAction,
+	savingsDepositAction,
+};
+
+/**
+
+- Risk
+- Poi
+ */

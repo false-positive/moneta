@@ -1,11 +1,10 @@
 import { expect, test } from "vitest";
+import { Step, computeNextStep } from "../actions";
 import {
-	computeNextStep,
 	lifeAction,
 	savingsDepositAction,
 	waiterJobAction,
-	type Step,
-} from "../actions";
+} from "../standard-actions";
 
 test("life action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
