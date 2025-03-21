@@ -80,8 +80,6 @@ function getBeforeAfter(tick: number, prices: number[], tickKind: TickKind) {
 }
 
 export function getPercent(tick: number, tickKind: TickKind, prices: number[]) {
-	console.log("XXXXXXXXXX", tick);
-
 	const { before, after } = getBeforeAfter(tick, prices, tickKind);
 
 	const percentChange = ((after - before) / before) * 100;
