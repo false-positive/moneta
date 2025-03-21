@@ -34,65 +34,65 @@ export const lifeAction: Action = {
 	remainingTicks: Infinity,
 };
 
-export const waiterJobAction: Action = {
-	...noOpAction,
-	name: "Job as a waiter",
-	kind: "income",
-	shortDescription: "Work as a waiter",
-	llmDescription: "Work as a waiter",
-	bankAccountImpact: absoluteImpact(1000), // levs per month
-	joyImpact: percentImpact(-5),
-	freeTimeImpact: absoluteImpact(-20), // hours per week
-	remainingTicks: Infinity,
-};
+// export const waiterJobAction: Action = {
+// 	...noOpAction,
+// 	name: "Job as a waiter",
+// 	kind: "income",
+// 	shortDescription: "Work as a waiter",
+// 	llmDescription: "Work as a waiter",
+// 	bankAccountImpact: absoluteImpact(1000), // levs per month
+// 	joyImpact: percentImpact(-5),
+// 	freeTimeImpact: absoluteImpact(-20), // hours per week
+// 	remainingTicks: Infinity,
+// };
+//
+// export const sweJobAction: Action = {
+// 	...noOpAction,
+// 	name: "Job as a software engineer",
+// 	kind: "income",
+// 	shortDescription: "Work as a software engineer",
+// 	llmDescription: "Work as a software engineer",
+// 	bankAccountImpact: absoluteImpact(5000), // levs per month
+// 	joyImpact: percentImpact(-10),
+// 	freeTimeImpact: absoluteImpact(-40), // hours per week
+// 	remainingTicks: Infinity,
+// };
 
-export const sweJobAction: Action = {
-	...noOpAction,
-	name: "Job as a software engineer",
-	kind: "income",
-	shortDescription: "Work as a software engineer",
-	llmDescription: "Work as a software engineer",
-	bankAccountImpact: absoluteImpact(5000), // levs per month
-	joyImpact: percentImpact(-10),
-	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
-};
+// export const savingsDepositAction: Action = {
+// 	...noOpAction,
+// 	name: "Savings Deposit",
+// 	kind: "income",
+// 	shortDescription: "Deposit money into a savings account",
+// 	llmDescription: "Deposit money into a savings account",
+// 	investmentImpact: impact({
+// 		repeatedPercent: 0.2,
+// 		initialPrice: 1000,
+// 	}),
+// 	joyImpact: noImpact,
+// 	freeTimeImpact: noImpact,
+// 	remainingTicks: 12, // months
+// };
 
-export const savingsDepositAction: Action = {
-	...noOpAction,
-	name: "Savings Deposit",
-	kind: "income",
-	shortDescription: "Deposit money into a savings account",
-	llmDescription: "Deposit money into a savings account",
-	investmentImpact: impact({
-		repeatedPercent: 0.2,
-		initialPrice: 1000,
-	}),
-	joyImpact: noImpact,
-	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
-};
-
-export const pensionInvestmentAction: Action = {
-	...noOpAction,
-	name: "Pension Investment",
-	kind: "investment",
-	shortDescription: "Pension fund contribution cost",
-	llmDescription: "Pension fund contribution cost",
-	investmentImpact: impact({
-		repeatedPercent: 2,
-		repeatedPrice: 1000,
-	}),
-	joyImpact: noImpact,
-	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
-};
+// export const pensionInvestmentAction: Action = {
+// 	...noOpAction,
+// 	name: "Pension Investment",
+// 	kind: "investment",
+// 	shortDescription: "Pension fund contribution cost",
+// 	llmDescription: "Pension fund contribution cost",
+// 	investmentImpact: impact({
+// 		repeatedPercent: 2,
+// 		repeatedPrice: 1000,
+// 	}),
+// 	joyImpact: noImpact,
+// 	freeTimeImpact: noImpact,
+// 	remainingTicks: 12, // months
+// };
 
 export const allActionsList = {
 	lifeAction,
-	waiterJobAction,
-	sweJobAction,
-	savingsDepositAction,
+	// waiterJobAction,
+	// sweJobAction,
+	// savingsDepositAction,
 };
 
 /**

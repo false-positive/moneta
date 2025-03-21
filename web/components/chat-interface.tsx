@@ -59,13 +59,40 @@ export default function ChatInterface() {
 			setInput("");
 			setIsWaitingForResponse(true);
 
+			const a = {
+				"agent_title": "factory foreman",
+				"agent_description": "As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
+				"scenario_setting": "factory",
+				"scenario": {
+					"description": "A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
+					"metrics": {
+						"production_rate": 120,
+						"defect_rate": 8,
+						"worker_productivity": 25
+					},
+					"targets": {
+						"production_rate_target": 150
+					},
+					"modifiers": {}
+				},
+				"metrics_description": {
+					"production_rate": "The production rate is the number of widgets produced per hour.",
+					"defect_rate": "The defect rate is the percentage of defective widgets produced.",
+					"worker_productivity": "Worker productivity is the average number of widgets produced per worker per hour."
+				},
+				"target_description": {
+					"production_rate_target": "The production rate target is the desired number of widgets to be produced per hour."
+				},
+				"question": "What is the current production rate and target?"
+			}
+
 			// Send the user message to the backend
-			fetch("http://192.168.7.18:5000/discover", {
+			fetch("http://192.168.74.18:5000/discover", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ question: messageToSend }),
+				body: JSON.stringify({ ...a, question: messageToSend }),
 			})
 				.then((response) => {
 					if (!response.ok) {
@@ -151,7 +178,7 @@ export default function ChatInterface() {
 
 		setIsWaitingForResponse(true);
 
-		fetch("http://localhost:5000/transcribe", {
+		fetch("http://192.168.74.18:5000/transcribe-discover", {
 			method: "POST",
 			body: formData,
 		})
@@ -162,6 +189,7 @@ export default function ChatInterface() {
 				return response.json();
 			})
 			.then((data) => {
+				console.log(data)
 				const responseMessage =
 					data.transcription || "Audio file uploaded successfully.";
 				setMessages((prev) => [
@@ -170,6 +198,11 @@ export default function ChatInterface() {
 						id: prev.length + 1,
 						text: responseMessage,
 						sender: "user",
+					},
+					{
+						id: prev.length + 2,
+						text: data.response,
+						sender: "bot",
 					},
 				]);
 				setIsWaitingForResponse(false);
