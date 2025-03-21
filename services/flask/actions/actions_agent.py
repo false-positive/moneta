@@ -13,6 +13,9 @@ class ActionsAgent():
         # Conversation history
         self.conversation_history = {}
 
+    def set_root_agent(self, root_agent):
+        self.agent = root_agent
+
     def set_actions(self, actions: Dict[str, Any]) -> None:
         """Set the available actions for the agent."""
         self.actions = actions

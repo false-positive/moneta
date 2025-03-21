@@ -49,6 +49,9 @@ def load_hint_agent(data):
     global HintAgent, InstructAgent
 
     if HintAgent:
+        if not HintAgent.agent:
+            load_instruct_agent()
+            HintAgent.set_root_agent(InstructAgent)
         return
 
     load_instruct_agent()
@@ -69,6 +72,9 @@ def load_discover_agent(data):
     global DiscoverAgent, InstructAgent
 
     if DiscoverAgent:
+        if not DiscoverAgent.agent:
+            load_instruct_agent()
+            DiscoverAgent.set_root_agent(InstructAgent)
         return
 
     load_instruct_agent()

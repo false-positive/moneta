@@ -39,6 +39,9 @@ class ScenarioAgent:
         # Add system message with scenario description
         self.add_message("system", self._create_system_prompt())
 
+    def set_root_agent(self, root_agent):
+        self.agent = root_agent
+
     def _create_system_prompt(self) -> str:
         """Create the system prompt for the LLM with detailed instructions."""
         # Create a variables reference for the AI to use
