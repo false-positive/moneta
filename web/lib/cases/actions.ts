@@ -22,7 +22,7 @@ export type MetricImpact = {
 	initialValue: number;
 };
 
-const noImpact: MetricImpact = {
+export const noImpact: MetricImpact = {
 	hasImpact: false,
 	minRequired: -Infinity,
 	maxRequired: Infinity,
@@ -33,14 +33,15 @@ const noImpact: MetricImpact = {
 	initialValue: 0,
 };
 
-const impact = (partialImpact: Partial<MetricImpact>) => ({
+export const impact = (partialImpact: Partial<MetricImpact>) => ({
 	...noImpact,
 	hasImpact: true,
 	...partialImpact,
 });
 
-const percentImpact = (percent: number) => impact({ repeatedPercent: percent });
-const absoluteImpact = (absoluteDelta: number) =>
+export const percentImpact = (percent: number) =>
+	impact({ repeatedPercent: percent });
+export const absoluteImpact = (absoluteDelta: number) =>
 	impact({ repeatedAbsoluteDelta: absoluteDelta });
 
 export type Action = {
@@ -72,7 +73,7 @@ function applyAction(action: Action, step: Step, isNew: boolean) {
 	const newAction = { ...action };
 	newAction.capital = calculateMetric(
 		action.investmentImpact,
-		isNew ? action.capital : action.investmentImpact.initialValue
+		isNew ? action.investmentImpact.initialValue : action.capital
 	);
 	newAction.remainingTicks--;
 
@@ -88,7 +89,7 @@ function applyAction(action: Action, step: Step, isNew: boolean) {
 	} satisfies Step;
 }
 
-function isActionFinished(action: Action, step: Step) {
+function isActionFinished(action: Action) {
 	invariant(
 		action.remainingTicks >= 0,
 		"Remaining ticks must be non-negative"
@@ -98,7 +99,7 @@ function isActionFinished(action: Action, step: Step) {
 
 function finishAction(action: Action, step: Step) {
 	invariant(
-		isActionFinished(action, step),
+		isActionFinished(action),
 		"Non-finished actions cannot be finalized"
 	);
 
@@ -117,7 +118,7 @@ export function computeNextStep(previousStep: Step, newActions: Action[]) {
 	};
 
 	for (const action of previousStep.oldActiveActions) {
-		if (isActionFinished(action, nextStep)) {
+		if (isActionFinished(action)) {
 			nextStep = finishAction(action, nextStep);
 		} else {
 			nextStep = applyAction(action, nextStep, /* isNew: */ false);
@@ -130,83 +131,3 @@ export function computeNextStep(previousStep: Step, newActions: Action[]) {
 
 	return nextStep;
 }
-
-const noOpAction: Action = {
-	name: "No Op",
-	kind: "other",
-	shortDescription: "Do nothing",
-	llmDescription: "Do nothing",
-	bankAccountImpact: noImpact,
-	capital: 0,
-	investmentImpact: noImpact,
-	joyImpact: noImpact,
-	freeTimeImpact: noImpact,
-	remainingTicks: 1,
-};
-
-export const lifeAction: Action = {
-	...noOpAction,
-	name: "Life",
-	kind: "expense",
-	shortDescription: "Pay for living expenses",
-	llmDescription: "Pay for living expenses",
-	bankAccountImpact: impact({
-		repeatedAbsoluteDelta: -1000,
-		repeatedPercent: -2 / 12,
-	}), // levs per month + inflation per month
-	joyImpact: percentImpact(-10),
-	freeTimeImpact: absoluteImpact(100), // hours per week
-	remainingTicks: Infinity,
-};
-
-export const waiterJobAction: Action = {
-	...noOpAction,
-	name: "Job as a waiter",
-	kind: "income",
-	shortDescription: "Work as a waiter",
-	llmDescription: "Work as a waiter",
-	bankAccountImpact: absoluteImpact(1000), // levs per month
-	joyImpact: percentImpact(-5),
-	freeTimeImpact: absoluteImpact(-20), // hours per week
-	remainingTicks: Infinity,
-};
-
-export const sweJobAction: Action = {
-	...noOpAction,
-	name: "Job as a software engineer",
-	kind: "income",
-	shortDescription: "Work as a software engineer",
-	llmDescription: "Work as a software engineer",
-	bankAccountImpact: absoluteImpact(5000), // levs per month
-	joyImpact: percentImpact(-10),
-	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
-};
-
-export const savingsDepositAction: Action = {
-	...noOpAction,
-	name: "Savings Deposit",
-	kind: "income",
-	shortDescription: "Deposit money into a savings account",
-	llmDescription: "Deposit money into a savings account",
-	investmentImpact: impact({
-		repeatedPercent: 0.2,
-		initialValue: 1000,
-	}),
-	joyImpact: percentImpact(-5),
-	freeTimeImpact: absoluteImpact(10), // hours per week
-	remainingTicks: 12, // months
-};
-
-export const allActionsList = {
-	lifeAction,
-	waiterJobAction,
-	sweJobAction,
-	savingsDepositAction,
-};
-
-/**
-
-- Risk
-- Poi
- */
