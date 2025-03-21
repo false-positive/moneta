@@ -190,10 +190,23 @@ export const savingsDepositAction: Action = {
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
-		repeatedAbsoluteDelta: 0.2,
+		repeatedPercent: 0.2,
 		initialValue: 1000,
 	}),
 	joyImpact: percentImpact(-5),
 	freeTimeImpact: absoluteImpact(10), // hours per week
-	remainingTicks: Infinity,
+	remainingTicks: 12, // months
 };
+
+export const allActionsList = [
+	lifeAction,
+	waiterJobAction,
+	sweJobAction,
+	savingsDepositAction,
+];
+
+/**
+
+- Risk
+- Poi
+ */
