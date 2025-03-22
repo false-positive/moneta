@@ -11,7 +11,7 @@
    version="1.1"
    id="svg7"
    sodipodi:docname="logo.svg"
-   inkscape:export-filename="logo.png"
+   inkscape:export-filename="logo.svg"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -44,7 +44,8 @@
        y1="12"
        x2="25"
        y2="12"
-       gradientUnits="userSpaceOnUse">
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.91780278,0,0,0.91780278,0.98636664,0.98636664)">
       <stop
          offset="0%"
          style="stop-color:#4F46E5; stop-opacity:1"
@@ -56,36 +57,36 @@
     </linearGradient>
   </defs>
   <rect
-     width="100%"
-     height="100%"
-     rx="8"
+     width="91.780273%"
+     height="91.780273%"
+     rx="7.342422"
      fill="url(#gradient)"
      id="rect2"
-     x="0"
-     y="0"
-     style="fill:url(#gradient)" />
+     style="fill:url(#gradient);stroke-width:1.83561"
+     x="0.98636663"
+     y="0.98636663" />
   <path
-     d="M 8.1142787,10.057139 H 7.1428484 a 1.6190505,1.6190505 0 0 1 0,-3.2381007 h 0.9714303"
+     d="M 8.4336742,10.216837 H 7.5420928 a 1.485969,1.485969 0 0 1 0,-2.9719381 h 0.8915814"
      id="path2"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
   <path
-     d="m 15.885721,10.057139 h 0.971431 a 1.6190505,1.6190505 0 0 0 0,-3.2381007 h -0.971431"
+     d="m 15.566326,10.216837 h 0.891582 a 1.485969,1.485969 0 0 0 0,-2.9719381 h -0.891582"
      id="path3"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
   <path
-     d="M 6.8190383,18.476202 H 17.180962"
+     d="M 7.2448989,17.943876 H 16.755101"
      id="path4"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
   <path
-     d="m 10.70476,13.72267 v 1.515431 c 0,0.356191 -0.304382,0.634668 -0.628192,0.783621 -0.7641919,0.349714 -1.3146691,1.314669 -1.3146691,2.45448"
+     d="m 10.811225,13.581071 v 1.390867 c 0,0.326913 -0.279363,0.5825 -0.576556,0.71921 -0.7013777,0.320968 -1.2066072,1.206606 -1.2066072,2.252728"
      id="path5"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
   <path
-     d="m 13.29524,13.72267 v 1.515431 c 0,0.356191 0.304382,0.634668 0.628192,0.783621 0.764192,0.349714 1.314669,1.314669 1.314669,2.45448"
+     d="m 13.188775,13.581071 v 1.390867 c 0,0.326913 0.279363,0.5825 0.576556,0.71921 0.701378,0.320968 1.206607,1.206606 1.206607,2.252728"
      id="path6"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
   <path
-     d="M 15.885721,5.5237979 H 8.1142787 v 4.5333411 a 3.8857213,3.8857213 0 0 0 7.7714423,0 z"
+     d="M 15.566326,6.0561237 H 8.4336742 v 4.1607133 a 3.5663259,3.5663259 0 0 0 7.1326518,0 z"
      id="path7"
-     style="stroke-width:1.29524" />
+     style="stroke-width:1.18877" />
 </svg>
