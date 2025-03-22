@@ -65,18 +65,7 @@ export default function ChatInterface() {
 			setInput("");
 			setIsWaitingForResponse(true);
 
-			const a = {
-				agent_title: "factory foreman",
-				agent_description:
-					"As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
-				scenario_setting: "factory",
-				scenario: {
-					description:
-						"A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
-					metrics: {
-						production_rate: 120,
-						defect_rate: 8,
-						worker_productivity: 25,
+			const scenarioConfig = {
 				agent_title: "factory foreman",
 				agent_description:
 					"As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
@@ -91,19 +80,9 @@ export default function ChatInterface() {
 					},
 					targets: {
 						production_rate_target: 150,
-					targets: {
-						production_rate_target: 150,
 					},
-					modifiers: {},
 					modifiers: {},
 				},
-				metrics_description: {
-					production_rate:
-						"The production rate is the number of widgets produced per hour.",
-					defect_rate:
-						"The defect rate is the percentage of defective widgets produced.",
-					worker_productivity:
-						"Worker productivity is the average number of widgets produced per worker per hour.",
 				metrics_description: {
 					production_rate:
 						"The production rate is the number of widgets produced per hour.",
@@ -125,7 +104,7 @@ export default function ChatInterface() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ ...a, question: messageToSend }),
+				body: JSON.stringify({ ...scenarioConfig, question: messageToSend }),
 			})
 				.then((response) => {
 					if (!response.ok) {
@@ -284,8 +263,6 @@ export default function ChatInterface() {
 						<span className="text-sm text-white animate-pulse">
 							Waiting for response...
 						</span>
-							Waiting for response...
-						</span>
 					)}
 				</div>
 
@@ -351,9 +328,6 @@ export default function ChatInterface() {
 						<Button
 							size="icon"
 							variant={isRecording ? "destructive" : "outline"}
-							onClick={
-								isRecording ? stopRecording : startRecording
-							}
 							onClick={
 								isRecording ? stopRecording : startRecording
 							}
