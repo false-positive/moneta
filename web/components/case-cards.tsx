@@ -76,20 +76,6 @@ export function CaseCards() {
 		setCases({ ...standardCases });
 	}, []);
 
-	useEffect(() => {
-		if (selectedCase) {
-			localStorage.setItem(
-				"steps",
-				SuperJSON.stringify([cases[selectedCase]?.initialStep])
-			);
-			localStorage.setItem(
-				"case",
-				SuperJSON.stringify(cases[selectedCase])
-			);
-			router.push(`/chat`);
-		}
-	}, [selectedCase]);
-
 	return (
 		<div className="flex flex-col space-y-6 max-w-4xl mx-auto">
 			{Object.entries(cases).map(([caseId, caseItem], index) => {
@@ -305,7 +291,20 @@ export function CaseCards() {
 										<Button
 											className={`bg-gradient-to-r ${difficultyColors.bg} hover:opacity-90 text-white`}
 											onClick={() => {
-												setSelectedCase(caseId);
+												localStorage.setItem(
+													"steps",
+													SuperJSON.stringify([
+														cases[selectedCase]
+															?.initialStep,
+													])
+												);
+												localStorage.setItem(
+													"case",
+													SuperJSON.stringify(
+														cases[selectedCase]
+													)
+												);
+												router.push(`/chat`);
 											}}
 										>
 											Accept Quest{" "}
