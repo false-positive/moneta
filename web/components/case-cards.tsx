@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { CaseDescription } from "@/lib/cases";
 import { standardCases } from "@/lib/cases/standard-cases";
+import SuperJSON from "superjson";
+import { useRouter } from "next/navigation";
 
 export type Step = {
 	tick: number;
@@ -68,10 +70,21 @@ export function CaseCards() {
 	const [hoveredCase, setHoveredCase] = useState<string | null>(null);
 	const [selectedCase, setSelectedCase] = useState<string | null>(null);
 	const [cases, setCases] = useState<Record<string, CaseDescription>>({});
+	const router = useRouter();
 
 	useEffect(() => {
 		setCases({ ...standardCases });
 	}, []);
+
+	useEffect(() => {
+		if (selectedCase) {
+			localStorage.setItem(
+				"steps",
+				SuperJSON.stringify([cases[selectedCase]?.initialStep])
+			);
+			router.push(`/chat`);
+		}
+	}, [selectedCase]);
 
 	return (
 		<div className="flex flex-col space-y-6 max-w-4xl mx-auto">
@@ -92,9 +105,6 @@ export function CaseCards() {
 							scale: 1.02,
 							transition: { duration: 0.2 },
 						}}
-						onClick={() =>
-							setSelectedCase(isSelected ? null : caseId)
-						}
 						onMouseEnter={() => setHoveredCase(caseId)}
 						onMouseLeave={() => setHoveredCase(null)}
 					>
@@ -144,6 +154,9 @@ export function CaseCards() {
 
 								<Button
 									className={`bg-gradient-to-r ${difficultyColors.bg} hover:opacity-90 text-white`}
+									onClick={() => {
+										setSelectedCase(caseId);
+									}}
 								>
 									Start Quest{" "}
 									<ChevronRight className="h-4 w-4 ml-1" />
@@ -287,6 +300,9 @@ export function CaseCards() {
 									<div className="mt-4 flex justify-end">
 										<Button
 											className={`bg-gradient-to-r ${difficultyColors.bg} hover:opacity-90 text-white`}
+											onClick={() => {
+												setSelectedCase(caseId);
+											}}
 										>
 											Accept Quest{" "}
 											<Target className="h-4 w-4 ml-1" />

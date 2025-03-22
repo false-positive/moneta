@@ -32,7 +32,7 @@ export default function ChatInterface() {
 				setMessages([
 					{
 						id: 1,
-						text: "Hello! How can I help you today?",
+						text: "Hi, I need some help with my finances. Could you help me?",
 						sender: "bot",
 					},
 				]);
@@ -60,31 +60,37 @@ export default function ChatInterface() {
 			setIsWaitingForResponse(true);
 
 			const a = {
-				"agent_title": "factory foreman",
-				"agent_description": "As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
-				"scenario_setting": "factory",
-				"scenario": {
-					"description": "A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
-					"metrics": {
-						"production_rate": 120,
-						"defect_rate": 8,
-						"worker_productivity": 25
+				agent_title: "factory foreman",
+				agent_description:
+					"As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
+				scenario_setting: "factory",
+				scenario: {
+					description:
+						"A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
+					metrics: {
+						production_rate: 120,
+						defect_rate: 8,
+						worker_productivity: 25,
 					},
-					"targets": {
-						"production_rate_target": 150
+					targets: {
+						production_rate_target: 150,
 					},
-					"modifiers": {}
+					modifiers: {},
 				},
-				"metrics_description": {
-					"production_rate": "The production rate is the number of widgets produced per hour.",
-					"defect_rate": "The defect rate is the percentage of defective widgets produced.",
-					"worker_productivity": "Worker productivity is the average number of widgets produced per worker per hour."
+				metrics_description: {
+					production_rate:
+						"The production rate is the number of widgets produced per hour.",
+					defect_rate:
+						"The defect rate is the percentage of defective widgets produced.",
+					worker_productivity:
+						"Worker productivity is the average number of widgets produced per worker per hour.",
 				},
-				"target_description": {
-					"production_rate_target": "The production rate target is the desired number of widgets to be produced per hour."
+				target_description: {
+					production_rate_target:
+						"The production rate target is the desired number of widgets to be produced per hour.",
 				},
-				"question": "What is the current production rate and target?"
-			}
+				question: "What is the current production rate and target?",
+			};
 
 			// Send the user message to the backend
 			fetch("http://192.168.74.18:5000/discover", {
@@ -101,14 +107,18 @@ export default function ChatInterface() {
 					return response.json();
 				})
 				.then((data) => {
-					console.log(data)
-					const botResponseText = data.response || "No response from backend";
+					console.log(data);
+					const botResponseText =
+						data.response || "No response from backend";
 					const botResponse: Message = {
 						id: messages.length + 2, // ensure a unique id
 						text: botResponseText,
 						sender: "bot",
 					};
-					setMessages((prevMessages) => [...prevMessages, botResponse]);
+					setMessages((prevMessages) => [
+						...prevMessages,
+						botResponse,
+					]);
 					setIsWaitingForResponse(false);
 				})
 				.catch((error) => {
@@ -118,7 +128,10 @@ export default function ChatInterface() {
 						text: "Error communicating with the server.",
 						sender: "bot",
 					};
-					setMessages((prevMessages) => [...prevMessages, errorResponse]);
+					setMessages((prevMessages) => [
+						...prevMessages,
+						errorResponse,
+					]);
 					setIsWaitingForResponse(false);
 				});
 		}
@@ -126,7 +139,9 @@ export default function ChatInterface() {
 
 	const startRecording = async () => {
 		try {
-			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			const stream = await navigator.mediaDevices.getUserMedia({
+				audio: true,
+			});
 			const mediaRecorder = new MediaRecorder(stream);
 			mediaRecorderRef.current = mediaRecorder;
 			audioChunksRef.current = [];
@@ -155,7 +170,9 @@ export default function ChatInterface() {
 			}, 1000);
 		} catch (error) {
 			console.error("Error accessing microphone:", error);
-			alert("Could not access microphone. Please check your permissions.");
+			alert(
+				"Could not access microphone. Please check your permissions."
+			);
 		}
 	};
 
@@ -178,7 +195,7 @@ export default function ChatInterface() {
 
 		setIsWaitingForResponse(true);
 
-		fetch("http://192.168.74.18:5000/transcribe-discover", {
+		fetch(`${process.env.NEXT_PUBLIC_API_URL}/transcribe-discover`, {
 			method: "POST",
 			body: formData,
 		})
@@ -189,7 +206,7 @@ export default function ChatInterface() {
 				return response.json();
 			})
 			.then((data) => {
-				console.log(data)
+				console.log(data);
 				const responseMessage =
 					data.transcription || "Audio file uploaded successfully.";
 				setMessages((prev) => [
@@ -234,11 +251,13 @@ export default function ChatInterface() {
 			<div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mb-6">
 				{/* Gradient Header */}
 				<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 flex items-center justify-between">
-					<h2 className="text-white font-bold text-lg">Chat Interface</h2>
+					<h2 className="text-white font-bold text-lg">
+						Chat Interface
+					</h2>
 					{isWaitingForResponse && (
 						<span className="text-sm text-white animate-pulse">
-              Waiting for response...
-            </span>
+							Waiting for response...
+						</span>
 					)}
 				</div>
 
@@ -263,10 +282,10 @@ export default function ChatInterface() {
 									<div
 										className={`max-w-[80%] rounded-lg p-3 
                       ${
-											isUser
-												? "bg-emerald-50 text-emerald-800"
-												: "bg-purple-50 text-purple-800"
-										}`}
+							isUser
+								? "bg-emerald-50 text-emerald-800"
+								: "bg-purple-50 text-purple-800"
+						}`}
 									>
 										{message.text}
 									</div>
@@ -282,7 +301,9 @@ export default function ChatInterface() {
 							onChange={(e) => setInput(e.target.value)}
 							placeholder={
 								isRecording
-									? `Recording... ${formatTime(recordingTime)}`
+									? `Recording... ${formatTime(
+											recordingTime
+									  )}`
 									: "Type your message..."
 							}
 							onKeyDown={(e) => {
@@ -298,7 +319,9 @@ export default function ChatInterface() {
 						<Button
 							size="icon"
 							variant={isRecording ? "destructive" : "outline"}
-							onClick={isRecording ? stopRecording : startRecording}
+							onClick={
+								isRecording ? stopRecording : startRecording
+							}
 							className={`transition-all duration-300 ${
 								isRecording ? "animate-pulse" : ""
 							}`}

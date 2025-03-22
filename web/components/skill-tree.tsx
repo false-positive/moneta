@@ -44,8 +44,11 @@ export default function SkillTree() {
 		} else {
 			const initialStep: Step = {
 				tick: 0,
+				isBankAccountKnown: true,
 				bankAccount: 10_000,
+				isJoyKnown: true,
 				joy: 100,
+				isFreeTimeKnown: true,
 				freeTime: 2134,
 				newActions: [],
 				oldActiveActions: [lifeAction],

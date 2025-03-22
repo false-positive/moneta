@@ -50,6 +50,8 @@ const weekUnits = Array.from({ length: 52 }, (_, i) => `Week ${i + 1}`);
 const dayUnits = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
 const createHardcodedSimulation = () => {
+	return; // ~божо
+
 	const INITIAL_BANK_ACCOUNT = 20000;
 
 	const initialStep: Step = {
@@ -58,6 +60,9 @@ const createHardcodedSimulation = () => {
 		joy: 100,
 		freeTime: 100,
 		newActions: [],
+		isBankAccountKnown: true,
+		isJoyKnown: true,
+		isFreeTimeKnown: true,
 		oldActiveActions: [{ ...lifeAction }],
 	};
 
@@ -148,6 +153,8 @@ const generateSubTimeframeSteps = (
 	yearlySteps: Step[],
 	selectedYear?: number
 ) => {
+	return; // ~божо
+
 	const monthlySteps: Step[] = [];
 	const weeklySteps: Step[] = [];
 	const dailySteps: Step[] = [];
@@ -171,6 +178,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
 				newActions: month === 6 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 
@@ -184,6 +194,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
 				newActions: week === 26 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 
@@ -197,6 +210,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.95 + 0.05 * factor),
 				newActions: day === 15 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 	}
@@ -281,10 +297,10 @@ export default function Simulation() {
 	}, [currentYear, yearlySteps, actionTimings]);
 
 	useEffect(() => {
-		const { yearlySteps, actionTimings, caseDescription } =
-			createHardcodedSimulation();
-		const { monthlySteps, weeklySteps, dailySteps } =
-			generateSubTimeframeSteps(yearlySteps);
+		// const { yearlySteps, actionTimings, caseDescription } =
+		// 	createHardcodedSimulation();
+		// const { monthlySteps, weeklySteps, dailySteps } =
+		// 	generateSubTimeframeSteps(yearlySteps);
 
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
@@ -292,20 +308,19 @@ export default function Simulation() {
 
 		setYearlySteps(yearlySteps);
 		setCaseDescription(caseDescription);
-		setMonthlySteps(monthlySteps);
-		setWeeklySteps(weeklySteps);
-		setDailySteps(dailySteps);
+		// setMonthlySteps(monthlySteps);
+		// setWeeklySteps(weeklySteps);
+		// setDailySteps(dailySteps);
 		setActionTimings(actionTimings);
 	}, []);
 
 	useEffect(() => {
 		if (yearlySteps.length > 0) {
-			const { monthlySteps, weeklySteps, dailySteps } =
-				generateSubTimeframeSteps(yearlySteps, selectedYear);
-
-			setMonthlySteps(monthlySteps);
-			setWeeklySteps(weeklySteps);
-			setDailySteps(dailySteps);
+			// const { monthlySteps, weeklySteps, dailySteps } =
+			// 	generateSubTimeframeSteps(yearlySteps, selectedYear);
+			// setMonthlySteps(monthlySteps);
+			// setWeeklySteps(weeklySteps);
+			// setDailySteps(dailySteps);
 		}
 	}, [selectedYear, yearlySteps]);
 
