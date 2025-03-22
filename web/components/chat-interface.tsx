@@ -11,7 +11,7 @@ type Message = {
 	sender: "user" | "bot";
 };
 
-export default function ChatInterface({handleDiscovery}: any) {
+export default function ChatInterface({handleDiscovery, scenarioConfig}: any) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
 	const [isRecording, setIsRecording] = useState(false);
@@ -65,35 +65,6 @@ export default function ChatInterface({handleDiscovery}: any) {
 			setInput("");
 			setIsWaitingForResponse(true);
 
-			const scenarioConfig = {
-				agent_title: "Ivan",
-				agent_description: "You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences.",
-				scenario_setting: "The Life & Financial Situation of Ivan",
-				scenario: {
-					description: "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
-					metrics: {
-						bank_account: 2000,
-						joy: 50,
-						free_time: 100,
-					},
-					targets: {
-						bank_account_target: 15000,
-						joy_target: 100,
-						free_time_target: 16
-					},
-				},
-				metrics_description: {
-					bank_account: "The current state of Ivan's bank account in BGN.",
-					joy: "A general metric describing Ivan's current life satisfaction and happiness.",
-					free_time: "How many free hours per week Ivan has, which determines what actions can be taken."
-				},
-				target_description: {
-					bank_account_target: "Ivan's end financial goal for his bank account value.",
-					joy_target: "Ivan's life satisfaction goal for the end of the scenario. Percent value",
-					free_time_target: "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
-				},
-				question: "What is your current financial and life situation, and how can he plan his actions to achieve his targets?",
-			};
 
 			const showNewDiscoveries = (discoveries: string[]) => {
 				if (discoveries.includes("bank_account")) {
