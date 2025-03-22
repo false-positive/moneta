@@ -82,6 +82,10 @@ export function CaseCards() {
 				"steps",
 				SuperJSON.stringify([cases[selectedCase]?.initialStep])
 			);
+			localStorage.setItem(
+				"case",
+				SuperJSON.stringify(cases[selectedCase])
+			);
 			router.push(`/chat`);
 		}
 	}, [selectedCase]);
