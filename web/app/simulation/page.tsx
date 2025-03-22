@@ -224,6 +224,7 @@ const generateSubTimeframeSteps = (
 export default function Simulation() {
 	const [currentYear, setCurrentYear] = useState(2020);
 	const [selectedYear, setSelectedYear] = useState(2020);
+	const [highestUnlockedYear, setHighestUnlockedYear] = useState(2020);
 
 	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
 	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
@@ -308,6 +309,7 @@ export default function Simulation() {
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
 		setSelectedYear(firstYear);
+		setHighestUnlockedYear(firstYear);
 
 		const caseDescription = SuperJSON.parse(
 			localStorage.getItem("case") || "{}"
@@ -338,10 +340,18 @@ export default function Simulation() {
 	}, [selectedYear, timeframe]);
 
 	const handleYearSelect = (year: number) => {
-		setSelectedYear(year);
-		if (timeframe === "years") {
-			setCurrentYear(year);
+		// Only allow selecting a year that has been unlocked
+		if (year <= highestUnlockedYear) {
+			setSelectedYear(year);
+			if (timeframe === "years") {
+				setCurrentYear(year);
+			}
 		}
+	};
+
+	// Function to unlock next year (only called from FinancialJourney)
+	const handleUnlockNextYear = (nextYear: number) => {
+		setHighestUnlockedYear(nextYear);
 	};
 
 	const currentSteps =
@@ -392,7 +402,7 @@ export default function Simulation() {
 							<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
 								<h2 className="text-white font-bold flex items-center gap-2">
 									<Route className="h-4 w-4" />
-									Your Financial Journey
+									The Way Of The Finance
 								</h2>
 							</div>
 							<div className="p-2">
@@ -402,6 +412,8 @@ export default function Simulation() {
 									actionTimings={actionTimings}
 									currentYear={selectedYear}
 									onYearSelect={handleYearSelect}
+									highestUnlockedYear={highestUnlockedYear}
+									onUnlockNextYear={handleUnlockNextYear}
 								/>
 							</div>
 						</div>
@@ -574,7 +586,7 @@ export default function Simulation() {
 								</Tabs>
 							</CollapsibleContent>
 						</Collapsible>
-
+						{/* 
 						<Collapsible
 							open={isQuestsOpen}
 							onOpenChange={setIsQuestsOpen}
@@ -619,9 +631,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-emerald-800 text-sm">
 												Emergency Fund
 											</h3>
-											{/* <span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
+											{<span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
 													+75 pts
-												</span> */}
+												</span>
 										</div>
 										<p className="text-emerald-700 text-xs mt-1">
 											Save 6 months of expenses in a
@@ -640,9 +652,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-purple-800 text-sm">
 												Retirement Planning
 											</h3>
-											{/* <span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
-													+100 pts
-												</span> */}
+											<span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
+												+100 pts
+											</span>
 										</div>
 										<p className="text-purple-700 text-xs mt-1">
 											Set up automatic contributions to
@@ -657,7 +669,7 @@ export default function Simulation() {
 									</div>
 								</div>
 							</CollapsibleContent>
-						</Collapsible>
+						</Collapsible> */}
 					</div>
 				</div>
 			</div>
