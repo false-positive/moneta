@@ -5,13 +5,16 @@ import torch
 
 from services.flask.agent import Agent
 
+agent_title = "Ivan"
+#agent_description =
+
 class ScenarioAgent:
     def __init__(self, root_agent: Agent, agent_title: str, agent_description: str, scenario_setting: str, scenario_config: Dict[str, Any] = None, metrics_description: Dict[str, str] = None, targets_description: Dict[str, str] = None):
         """
         Initialize the scenario agent with configuration.
 
         Args:
-            scenario_config: Dictionary containing scenario description, metrics, targets, and modifiers.
+            scenario_config: Dictionary containing scenario description, metrics or targets.
                             If None, use the default configuration.
         """
 
@@ -24,14 +27,14 @@ class ScenarioAgent:
         self.scenario_description = scenario_config["description"]
         self.metrics = scenario_config["metrics"]
         self.targets = scenario_config["targets"]
-        self.modifiers = scenario_config["modifiers"]
+        #self.modifiers = scenario_config["modifiers"]
         self.metrics_description = metrics_description
         self.targets_description = targets_description
 
         # Track discovered information
         self.discovered_metrics = set()
         self.discovered_targets = set()
-        self.discovered_modifiers = set()
+        #self.discovered_modifiers = set()
 
         # Conversation history
         self.conversation_history = []
@@ -47,7 +50,6 @@ class ScenarioAgent:
         # Create a variables reference for the AI to use
         metrics_info = "\n".join([f"- {k}: {v}" for k, v in self.metrics.items()])
         targets_info = "\n".join([f"- {k}: {v}" for k, v in self.targets.items()])
-        modifiers_info = "\n".join([f"- {k}: {v}" for k, v in self.modifiers.items()])
 
         return f"""You are a {self.agent_title} agent. Here is the base scenario:
 
@@ -60,18 +62,14 @@ METRICS:
 TARGETS:
 {targets_info}
 
-MODIFIERS:
-{modifiers_info}
-
 INSTRUCTIONS:
-1. You will respond to user questions based on this scenario.
-2. When a user asks directly about a specific metric, target, or modifier, provide the EXACT value from your reference.
-3. Use the exact values from your reference when discussing any variable.
+1. You will respond to user questions based on this scenario. Do not mention your name in the response
+2. When a user asks directly about a specific metric or target, provide the EXACT value from your reference.
+3. Use the exact values from your reference when discussing any variable. Including variable name and value
 4. Do not preemptively reveal variables users haven't asked about.
-5. Answer just with the variable name and value in json format: "variable": value if the question is specific enough.
-6. If the question is not specific enough just answer: "QUESTION NOT SPECIFIC ENOUGH"
-
-The user is CodenameSource1, and today's date is 2025-03-20.
+5. Answer explicitly with the variable name and value in json format: "variable": value if the question is specific enough.
+6. STRICTLY ANSWER JUST WITH THE VARIABLE NAME AND VALUE IN THIS FORMAT: <VARIABLE>: VALUE, <VARIABLE>: VALUE
+7. If the question is not specific enough just answer: "QUESTION NOT SPECIFIC ENOUGH"
 """
 
     def add_message(self, role: str, content: str) -> None:
@@ -84,22 +82,33 @@ The user is CodenameSource1, and today's date is 2025-03-20.
         Args:
             agent_response: The agent's response to the user's question
         """
+        def method1(agent_response: str):
+            discovered_metrics = []
 
-        try:
-            agent_response_json = json.loads('{' + agent_response + '}')
-        except Exception as e:
-            return []
+            for metric in self.metrics:
+                if metric in agent_response:
+                    discovered_metrics.append(metric)
 
+            for target in self.targets:
+                if target in agent_response:
+                    discovered_metrics.append(target)
 
-        for key in agent_response_json:
-            if key in self.metrics and key not in self.discovered_metrics:
-                self.discovered_metrics.add(key)
-            if key in self.targets and key not in self.discovered_targets:
-                self.discovered_targets.add(key)
-            if key in self.modifiers and key not in self.discovered_modifiers:
-                self.discovered_modifiers.add(key)
+            return discovered_metrics
 
-        return list(agent_response_json.keys())
+        #try:
+        #    agent_response_json = json.loads('{' + agent_response + '}')
+        #except Exception as e:
+        #    return []
+        #
+        #
+        #
+        #for key in agent_response_json:
+        #    if key in self.metrics and key not in self.discovered_metrics:
+        #        self.discovered_metrics.add(key)
+        #    if key in self.targets and key not in self.discovered_targets:
+        #        self.discovered_targets.add(key)
+
+        return method1(agent_response)
 
 
     def _explain_discovered_variable(self, agent_response: str) -> Dict[str, List[str]]:
@@ -128,7 +137,6 @@ TARGETS GUIDE:
 ALREADY DISCUSSED METRICS/TARGETS/FACTORS:
 - Metrics: {[k for k in self.metrics if k in self.discovered_metrics]}
 - Targets: {[k for k in self.targets if k in self.discovered_targets]}
-- Factors: {[k for k in self.modifiers if k in self.discovered_modifiers]}
 
 INSTRUCTIONS:
 1. Speak directly as the {self.agent_title} - use professional but accessible language
@@ -239,7 +247,6 @@ INSTRUCTIONS:
         status = {
             "metrics": {k: (k in self.discovered_metrics) for k in self.metrics},
             "targets": {k: (k in self.discovered_targets) for k in self.targets},
-            "modifiers": {k: (k in self.discovered_modifiers) for k in self.modifiers}
         }
         return status
 
@@ -247,8 +254,7 @@ INSTRUCTIONS:
         """Check if all hidden variables have been discovered."""
         all_metrics_discovered = all(metric in self.discovered_metrics for metric in self.metrics)
         all_targets_discovered = all(target in self.discovered_targets for target in self.targets)
-        all_modifiers_discovered = all(modifier in self.discovered_modifiers for modifier in self.modifiers)
-        return all_metrics_discovered and all_targets_discovered and all_modifiers_discovered
+        return all_metrics_discovered and all_targets_discovered
 
     def clear_cuda_cache(self):
         """Clear CUDA cache to free up memory."""
@@ -256,3 +262,43 @@ INSTRUCTIONS:
             torch.cuda.empty_cache()
 
 
+if __name__ == "__main__":
+    agent_title = "Ivan"
+    agent_description = "You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences."
+    scenario_setting = "The Life & Financial Situation of Ivan"
+    scenario = {
+        "description": "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
+        "metrics": {
+          "bank_account": 2000,
+          "joy": 100,
+          "free_time": 100
+        },
+        "targets": {
+          "bank_account_target": 15000,
+          "joy_target": 200,
+          "free_time_target": 16
+        }
+    }
+    metrics_description = {
+        "bank_account": "The current state of Ivan's bank account in BGN.",
+        "joy": "A general metric describing Ivan's current life satisfaction and happiness.",
+        "free_time": "How many free hours per week Ivan has, which determines what actions can be taken."
+    }
+
+    target_description = {
+        "bank_account_target": "Ivan's end financial goal for his bank account value.",
+        "joy_target": "Ivan's life satisfaction goal for the end of the scenario.",
+        "free_time_target": "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
+    }
+
+    InstructAgent = Agent()
+
+    DiscoverAgent = ScenarioAgent(InstructAgent, agent_title, agent_description, scenario_setting, scenario, metrics_description, target_description)
+
+    response, discoveries = DiscoverAgent.process_question("What do you think of your free time? Do you have any target in mind for it?")
+
+    print("response: ", response, "discoveries: ", discoveries)
+
+    response, discoveries = DiscoverAgent.process_question("Do you have any other targets or goals for the future? Maybe bank number or joy in life?")
+
+    print("response: ", response, "discoveries: ", discoveries)
