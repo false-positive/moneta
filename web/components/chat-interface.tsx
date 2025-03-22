@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Mic, User, Square } from "lucide-react";
+import { Send, Mic, User, Square, MessageSquare } from "lucide-react";
 
 type Message = {
 	id: number;
@@ -21,6 +21,7 @@ export default function ChatInterface() {
 	const audioChunksRef = useRef<Blob[]>([]);
 	const timerRef = useRef<NodeJS.Timeout | null>(null);
 	const hasLoadedRef = useRef(false);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	// Load saved messages from localStorage on mount
 	useEffect(() => {
@@ -44,6 +45,11 @@ export default function ChatInterface() {
 	// Save messages to localStorage every time they change
 	useEffect(() => {
 		localStorage.setItem("chatMessages", JSON.stringify(messages));
+	}, [messages]);
+
+	// Scroll to bottom when messages change
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
 	const handleSendMessage = () => {
@@ -71,12 +77,33 @@ export default function ChatInterface() {
 						production_rate: 120,
 						defect_rate: 8,
 						worker_productivity: 25,
+				agent_title: "factory foreman",
+				agent_description:
+					"As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
+				scenario_setting: "factory",
+				scenario: {
+					description:
+						"A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
+					metrics: {
+						production_rate: 120,
+						defect_rate: 8,
+						worker_productivity: 25,
 					},
+					targets: {
+						production_rate_target: 150,
 					targets: {
 						production_rate_target: 150,
 					},
 					modifiers: {},
+					modifiers: {},
 				},
+				metrics_description: {
+					production_rate:
+						"The production rate is the number of widgets produced per hour.",
+					defect_rate:
+						"The defect rate is the percentage of defective widgets produced.",
+					worker_productivity:
+						"Worker productivity is the average number of widgets produced per worker per hour.",
 				metrics_description: {
 					production_rate:
 						"The production rate is the number of widgets produced per hour.",
@@ -247,24 +274,23 @@ export default function ChatInterface() {
 	};
 
 	return (
-		<div className="">
-			<div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mb-6">
-				{/* Gradient Header */}
+		<div className="h-full flex items-center justify-center">
+			<div className="w-full h-2/3 bg-white rounded-xl shadow-md overflow-hidden">
 				<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 flex items-center justify-between">
-					<h2 className="text-white font-bold text-lg">
-						Chat Interface
+					<h2 className="text-white font-bold flex items-center gap-2">
+						<MessageSquare className="h-4 w-4" />
 					</h2>
 					{isWaitingForResponse && (
 						<span className="text-sm text-white animate-pulse">
 							Waiting for response...
 						</span>
+							Waiting for response...
+						</span>
 					)}
 				</div>
 
-				{/* Chat Body */}
-				<div className="p-4 h-[600px] flex flex-col">
-					{/* Messages */}
-					<div className="flex-1 overflow-y-auto mb-4 space-y-4">
+				<div className="p-4 h-[490px] flex flex-col justify-between">
+					<div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
 						{messages.map((message) => {
 							const isUser = message.sender === "user";
 							return (
@@ -275,23 +301,29 @@ export default function ChatInterface() {
 									}`}
 								>
 									{!isUser && (
-										<div className="flex items-center mr-2">
-											<User className="h-5 w-5 text-gray-500" />
+										<div className="flex items-center justify-center mr-2 w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+											<User className="h-4 w-4" />
 										</div>
 									)}
 									<div
-										className={`max-w-[80%] rounded-lg p-3 
-                      ${
-							isUser
-								? "bg-emerald-50 text-emerald-800"
-								: "bg-purple-50 text-purple-800"
-						}`}
+										className={`max-w-[80%] rounded-lg p-2.5 text-sm
+                    ${
+						isUser
+							? "bg-indigo-50 text-indigo-800 border border-indigo-100"
+							: "bg-purple-50 text-purple-800 border border-purple-100"
+					}`}
 									>
 										{message.text}
 									</div>
+									{isUser && (
+										<div className="flex items-center justify-center ml-2 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600">
+											<User className="h-4 w-4" />
+										</div>
+									)}
 								</div>
 							);
 						})}
+						<div ref={messagesEndRef} />
 					</div>
 
 					{/* Input & Controls */}
@@ -304,7 +336,7 @@ export default function ChatInterface() {
 									? `Recording... ${formatTime(
 											recordingTime
 									  )}`
-									: "Type your message..."
+									: "Chat to discover more information..."
 							}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
@@ -322,6 +354,9 @@ export default function ChatInterface() {
 							onClick={
 								isRecording ? stopRecording : startRecording
 							}
+							onClick={
+								isRecording ? stopRecording : startRecording
+							}
 							className={`transition-all duration-300 ${
 								isRecording ? "animate-pulse" : ""
 							}`}
@@ -334,11 +369,15 @@ export default function ChatInterface() {
 							)}
 						</Button>
 
-						{/* Send Button */}
 						<Button
 							size="icon"
 							onClick={handleSendMessage}
-							disabled={isRecording || isWaitingForResponse}
+							disabled={
+								isRecording ||
+								isWaitingForResponse ||
+								!input.trim()
+							}
+							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
 						>
 							<Send className="h-4 w-4" />
 						</Button>
