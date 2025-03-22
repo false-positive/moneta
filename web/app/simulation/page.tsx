@@ -306,6 +306,8 @@ export default function Simulation() {
 			localStorage.getItem("steps") || "[]"
 		) as Step[];
 
+		console.log("[simulation] yearlySteps", yearlySteps);
+
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
 		setSelectedYear(firstYear);
