@@ -27,37 +27,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Action } from "@/lib/cases/actions";
 import type { ActionTiming } from "@/components/timeline";
-
-interface TimelineEvent {
-	id: number;
-	type: string;
-	name: string;
-	startUnit: string | number;
-	endUnit: string | number;
-	amount: number;
-	monthlyPayment?: number;
-	interestRate?: string;
-	source?: string;
-	description?: string;
-}
+import type { Step } from "@/lib/cases/actions";
 
 interface SpendingGraphProps {
-	events?: TimelineEvent[];
+	steps?: Step[];
 	timeUnits: (string | number)[];
 	selectedUnit: string | number;
 	actionTimings?: ActionTiming[];
+	timeframe?: "years" | "months" | "weeks" | "days";
+	currentYear?: number;
 }
 
 export function SpendingGraph({
-	events = [],
+	steps = [],
 	timeUnits,
 	selectedUnit,
 	actionTimings = [],
 }: SpendingGraphProps) {
 	const [activeTab, setActiveTab] = useState("overview");
-	const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(
-		null
-	);
+	const [selectedEvent, setSelectedEvent] = useState<Step | null>(null);
 	const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [actionDetailsOpen, setActionDetailsOpen] = useState(false);
@@ -67,29 +55,28 @@ export function SpendingGraph({
 		let amount = 0;
 		let type = "expense";
 
-		// Determine if action generates income or expense
-		if (action.kind === "job") {
-			amount = (action as any).incomeAmount * 12; // Annual income
+		if (action.kind === "income") {
+			amount = action.bankAccountImpact.hasImpact
+				? action.bankAccountImpact.repeatedAbsoluteDelta
+				: 0;
 			type = "income";
-		} else if (action.kind === "property") {
-			amount =
-				(action as any).propertyValue * (action as any).rentalYield; // Annual rental income
-			type = "income";
-		} else if (action.kind === "education") {
-			amount = (action as any).cost;
+		} else if (action.kind === "expense") {
+			amount = action.bankAccountImpact.hasImpact
+				? Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta)
+				: 0;
 			type = "expense";
 		} else if (action.kind === "investment") {
-			// IVA: to do - change maybe?
-			amount = (action as any).maxInvestmentAmount || 0;
+			amount = action.investmentImpact.hasImpact
+				? action.capital || action.investmentImpact.initialPrice
+				: 0;
 			type = "expense";
-		} else if (action.kind === "business") {
-			// IVA: to do - change maybe?
-			amount = (action as any).initialInvestment;
-			type = "expense"; // Initially an expense
 		}
 
 		return {
-			id: Number.parseInt(action.id.split("-")[1]), // Extract numeric part of ID
+			id:
+				typeof action.name === "string"
+					? action.name.split(" ").join("-").toLowerCase()
+					: 0,
 			type,
 			name: action.name,
 			startUnit: timing.startTick,
@@ -98,16 +85,15 @@ export function SpendingGraph({
 			monthlyPayment:
 				type === "income"
 					? amount / 12
-					: amount / (timing.endTick - timing.startTick + 1) / 12,
+					: amount /
+					  Math.max(1, (timing.endTick - timing.startTick + 1) * 12),
 			description: action.shortDescription,
 			source: action.kind,
 		};
 	});
 
-	// Combine action events with existing events
-	const allEvents = [...events, ...actionEvents];
+	const allEvents = [...actionEvents];
 
-	// Generate chart data using all events
 	const barChartData = timeUnits.map((unit) => {
 		const unitData: any = {
 			unit,
@@ -118,34 +104,16 @@ export function SpendingGraph({
 		};
 
 		allEvents.forEach((event) => {
-			if (
-				typeof event.startUnit === "number" &&
-				event.startUnit <= Number(unit) &&
-				typeof event.endUnit === "number" &&
-				event.endUnit >= Number(unit)
-			) {
-				const value =
-					event.monthlyPayment && event.monthlyPayment > 0
-						? event.monthlyPayment * 12
-						: event.amount /
-						  Math.max(
-								1,
-								Number(event.endUnit) -
-									Number(event.startUnit) +
-									1
-						  );
-
-				if (event.type === "income") {
-					unitData.income += value;
-					unitData.net += value;
-				} else {
-					unitData.expense += value;
-					unitData.net -= value;
-				}
-
-				if (!unitData.events) unitData.events = [];
-				unitData.events.push(event);
+			if (event.type === "income") {
+				unitData.income += event.amount;
+				unitData.net += event.amount;
+			} else {
+				unitData.expense += event.amount;
+				unitData.net -= event.amount;
 			}
+
+			if (!unitData.events) unitData.events = [];
+			unitData.events.push(event);
 		});
 
 		return unitData;
@@ -162,7 +130,6 @@ export function SpendingGraph({
 		});
 
 		allEvents.forEach((event) => {
-			// Check if the event is active in this unit
 			if (
 				typeof event.startUnit === "number" &&
 				event.startUnit <= Number(unit) &&
@@ -190,56 +157,45 @@ export function SpendingGraph({
 	const incomeEvents = allEvents.filter((event) => event.type === "income");
 	const expenseEvents = allEvents.filter((event) => event.type === "expense");
 
-	const getEventColor = (event: TimelineEvent, opacity = 1) => {
-		// Unique color palette for incomes and expenses
+	const getEventColor = (event: Step, opacity = 1) => {
 		const incomeColors = [
-			[79, 70, 229], // Indigo #4F46E5
-			[16, 185, 129], // Emerald #10B981
-			[6, 182, 212], // Cyan #06B6D4
-			[59, 130, 246], // Blue #3B82F6
-			[14, 165, 233], // Sky #0EA5E9
-			[20, 184, 166], // Teal #14B8A6
+			[79, 70, 229],
+			[16, 185, 129],
+			[6, 182, 212],
+			[59, 130, 246],
+			[14, 165, 233],
+			[20, 184, 166],
 		];
 
 		const expenseColors = [
-			[244, 63, 94], // Rose #F43F5E
-			[249, 115, 22], // Orange #F97316
-			[234, 88, 12], // Amber #EA580C
-			[217, 70, 239], // Fuchsia #D946EF
-			[168, 85, 247], // Purple #A855F7
-			[236, 72, 153], // Pink #EC4899
+			[244, 63, 94],
+			[249, 115, 22],
+			[234, 88, 12],
+			[217, 70, 239],
+			[168, 85, 247],
+			[236, 72, 153],
 		];
 
-		// Select color from palette based on event ID
 		const palette = event.type === "income" ? incomeColors : expenseColors;
-		const colorIndex = event.id % palette.length;
+		const colorIndex =
+			typeof event.id === "number" ? event.id % palette.length : 0;
 		const baseColor = palette[colorIndex];
 
 		return `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${opacity})`;
 	};
 
-	// Handle clicking on a bar
 	const handleBarClick = (data: any) => {
-		// If the unit has events, show the first one
 		if (data.events && data.events.length > 0) {
 			setSelectedEvent(data.events[0]);
 			setDetailsOpen(true);
 		}
 	};
 
-	// Handle clicking on an area
-	const handleAreaClick = (event: TimelineEvent) => {
+	const handleAreaClick = (event: Step) => {
 		setSelectedEvent(event);
 		setDetailsOpen(true);
 	};
 
-	// Handle clicking on an action
-	const handleActionClick = (action: any) => {
-		setSelectedAction(action);
-		setActionDetailsOpen(true);
-	};
-
-	// Custom tooltip component for bar chart
 	const CustomBarTooltip = ({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
 			const data = payload[0].payload;
@@ -248,17 +204,29 @@ export function SpendingGraph({
 				<div className="bg-white p-2 border rounded-md shadow-md text-xs">
 					<p className="font-bold">{label}</p>
 					<p className="text-emerald-600 font-semibold">
-						Income: ${data.income.toLocaleString()}
+						Income: $
+						{data.income.toLocaleString(undefined, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						})}
 					</p>
 					<p className="text-rose-600 font-semibold">
-						Expense: ${data.expense.toLocaleString()}
+						Expense: $
+						{data.expense.toLocaleString(undefined, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						})}
 					</p>
 					<p
 						className={`font-bold ${
 							data.net >= 0 ? "text-emerald-600" : "text-rose-600"
 						}`}
 					>
-						Net: ${data.net.toLocaleString()}
+						Net: $
+						{data.net.toLocaleString(undefined, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						})}
 					</p>
 					{data.events && data.events.length > 0 && (
 						<div className="mt-1 pt-1 border-t">
@@ -266,19 +234,30 @@ export function SpendingGraph({
 							<ul className="text-[10px] space-y-0.5">
 								{data.events
 									.slice(0, 3)
-									.map((event: TimelineEvent) => (
+									.map((step: Step, index: number) => (
 										<li
-											key={event.id}
+											key={index}
 											className="flex items-center gap-1"
 										>
 											<span
 												className="inline-block w-2 h-2 rounded-full"
 												style={{
 													backgroundColor:
-														getEventColor(event),
+														getEventColor(step),
 												}}
 											></span>
-											<span>{event.name}</span>
+											<span className="flex-1">
+												{step.name}
+											</span>
+											<span
+												className={`text-[8px] px-1 py-0.5 rounded-full ${
+													step.type === "income"
+														? "bg-emerald-100 text-emerald-700"
+														: "bg-rose-100 text-rose-700"
+												}`}
+											>
+												{step.source || step.type}
+											</span>
 										</li>
 									))}
 								{data.events.length > 3 && (
@@ -296,7 +275,6 @@ export function SpendingGraph({
 		return null;
 	};
 
-	// Custom tooltip component for area chart
 	const CustomAreaTooltip = ({ active, payload, label }: any) => {
 		if (active && payload && payload.length) {
 			return (
@@ -318,7 +296,7 @@ export function SpendingGraph({
 									return (
 										<p
 											key={index}
-											className="flex items-center gap-1"
+											className="flex items-center gap-1 mb-0.5"
 											style={{ color: entry.color }}
 										>
 											<span
@@ -328,11 +306,23 @@ export function SpendingGraph({
 														entry.color,
 												}}
 											></span>
-											<span>
+											<span className="flex-1 truncate">
 												{event.name}: $
 												{Math.round(
 													entry.value
-												).toLocaleString()}
+												).toLocaleString(undefined, {
+													minimumFractionDigits: 0,
+													maximumFractionDigits: 0,
+												})}
+											</span>
+											<span
+												className={`text-[8px] px-1 py-0.5 rounded-full ${
+													event.type === "income"
+														? "bg-emerald-100 text-emerald-700"
+														: "bg-rose-100 text-rose-700"
+												}`}
+											>
+												{event.source || event.type}
 											</span>
 										</p>
 									);
@@ -412,9 +402,18 @@ export function SpendingGraph({
 									tick={{ fontSize: 10 }}
 								/>
 								<Tooltip content={<CustomBarTooltip />} />
-								<Legend wrapperStyle={{ fontSize: 10 }} />
+								<Legend
+									wrapperStyle={{ fontSize: 10 }}
+									formatter={(value) => {
+										return (
+											<span className="text-xs font-medium">
+												{value}
+											</span>
+										);
+									}}
+								/>
 								<Bar
-									name="Income"
+									name="Income (work, investments)"
 									dataKey="income"
 									fill="#10B981"
 									onClick={handleBarClick}
@@ -434,7 +433,7 @@ export function SpendingGraph({
 									))}
 								</Bar>
 								<Bar
-									name="Expense"
+									name="Expense (housing, education)"
 									dataKey="expense"
 									fill="#F43F5E"
 									onClick={handleBarClick}
@@ -490,6 +489,16 @@ export function SpendingGraph({
 							</TabsList>
 
 							<TabsContent value="income" className="flex-1">
+								<div className="text-[9px] text-gray-500 mb-1 px-1 flex justify-end">
+									<div className="flex items-center gap-1">
+										<span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+										<span>Income from work</span>
+									</div>
+									<div className="flex items-center gap-1 ml-2">
+										<span className="inline-block w-2 h-2 rounded-full bg-teal-500"></span>
+										<span>Income from investments</span>
+									</div>
+								</div>
 								<ResponsiveContainer width="100%" height="100%">
 									<AreaChart
 										data={areaChartData}
@@ -533,7 +542,9 @@ export function SpendingGraph({
 												dataKey={`income_${event.id}`}
 												name={event.name}
 												stackId={`income_${
-													event.id % 3
+													typeof event.id === "number"
+														? event.id % 3
+														: 0
 												}`}
 												fill={getEventColor(event, 0.7)}
 												stroke={getEventColor(event)}
@@ -563,6 +574,16 @@ export function SpendingGraph({
 							</TabsContent>
 
 							<TabsContent value="expense" className="flex-1">
+								<div className="text-[9px] text-gray-500 mb-1 px-1 flex justify-end">
+									<div className="flex items-center gap-1">
+										<span className="inline-block w-2 h-2 rounded-full bg-rose-500"></span>
+										<span>Regular expenses</span>
+									</div>
+									<div className="flex items-center gap-1 ml-2">
+										<span className="inline-block w-2 h-2 rounded-full bg-purple-500"></span>
+										<span>Investments</span>
+									</div>
+								</div>
 								<ResponsiveContainer width="100%" height="100%">
 									<AreaChart
 										data={areaChartData}
@@ -606,7 +627,9 @@ export function SpendingGraph({
 												dataKey={`expense_${event.id}`}
 												name={event.name}
 												stackId={`expense_${
-													event.id % 3
+													typeof event.id === "number"
+														? event.id % 3
+														: 0
 												}`}
 												fill={getEventColor(event, 0.7)}
 												stroke={getEventColor(event)}
@@ -639,15 +662,27 @@ export function SpendingGraph({
 				</TabsContent>
 			</Tabs>
 
-			{/* Action Details Dialog */}
 			<Dialog
 				open={actionDetailsOpen}
 				onOpenChange={setActionDetailsOpen}
 			>
 				<DialogContent className="sm:max-w-[400px] bg-white border-0 shadow-md">
 					<DialogHeader>
-						<DialogTitle className="text-sm font-bold text-indigo-700">
-							{selectedAction?.name}
+						<DialogTitle className="text-sm font-bold text-indigo-700 flex items-center justify-between">
+							<span>{selectedAction?.name}</span>
+							<span
+								className={`text-xs px-2 py-0.5 rounded-full ${
+									selectedAction?.kind === "income"
+										? "bg-emerald-100 text-emerald-700"
+										: selectedAction?.kind === "expense"
+										? "bg-rose-100 text-rose-700"
+										: selectedAction?.kind === "investment"
+										? "bg-blue-100 text-blue-700"
+										: "bg-amber-100 text-amber-700"
+								}`}
+							>
+								{selectedAction?.kind}
+							</span>
 						</DialogTitle>
 						<DialogDescription className="text-xs text-gray-600">
 							{selectedAction?.shortDescription}
@@ -655,39 +690,192 @@ export function SpendingGraph({
 					</DialogHeader>
 
 					<div className="space-y-2 py-2">
-						<div className="bg-indigo-50 p-2 rounded-lg">
+						<div className="p-2 rounded-lg bg-indigo-50">
 							<div className="text-xs text-indigo-700 font-medium">
-								Action Type
+								Duration
 							</div>
-							<div className="text-sm font-semibold text-indigo-900 capitalize">
-								{selectedAction?.kind}
+							<div className="text-sm font-semibold text-indigo-900">
+								{selectedAction && (
+									<div className="flex justify-between items-center">
+										<span>
+											{Math.round(
+												selectedAction.remainingTicks /
+													12
+											)}{" "}
+											years (
+											{selectedAction.remainingTicks}{" "}
+											months)
+										</span>
+										{selectedAction.remainingTicks ===
+											Infinity && (
+											<span className="text-[10px] bg-indigo-200 px-1.5 py-0.5 rounded-full text-indigo-700">
+												Ongoing
+											</span>
+										)}
+									</div>
+								)}
 							</div>
 						</div>
-						{selectedAction && selectedAction.kind === "job" && (
-							<div className="bg-emerald-50 p-2 rounded-lg">
-								<div className="text-xs text-emerald-700 font-medium">
-									Monthly Income
-								</div>
-								<div className="text-sm font-semibold text-emerald-900">
-									$
-									{(
-										selectedAction as any
-									).incomeAmount.toLocaleString()}
-									/month
-								</div>
-							</div>
-						)}
+
 						{selectedAction &&
-							selectedAction.kind === "education" && (
-								<div className="bg-rose-50 p-2 rounded-lg">
-									<div className="text-xs text-rose-700 font-medium">
-										Total Cost
+							selectedAction.bankAccountImpact.hasImpact && (
+								<div
+									className={`p-2 rounded-lg ${
+										selectedAction.bankAccountImpact
+											.repeatedAbsoluteDelta >= 0
+											? "bg-emerald-50"
+											: "bg-rose-50"
+									}`}
+								>
+									<div
+										className={`text-xs font-medium ${
+											selectedAction.bankAccountImpact
+												.repeatedAbsoluteDelta >= 0
+												? "text-emerald-700"
+												: "text-rose-700"
+										}`}
+									>
+										{selectedAction.bankAccountImpact
+											.repeatedAbsoluteDelta >= 0
+											? "Monthly Income"
+											: "Monthly Cost"}
 									</div>
-									<div className="text-sm font-semibold text-rose-900">
+									<div
+										className={`text-sm font-bold ${
+											selectedAction.bankAccountImpact
+												.repeatedAbsoluteDelta >= 0
+												? "text-emerald-900"
+												: "text-rose-900"
+										}`}
+									>
 										$
-										{(
-											selectedAction as any
-										).cost.toLocaleString()}
+										{Math.abs(
+											selectedAction.bankAccountImpact
+												.repeatedAbsoluteDelta
+										).toLocaleString()}
+										{selectedAction.bankAccountImpact
+											.repeatedPercent !== 0 && (
+											<span className="text-xs ml-1 font-normal">
+												+{" "}
+												{
+													selectedAction
+														.bankAccountImpact
+														.repeatedPercent
+												}
+												% monthly
+											</span>
+										)}
+									</div>
+								</div>
+							)}
+
+						{selectedAction &&
+							selectedAction.investmentImpact.hasImpact && (
+								<div className="p-2 rounded-lg bg-blue-50">
+									<div className="text-xs font-medium text-blue-700">
+										Investment Details
+									</div>
+									<div className="grid grid-cols-2 gap-2 mt-1">
+										<div>
+											<div className="text-[10px] text-blue-500">
+												Initial Investment
+											</div>
+											<div className="text-sm font-bold text-blue-900">
+												$
+												{(
+													selectedAction.capital ||
+													selectedAction
+														.investmentImpact
+														.initialPrice
+												).toLocaleString()}
+											</div>
+										</div>
+										<div>
+											<div className="text-[10px] text-blue-500">
+												Expected Return
+											</div>
+											<div className="text-sm font-bold text-blue-900">
+												{
+													selectedAction
+														.investmentImpact
+														.repeatedPercent
+												}
+												%{" "}
+												{selectedAction.investmentImpact
+													.repeatedAbsoluteDelta !==
+													0 &&
+													`+ $${selectedAction.investmentImpact.repeatedAbsoluteDelta}`}
+											</div>
+										</div>
+									</div>
+								</div>
+							)}
+
+						{selectedAction &&
+							(selectedAction.joyImpact.hasImpact ||
+								selectedAction.freeTimeImpact.hasImpact) && (
+								<div className="p-2 rounded-lg bg-purple-50">
+									<div className="text-xs font-medium text-purple-700">
+										Lifestyle Impact
+									</div>
+									<div className="grid grid-cols-2 gap-2 mt-1">
+										{selectedAction.joyImpact.hasImpact && (
+											<div>
+												<div className="text-[10px] text-purple-500">
+													Joy Impact
+												</div>
+												<div
+													className={`text-sm font-semibold ${
+														selectedAction.joyImpact
+															.repeatedPercent >=
+														0
+															? "text-emerald-600"
+															: "text-rose-600"
+													}`}
+												>
+													{selectedAction.joyImpact
+														.repeatedPercent >= 0
+														? "+"
+														: ""}
+													{
+														selectedAction.joyImpact
+															.repeatedPercent
+													}
+													%
+												</div>
+											</div>
+										)}
+										{selectedAction.freeTimeImpact
+											.hasImpact && (
+											<div>
+												<div className="text-[10px] text-purple-500">
+													Free Time
+												</div>
+												<div
+													className={`text-sm font-semibold ${
+														selectedAction
+															.freeTimeImpact
+															.repeatedAbsoluteDelta >=
+														0
+															? "text-emerald-600"
+															: "text-rose-600"
+													}`}
+												>
+													{selectedAction
+														.freeTimeImpact
+														.repeatedAbsoluteDelta >=
+													0
+														? "+"
+														: ""}
+													{
+														selectedAction
+															.freeTimeImpact
+															.repeatedAbsoluteDelta
+													}{" "}
+													hrs/week
+												</div>
+											</div>
+										)}
 									</div>
 								</div>
 							)}
@@ -704,7 +892,7 @@ export function SpendingGraph({
 				</DialogContent>
 			</Dialog>
 
-			{/* Existing Event Details Dialog */}
+			{/* Existing Event Details Dialog
 			<Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
 				<DialogContent className="sm:max-w-[400px] bg-white border-0 shadow-md">
 					<DialogHeader>
@@ -749,9 +937,9 @@ export function SpendingGraph({
 									</div>
 								)}
 						</div>
-					</div>
+					</div> */}
 
-					<DialogFooter>
+			{/* <DialogFooter>
 						<Button
 							onClick={() => setDetailsOpen(false)}
 							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs py-1 h-7"
@@ -760,7 +948,7 @@ export function SpendingGraph({
 						</Button>
 					</DialogFooter>
 				</DialogContent>
-			</Dialog>
+			</Dialog> */}
 		</div>
 	);
 }

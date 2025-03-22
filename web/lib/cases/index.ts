@@ -1,6 +1,4 @@
-import invariant from "tiny-invariant";
 import { Action, computeNextStep, Step } from "./actions";
-import { CaseCards } from "@/components/ui/case-cards";
 
 export type TickKind = "week" | "month" | "year";
 

@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Action } from "@/lib/cases/actions";
+import type { ActionTiming } from "@/components/timeline";
+
+type TransactionDisplay = {
+	id: number | string;
+	name: string;
+	amount: number;
+	date: string;
+	type: string;
+	isActive: boolean;
+	endYear?: number;
+};
 
 const transactionData = {
 	years: {
@@ -328,7 +340,7 @@ const transactionData = {
 };
 
 // Default transactions for units without specific data
-const defaultTransactions = [
+const defaultTransactions: TransactionDisplay[] = [
 	{
 		id: 1,
 		name: "Salary",
@@ -366,18 +378,132 @@ const defaultTransactions = [
 interface TransactionListProps {
 	selectedTimeframe: "years" | "months" | "weeks" | "days";
 	selectedUnit: string | number;
+	actions?: Action[];
+	actionTimings?: ActionTiming[];
+	currentYear?: number;
 }
 
 export function TransactionList({
 	selectedTimeframe,
 	selectedUnit,
+	actions = [],
+	actionTimings = [],
+	currentYear,
 }: TransactionListProps) {
 	const [activeTab, setActiveTab] = useState("current");
 
+	// Add debugging logs to help understand what's happening
+	// console.log("TransactionList - Selected Unit:", selectedUnit);
+	// console.log("TransactionList - Current Year:", currentYear);
+	// console.log("TransactionList - Actions:", actions);
+	// console.log("TransactionList - Action Timings:", actionTimings);
+
+	// Active actions for the selected year/unit
+	const relevantActionTimings = actionTimings.filter((timing) => {
+		const currentTick =
+			typeof selectedUnit === "number"
+				? selectedUnit
+				: parseInt(selectedUnit as string) || 0;
+		return timing.startTick <= currentTick && timing.endTick >= currentTick;
+	});
+
+	// console.log(
+	// 	"TransactionList - Relevant Action Timings:",
+	// 	relevantActionTimings
+	// );
+
+	// Convert action timings to transactions
+	const actionTransactions: TransactionDisplay[] = relevantActionTimings.map(
+		(timing) => {
+			const action = timing.action;
+			let amount = 0;
+
+			if (
+				action.kind === "income" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				amount = action.bankAccountImpact.repeatedAbsoluteDelta * 12; // Annual value
+			} else if (
+				action.kind === "expense" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				amount =
+					Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta) *
+					12;
+			} else if (
+				action.kind === "investment" &&
+				action.investmentImpact.hasImpact
+			) {
+				amount = action.capital || action.investmentImpact.initialPrice;
+			}
+
+			const yearToUse = currentYear || new Date().getFullYear();
+
+			return {
+				id: action.name,
+				name: action.name,
+				amount,
+				date: `Started: Year ${timing.startTick}`,
+				type: action.kind,
+				isActive: true,
+				endYear: timing.endTick,
+			};
+		}
+	);
+
+	// Get inactive actions (those that ended before the current selected unit)
+	const inactiveActionTransactions: TransactionDisplay[] = actionTimings
+		.filter((timing) => {
+			const currentTick =
+				typeof selectedUnit === "number"
+					? selectedUnit
+					: parseInt(selectedUnit as string) || 0;
+			return timing.endTick < currentTick; // Action has ended
+		})
+		.map((timing) => {
+			const action = timing.action;
+			let amount = 0;
+
+			if (
+				action.kind === "income" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				amount = action.bankAccountImpact.repeatedAbsoluteDelta * 12;
+			} else if (
+				action.kind === "expense" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				amount =
+					Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta) *
+					12;
+			} else if (
+				action.kind === "investment" &&
+				action.investmentImpact.hasImpact
+			) {
+				amount = action.capital || action.investmentImpact.initialPrice;
+			}
+
+			return {
+				id: action.name,
+				name: action.name,
+				amount,
+				date: `Year ${timing.startTick}`,
+				type: action.kind,
+				isActive: false,
+				endYear: timing.endTick,
+			};
+		});
+
 	const timeframeData = transactionData[selectedTimeframe] || {};
-	const allTransactions: typeof defaultTransactions =
+	const mockTransactions: TransactionDisplay[] =
 		timeframeData[selectedUnit as keyof typeof timeframeData] ||
 		defaultTransactions;
+
+	// Use actual action data if available, otherwise fallback to mock data
+	const allTransactions: TransactionDisplay[] =
+		actions.length > 0 || inactiveActionTransactions.length > 0
+			? [...actionTransactions, ...inactiveActionTransactions]
+			: mockTransactions;
 
 	const currentTransactions = allTransactions.filter(
 		(transaction) => transaction.isActive
@@ -393,12 +519,24 @@ export function TransactionList({
 				bg: "bg-emerald-100",
 				text: "text-emerald-600",
 				sign: "+",
+				pill: "bg-emerald-100 text-emerald-700",
+				label: "Income",
+			};
+		} else if (type === "investment") {
+			return {
+				bg: "bg-blue-100",
+				text: "text-blue-600",
+				sign: "~",
+				pill: "bg-blue-100 text-blue-700",
+				label: "Investment",
 			};
 		}
 		return {
 			bg: "bg-rose-100",
 			text: "text-rose-600",
 			sign: "-",
+			pill: "bg-rose-100 text-rose-700",
+			label: "Expense",
 		};
 	};
 
@@ -439,7 +577,7 @@ export function TransactionList({
 							return (
 								<div
 									key={item.id}
-									className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-gray-100 shadow-sm"
+									className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors"
 								>
 									<div className="flex items-center gap-2">
 										<div
@@ -452,11 +590,21 @@ export function TransactionList({
 											</span>
 										</div>
 										<div>
-											<p className="font-medium text-gray-800 text-xs">
-												{item.name}
-											</p>
+											<div className="flex items-center gap-1">
+												<p className="font-medium text-gray-800 text-xs">
+													{item.name}
+												</p>
+												<span
+													className={`text-[8px] px-1 py-0.5 rounded-full ${colors.pill}`}
+												>
+													{colors.label}
+												</span>
+											</div>
 											<p className="text-[10px] text-gray-500">
 												{item.date}
+												{item?.endYear
+													? ` - ${item.endYear}`
+													: ""}
 											</p>
 										</div>
 									</div>
@@ -464,7 +612,10 @@ export function TransactionList({
 										className={`font-bold text-xs ${colors.text}`}
 									>
 										{colors.sign}$
-										{item.amount.toLocaleString()}
+										{item.amount.toLocaleString(undefined, {
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 0,
+										})}
 									</span>
 								</div>
 							);
@@ -487,7 +638,7 @@ export function TransactionList({
 							return (
 								<div
 									key={item.id}
-									className="flex items-center justify-between p-1.5 bg-gray-50 rounded-lg border border-gray-100 opacity-70"
+									className="flex items-center justify-between p-1.5 bg-gray-50 rounded-lg border border-gray-100 opacity-70 hover:opacity-100 transition-opacity"
 								>
 									<div className="flex items-center gap-2">
 										<div
@@ -500,11 +651,21 @@ export function TransactionList({
 											</span>
 										</div>
 										<div>
-											<p className="font-medium text-gray-700 text-xs">
-												{item.name}
-											</p>
+											<div className="flex items-center gap-1">
+												<p className="font-medium text-gray-700 text-xs">
+													{item.name}
+												</p>
+												<span
+													className={`text-[8px] px-1 py-0.5 rounded-full ${colors.pill}`}
+												>
+													{colors.label}
+												</span>
+											</div>
 											<p className="text-[10px] text-gray-500">
-												{item.date}{" "}
+												{item.date}
+												{item?.endYear
+													? ` - ended in ${item.endYear}`
+													: ""}
 											</p>
 										</div>
 									</div>
@@ -512,7 +673,10 @@ export function TransactionList({
 										className={`font-bold text-xs ${colors.text}`}
 									>
 										{colors.sign}$
-										{item.amount.toLocaleString()}
+										{item.amount.toLocaleString(undefined, {
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 0,
+										})}
 									</span>
 								</div>
 							);

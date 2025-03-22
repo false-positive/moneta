@@ -87,12 +87,20 @@ export function FinancialJourney({
 	currentYear,
 	onYearSelect,
 }: FinancialJourneyProps) {
-	const [selectedNode, setSelectedNode] = useState<number | null>(null);
+	const [selectedNode, setSelectedNode] = useState<number>(currentYear);
 	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState<
 		"metrics" | "transactions" | "spending"
 	>("metrics");
 	const [minWidth, setMinWidth] = useState(0);
+	const [highestUnlockedYear, setHighestUnlockedYear] = useState(currentYear);
+
+	// Update highestUnlockedYear if currentYear increases
+	useEffect(() => {
+		if (currentYear > highestUnlockedYear) {
+			setHighestUnlockedYear(currentYear);
+		}
+	}, [currentYear, highestUnlockedYear]);
 
 	const years = useMemo(
 		() => timeUnits.filter((unit) => typeof unit === "number") as number[],
@@ -149,11 +157,12 @@ export function FinancialJourney({
 
 	const getNodeStatus = useCallback(
 		(year: number) => {
-			if (year < currentYear) return "completed";
-			if (year === currentYear) return "current";
+			if (selectedNode && year < selectedNode) return "completed";
+			if (selectedNode && year === selectedNode) return "current";
+			if (year <= highestUnlockedYear) return "completed";
 			return "locked";
 		},
-		[currentYear]
+		[selectedNode, highestUnlockedYear]
 	);
 
 	// IVA TODO: Change here for emojies -> 4 emojies?
@@ -193,13 +202,13 @@ export function FinancialJourney({
 
 	const handleNodeClick = useCallback(
 		(year: number) => {
-			if (year <= currentYear) {
+			if (year <= highestUnlockedYear) {
 				setSelectedNode(year);
 				onYearSelect(year);
 				setDetailsOpen(true);
 			}
 		},
-		[currentYear, onYearSelect]
+		[highestUnlockedYear, onYearSelect]
 	);
 
 	return (
