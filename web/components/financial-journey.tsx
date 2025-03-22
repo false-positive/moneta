@@ -23,6 +23,8 @@ interface FinancialJourneyProps {
 	actionTimings: ActionTiming[];
 	currentYear: number;
 	onYearSelect: (year: number) => void;
+	highestUnlockedYear: number;
+	onUnlockNextYear: (nextYear: number) => void;
 }
 
 function JourneyNode({
@@ -86,6 +88,8 @@ export function FinancialJourney({
 	actionTimings,
 	currentYear,
 	onYearSelect,
+	highestUnlockedYear,
+	onUnlockNextYear,
 }: FinancialJourneyProps) {
 	const [selectedNode, setSelectedNode] = useState<number>(currentYear);
 	const [detailsOpen, setDetailsOpen] = useState(false);
@@ -93,14 +97,11 @@ export function FinancialJourney({
 		"metrics" | "transactions" | "spending"
 	>("metrics");
 	const [minWidth, setMinWidth] = useState(0);
-	const [highestUnlockedYear, setHighestUnlockedYear] = useState(currentYear);
 
-	// Update highestUnlockedYear if currentYear increases
+	// Update selectedNode if currentYear changes
 	useEffect(() => {
-		if (currentYear > highestUnlockedYear) {
-			setHighestUnlockedYear(currentYear);
-		}
-	}, [currentYear, highestUnlockedYear]);
+		setSelectedNode(currentYear);
+	}, [currentYear]);
 
 	const years = useMemo(
 		() => timeUnits.filter((unit) => typeof unit === "number") as number[],
@@ -157,15 +158,14 @@ export function FinancialJourney({
 
 	const getNodeStatus = useCallback(
 		(year: number) => {
-			if (selectedNode && year < selectedNode) return "completed";
-			if (selectedNode && year === selectedNode) return "current";
-			if (year <= highestUnlockedYear) return "completed";
+			if (year < selectedNode) return "completed";
+			if (year === selectedNode) return "current";
+			if (year <= highestUnlockedYear) return "unlocked";
 			return "locked";
 		},
 		[selectedNode, highestUnlockedYear]
 	);
 
-	// IVA TODO: Change here for emojies -> 4 emojies?
 	const getNodeAppearance = useCallback(
 		(year: number) => {
 			const status = getNodeStatus(year);
@@ -184,6 +184,9 @@ export function FinancialJourney({
 			} else if (status === "current") {
 				appearance.color = "bg-indigo-500 border-indigo-600";
 				appearance.icon = <Star className="h-5 w-5 text-yellow-300" />;
+			} else if (status === "unlocked") {
+				appearance.color = "bg-blue-400 border-blue-500";
+				appearance.icon = <Sparkles className="h-5 w-5 text-white" />;
 			}
 
 			return appearance;
@@ -204,12 +207,21 @@ export function FinancialJourney({
 		(year: number) => {
 			if (year <= highestUnlockedYear) {
 				setSelectedNode(year);
-				onYearSelect(year);
 				setDetailsOpen(true);
 			}
 		},
-		[highestUnlockedYear, onYearSelect]
+		[highestUnlockedYear]
 	);
+
+	const handleCompleteYear = useCallback(() => {
+		const currentIndex = years.findIndex((year) => year === selectedNode);
+		if (currentIndex >= 0 && currentIndex < years.length - 1) {
+			const nextYear = years[currentIndex + 1];
+			onUnlockNextYear(nextYear);
+			setSelectedNode(nextYear);
+			setDetailsOpen(false);
+		}
+	}, [selectedNode, years, onUnlockNextYear]);
 
 	return (
 		<div className="relative w-full h-70 overflow-auto bg-gradient-to-b from-indigo-50 to-white rounded-lg">
@@ -297,7 +309,10 @@ export function FinancialJourney({
 								>
 									{getNodeStatus(selectedNode) === "completed"
 										? "Completed"
-										: "In Progress"}
+										: getNodeStatus(selectedNode) ===
+										  "current"
+										? "In Progress"
+										: "Available"}
 								</div>
 							)}
 						</DialogTitle>
@@ -337,6 +352,26 @@ export function FinancialJourney({
 							<TransactionList
 								selectedTimeframe="years"
 								selectedUnit={selectedNode}
+								currentYear={selectedNode}
+								actions={
+									steps.find(
+										(step) => step?.tick === selectedNode
+									)
+										? [
+												...(steps.find(
+													(step) =>
+														step?.tick ===
+														selectedNode
+												)?.newActions || []),
+												...(steps.find(
+													(step) =>
+														step?.tick ===
+														selectedNode
+												)?.oldActiveActions || []),
+										  ]
+										: []
+								}
+								actionTimings={actionTimings}
 							/>
 						)}
 
@@ -344,6 +379,8 @@ export function FinancialJourney({
 							<SpendingGraph
 								timeUnits={timeUnits}
 								selectedUnit={selectedNode}
+								timeframe="years"
+								currentYear={selectedNode}
 								actionTimings={actionTimings}
 							/>
 						)}
@@ -355,11 +392,16 @@ export function FinancialJourney({
 							<Timeline
 								timeUnits={timeUnits}
 								steps={steps}
-								selectedUnit={selectedNode || currentYear}
+								selectedUnit={selectedNode}
 								unitType="years"
-								onUnitClick={(unit) =>
-									onYearSelect(Number(unit))
-								}
+								onUnitClick={(unit) => {
+									if (
+										typeof unit === "number" &&
+										unit <= highestUnlockedYear
+									) {
+										setSelectedNode(unit);
+									}
+								}}
 								actionTimings={actionTimings}
 							/>
 						</div>
@@ -377,12 +419,7 @@ export function FinancialJourney({
 								getNodeStatus(selectedNode) === "current" && (
 									<Button
 										className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-										onClick={() => {
-											console.log(
-												"Progress to next year"
-											);
-											setDetailsOpen(false);
-										}}
+										onClick={handleCompleteYear}
 									>
 										Complete Year{" "}
 										<ChevronRight className="h-4 w-4 ml-1" />

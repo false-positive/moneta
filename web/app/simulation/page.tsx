@@ -30,6 +30,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import SuperJSON from "superjson";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -50,6 +51,8 @@ const weekUnits = Array.from({ length: 52 }, (_, i) => `Week ${i + 1}`);
 const dayUnits = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
 const createHardcodedSimulation = () => {
+	return; // ~божо
+
 	const INITIAL_BANK_ACCOUNT = 20000;
 
 	const initialStep: Step = {
@@ -58,6 +61,9 @@ const createHardcodedSimulation = () => {
 		joy: 100,
 		freeTime: 100,
 		newActions: [],
+		isBankAccountKnown: true,
+		isJoyKnown: true,
+		isFreeTimeKnown: true,
 		oldActiveActions: [{ ...lifeAction }],
 	};
 
@@ -148,6 +154,8 @@ const generateSubTimeframeSteps = (
 	yearlySteps: Step[],
 	selectedYear?: number
 ) => {
+	return; // ~божо
+
 	const monthlySteps: Step[] = [];
 	const weeklySteps: Step[] = [];
 	const dailySteps: Step[] = [];
@@ -171,6 +179,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
 				newActions: month === 6 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 
@@ -184,6 +195,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.9 + 0.1 * factor),
 				newActions: week === 26 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 
@@ -197,6 +211,9 @@ const generateSubTimeframeSteps = (
 				freeTime: baseYearlyStep.freeTime * (0.95 + 0.05 * factor),
 				newActions: day === 15 ? [...baseYearlyStep.newActions] : [],
 				oldActiveActions: [...baseYearlyStep.oldActiveActions],
+				isBankAccountKnown: baseYearlyStep.isBankAccountKnown,
+				isJoyKnown: baseYearlyStep.isJoyKnown,
+				isFreeTimeKnown: baseYearlyStep.isFreeTimeKnown,
 			});
 		}
 	}
@@ -207,6 +224,7 @@ const generateSubTimeframeSteps = (
 export default function Simulation() {
 	const [currentYear, setCurrentYear] = useState(2020);
 	const [selectedYear, setSelectedYear] = useState(2020);
+	const [highestUnlockedYear, setHighestUnlockedYear] = useState(2020);
 
 	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
 	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
@@ -218,9 +236,7 @@ export default function Simulation() {
 	const [dailySteps, setDailySteps] = useState<Step[]>([]);
 	const [actionTimings, setActionTimings] = useState<ActionTiming[]>([]);
 	const [caseDescription, setCaseDescription] = useState<CaseDescription>();
-	const [timeframe, setTimeframe] = useState<
-		"years" | "months" | "weeks" | "days"
-	>("years");
+	const timeframe = "years";
 
 	useEffect(() => {
 		const currentYearStep = yearlySteps.find(
@@ -281,31 +297,39 @@ export default function Simulation() {
 	}, [currentYear, yearlySteps, actionTimings]);
 
 	useEffect(() => {
-		const { yearlySteps, actionTimings, caseDescription } =
-			createHardcodedSimulation();
-		const { monthlySteps, weeklySteps, dailySteps } =
-			generateSubTimeframeSteps(yearlySteps);
+		// const { yearlySteps, actionTimings, caseDescription } =
+		// 	createHardcodedSimulation();
+		// const { monthlySteps, weeklySteps, dailySteps } =
+		// 	generateSubTimeframeSteps(yearlySteps);
+
+		const yearlySteps = SuperJSON.parse(
+			localStorage.getItem("steps") || "[]"
+		) as Step[];
 
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
 		setSelectedYear(firstYear);
+		setHighestUnlockedYear(firstYear);
+
+		const caseDescription = SuperJSON.parse(
+			localStorage.getItem("case") || "{}"
+		) as CaseDescription;
 
 		setYearlySteps(yearlySteps);
 		setCaseDescription(caseDescription);
-		setMonthlySteps(monthlySteps);
-		setWeeklySteps(weeklySteps);
-		setDailySteps(dailySteps);
+		// setMonthlySteps(monthlySteps);
+		// setWeeklySteps(weeklySteps);
+		// setDailySteps(dailySteps);
 		setActionTimings(actionTimings);
 	}, []);
 
 	useEffect(() => {
 		if (yearlySteps.length > 0) {
-			const { monthlySteps, weeklySteps, dailySteps } =
-				generateSubTimeframeSteps(yearlySteps, selectedYear);
-
-			setMonthlySteps(monthlySteps);
-			setWeeklySteps(weeklySteps);
-			setDailySteps(dailySteps);
+			// const { monthlySteps, weeklySteps, dailySteps } =
+			// 	generateSubTimeframeSteps(yearlySteps, selectedYear);
+			// setMonthlySteps(monthlySteps);
+			// setWeeklySteps(weeklySteps);
+			// setDailySteps(dailySteps);
 		}
 	}, [selectedYear, yearlySteps]);
 
@@ -316,10 +340,18 @@ export default function Simulation() {
 	}, [selectedYear, timeframe]);
 
 	const handleYearSelect = (year: number) => {
-		setSelectedYear(year);
-		if (timeframe === "years") {
-			setCurrentYear(year);
+		// Only allow selecting a year that has been unlocked
+		if (year <= highestUnlockedYear) {
+			setSelectedYear(year);
+			if (timeframe === "years") {
+				setCurrentYear(year);
+			}
 		}
+	};
+
+	// Function to unlock next year (only called from FinancialJourney)
+	const handleUnlockNextYear = (nextYear: number) => {
+		setHighestUnlockedYear(nextYear);
 	};
 
 	const currentSteps =
@@ -370,7 +402,7 @@ export default function Simulation() {
 							<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
 								<h2 className="text-white font-bold flex items-center gap-2">
 									<Route className="h-4 w-4" />
-									Your Financial Journey
+									The Way Of The Finance
 								</h2>
 							</div>
 							<div className="p-2">
@@ -380,6 +412,8 @@ export default function Simulation() {
 									actionTimings={actionTimings}
 									currentYear={selectedYear}
 									onYearSelect={handleYearSelect}
+									highestUnlockedYear={highestUnlockedYear}
+									onUnlockNextYear={handleUnlockNextYear}
 								/>
 							</div>
 						</div>
@@ -552,7 +586,7 @@ export default function Simulation() {
 								</Tabs>
 							</CollapsibleContent>
 						</Collapsible>
-
+						{/* 
 						<Collapsible
 							open={isQuestsOpen}
 							onOpenChange={setIsQuestsOpen}
@@ -597,9 +631,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-emerald-800 text-sm">
 												Emergency Fund
 											</h3>
-											{/* <span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
+											{<span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
 													+75 pts
-												</span> */}
+												</span>
 										</div>
 										<p className="text-emerald-700 text-xs mt-1">
 											Save 6 months of expenses in a
@@ -618,9 +652,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-purple-800 text-sm">
 												Retirement Planning
 											</h3>
-											{/* <span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
-													+100 pts
-												</span> */}
+											<span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
+												+100 pts
+											</span>
 										</div>
 										<p className="text-purple-700 text-xs mt-1">
 											Set up automatic contributions to
@@ -635,7 +669,7 @@ export default function Simulation() {
 									</div>
 								</div>
 							</CollapsibleContent>
-						</Collapsible>
+						</Collapsible> */}
 					</div>
 				</div>
 			</div>

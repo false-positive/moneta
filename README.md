@@ -1,5 +1,5 @@
 <p align="center">
-  <img width=256px src="./web/public/globe.svg" />
+  <img width=256px src="./assets/logo.svg" />
   <h1 align="center">Moneta</h1>
   <p align="center">Interactive financial literacy platform through life simulations</p>
 </p>

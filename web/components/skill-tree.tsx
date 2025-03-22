@@ -19,6 +19,7 @@ import { Info } from "lucide-react";
 import { computeNextStep, Step } from "@/lib/cases/actions";
 import SuperJSON from "superjson";
 import { lifeAction } from "@/lib/cases/standard-actions";
+import invariant from "tiny-invariant";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -42,18 +43,10 @@ export default function SkillTree() {
 		if (parsedSteps && parsedSteps.length > 0) {
 			stepsRef.current = parsedSteps;
 		} else {
-			const initialStep: Step = {
-				tick: 0,
-				bankAccount: 10_000,
-				joy: 100,
-				freeTime: 2134,
-				newActions: [],
-				oldActiveActions: [lifeAction],
-			};
-			stepsRef.current = [initialStep];
+			window.location.href = "/";
 		}
 
-		console.log(stepsRef.current);
+		console.log(">>>", stepsRef.current);
 
 		const currentStep = stepsRef.current[stepsRef.current.length - 1];
 		const activeActions = [
@@ -62,12 +55,16 @@ export default function SkillTree() {
 		];
 		const unlockedActionNames = activeActions.map((action) => action.name);
 
+		console.log(">>>", { unlockedActionNames });
+
 		const updatedNodes = nodes.map((node) => {
 			if (unlockedActionNames.includes(node.actionObject.name)) {
 				return { ...node, unlocked: true };
 			}
 			return node;
 		});
+
+		console.log(">>>", { updatedNodes });
 
 		setNodes(updatedNodes);
 	}, []);
@@ -165,13 +162,16 @@ export default function SkillTree() {
 				});
 			}
 
-			const response = await fetch("http://192.168.74.18:5000/hint", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body,
-			});
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/hint`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body,
+				}
+			);
 
 			if (response.ok) {
 				const data = await response.json();
@@ -422,7 +422,7 @@ export default function SkillTree() {
 												: selectedNode.actionObject
 														.kind === "income"
 												? "Work"
-												: "Buy"}
+												: "Accept Expense"}
 										</Button>
 									)}
 								</div>
