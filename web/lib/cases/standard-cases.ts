@@ -14,6 +14,7 @@ export const standardCases: Record<string, CaseDescription> = {
 			bankAccount: 20,
 			isJoyKnown: true,
 			joy: 100,
+			isFreeTimeKnown: true,
 			freeTime: 100,
 			newActions: [],
 			oldActiveActions: [lifeAction],
@@ -38,9 +39,9 @@ export const standardCases: Record<string, CaseDescription> = {
 		},
 	},
 	maria: {
-		personName: "Maria",
+		personName: "Ivan",
 		caseLLMDescriptipn:
-			"Maria is 20 years old and has 1000 levs monthly allowance, which she spends on buying food, clothes and other stuff",
+			"Ivan is 18 years old and has 1000 BGN monthly allowance, which he spends on buying food, clothes and other stuff",
 		stepCount: 5,
 		tickKind: "year",
 		initialStep: {
