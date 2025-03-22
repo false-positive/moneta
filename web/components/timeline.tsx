@@ -67,6 +67,7 @@ export function Timeline({
 	const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
 	const handleUnitClick = (unit: string | number) => {
+		console.log("[timeline] handleUnitClick", unit);
 		onUnitClick(unit);
 	};
 
@@ -118,9 +119,9 @@ export function Timeline({
 											: "bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600"
 									}`}
 									onClick={() => handleUnitClick(unit)}
-									onDoubleClick={() =>
-										handleUnitDoubleClick(unit)
-									}
+									// onDoubleClick={() =>
+									// 	handleUnitDoubleClick(unit)
+									// }
 								>
 									{unit}
 								</div>

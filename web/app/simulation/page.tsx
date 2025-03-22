@@ -335,12 +335,12 @@ export default function Simulation() {
 
 	const handleYearSelect = (year: number) => {
 		// Only allow selecting a year that has been unlocked
-		if (year <= highestUnlockedYear) {
-			setSelectedYear(year);
-			if (timeframe === "years") {
-				setCurrentYear(year);
-			}
+		// if (year <= highestUnlockedYear) {
+		setSelectedYear(year);
+		if (timeframe === "years") {
+			setCurrentYear(year);
 		}
+		// }
 	};
 
 	// Function to unlock next year (only called from FinancialJourney)
@@ -438,11 +438,7 @@ export default function Simulation() {
 										selectedUnit={selectedYear}
 										unitType={timeframe}
 										onUnitClick={(unit) => {
-											if (typeof unit === "number") {
-												handleYearSelect(unit);
-											} else {
-												handleYearSelect(1);
-											}
+											handleYearSelect(unit as any);
 										}}
 										actionTimings={actionTimings}
 									/>

@@ -5,13 +5,13 @@ export const standardCases: Record<string, CaseDescription> = {
 	ivan: {
 		personName: "Maria",
 		caseLLMDescriptipn:
-			"Maria is 6 years old and has 1000 BGN monthly allowance, which she spends on buying food, clothes and other stuff",
+			"Maria is 6 years old and has 100 BGN monthly allowance, which she spends on buying food, clothes and other stuff",
 		stepCount: 1,
 		tickKind: "month",
 		initialStep: {
 			tick: 0,
 			isBankAccountKnown: true,
-			bankAccount: 20,
+			bankAccount: 100,
 			isJoyKnown: true,
 			joy: 100,
 			isFreeTimeKnown: true,
@@ -23,7 +23,7 @@ export const standardCases: Record<string, CaseDescription> = {
 	marti: {
 		personName: "Marti",
 		caseLLMDescriptipn:
-			"Marti is 10 years old and has 100 levs monthly allowance, which he spends on buying breakfast, lunch and snacks",
+			"Marti is 10 years old and has 20 BGN monthly allowance, which she spends on buying breakfast, lunch and snacks",
 		stepCount: 5,
 		tickKind: "year",
 		initialStep: {
@@ -41,12 +41,12 @@ export const standardCases: Record<string, CaseDescription> = {
 	maria: {
 		personName: "Ivan",
 		caseLLMDescriptipn:
-			"Ivan is 18 years old and has 1000 BGN monthly allowance, which he spends on buying food, clothes and other stuff",
+			"Ivan is 18 years old and has 5000 BGN in his bank account, which he spends on buying food, clothes and other stuff",
 		stepCount: 5,
 		tickKind: "year",
 		initialStep: {
 			tick: 2020,
-			bankAccount: 20000,
+			bankAccount: 5000,
 			joy: 100,
 			freeTime: 100,
 			newActions: [],

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 const initialData = {
 	joy: 50,
@@ -31,10 +31,12 @@ export default function ChatPage() {
 
 	const scenarioConfig = {
 		agent_title: "Ivan",
-		agent_description: "You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences.",
+		agent_description:
+			"You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences.",
 		scenario_setting: "The Life & Financial Situation of Ivan",
 		scenario: {
-			description: "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
+			description:
+				"Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
 			metrics: {
 				bank_account: 2000,
 				joy: 50,
@@ -43,20 +45,25 @@ export default function ChatPage() {
 			targets: {
 				bank_account_target: 15000,
 				joy_target: 100,
-				free_time_target: 16
+				free_time_target: 16,
 			},
 		},
 		metrics_description: {
 			bank_account: "The current state of Ivan's bank account in BGN.",
 			joy: "A general metric describing Ivan's current life satisfaction and happiness.",
-			free_time: "How many free hours per week Ivan has, which determines what actions can be taken."
+			free_time:
+				"How many free hours per week Ivan has, which determines what actions can be taken.",
 		},
 		target_description: {
-			bank_account_target: "Ivan's end financial goal for his bank account value.",
-			joy_target: "Ivan's life satisfaction goal for the end of the scenario. Percent value",
-			free_time_target: "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
+			bank_account_target:
+				"Ivan's end financial goal for his bank account value.",
+			joy_target:
+				"Ivan's life satisfaction goal for the end of the scenario. Percent value",
+			free_time_target:
+				"The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week",
 		},
-		question: "What is your current financial and life situation, and how can he plan his actions to achieve his targets?",
+		question:
+			"What is your current financial and life situation, and how can he plan his actions to achieve his targets?",
 	};
 
 	useEffect(() => {
@@ -233,11 +240,12 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											{ card1Text ? (
+											{card1Text ? (
 												<div>{card1Text}</div>
 											) : (
 												<HelpCircle className="h-12 w-12 text-indigo-300" />
-											)}										</div>
+											)}{" "}
+										</div>
 									</motion.div>
 
 									<motion.div
@@ -255,11 +263,12 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											{ card2Text ? (
+											{card2Text ? (
 												<div>{card2Text}</div>
 											) : (
 												<HelpCircle className="h-12 w-12 text-indigo-300" />
-											)}										</div>
+											)}{" "}
+										</div>
 									</motion.div>
 
 									<motion.div
@@ -277,7 +286,7 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											{ card3Text ? (
+											{card3Text ? (
 												<div>{card3Text}</div>
 											) : (
 												<HelpCircle className="h-12 w-12 text-indigo-300" />
@@ -293,7 +302,10 @@ export default function ChatPage() {
 					</div>
 
 					<div className="md:col-span-2 flex flex-col">
-						<ChatInterface handleDiscovery={handleDiscovery} scenarioConfig={scenarioConfig}/>
+						<ChatInterface
+							handleDiscovery={handleDiscovery}
+							scenarioConfig={scenarioConfig}
+						/>
 					</div>
 				</div>
 

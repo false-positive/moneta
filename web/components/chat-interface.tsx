@@ -11,7 +11,10 @@ type Message = {
 	sender: "user" | "bot";
 };
 
-export default function ChatInterface({handleDiscovery, scenarioConfig}: any) {
+export default function ChatInterface({
+	handleDiscovery,
+	scenarioConfig,
+}: any) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
 	const [isRecording, setIsRecording] = useState(false);
@@ -65,18 +68,26 @@ export default function ChatInterface({handleDiscovery, scenarioConfig}: any) {
 			setInput("");
 			setIsWaitingForResponse(true);
 
-
 			const showNewDiscoveries = (discoveries: string[]) => {
 				if (discoveries.includes("bank_account")) {
-					handleDiscovery(`Your bank account is ${scenarioConfig.scenario.metrics.bank_account} BGN`, 1);
+					handleDiscovery(
+						`Your target bank account balance is ${scenarioConfig.scenario.targets.bank_account_target} BGN`,
+						1
+					);
 				}
 				if (discoveries.includes("joy")) {
-					handleDiscovery(`Your current joy level is ${scenarioConfig.scenario.metrics.joy}`, 2);
+					handleDiscovery(
+						`Your target joy level is ${scenarioConfig.scenario.targets.joy_target}%`,
+						2
+					);
 				}
 				if (discoveries.includes("free_time")) {
-					handleDiscovery(`You have ${scenarioConfig.scenario.metrics.free_time} hours of free time per week`, 3);
+					handleDiscovery(
+						`You want to have at least ${scenarioConfig.scenario.targets.free_time_target} hours of free time per week`,
+						3
+					);
 				}
-			}
+			};
 
 			// Send the user message to the backend
 			fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover`, {
@@ -84,7 +95,10 @@ export default function ChatInterface({handleDiscovery, scenarioConfig}: any) {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ ...scenarioConfig, question: messageToSend }),
+				body: JSON.stringify({
+					...scenarioConfig,
+					question: messageToSend,
+				}),
 			})
 				.then((response) => {
 					if (!response.ok) {
