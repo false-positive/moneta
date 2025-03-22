@@ -1,4 +1,5 @@
 import { CaseDescription } from ".";
+import { lifeAction } from "./standard-actions";
 
 export const standardCases: Record<string, CaseDescription> = {
 	ivan: {
@@ -6,26 +7,53 @@ export const standardCases: Record<string, CaseDescription> = {
 		caseLLMDescriptipn:
 			"Ivan is 6 years old and has 20 levs monthly allowance, which he spends on buying breakfast, lunch and snacks",
 		stepCount: 1,
+		tickKind: "month",
 		initialStep: {
 			tick: 0,
+			isBankAccountKnown: true,
 			bankAccount: 20,
+			isJoyKnown: true,
 			joy: 100,
+			isFreeTimeKnown: true,
 			freeTime: 100,
 			newActions: [],
-			oldActiveActions: [],
+			oldActiveActions: [lifeAction],
 		},
 	},
 	marti: {
 		personName: "Marti",
-		caseLLMDescriptipn: "...",
+		caseLLMDescriptipn:
+			"Marti is 10 years old and has 100 levs monthly allowance, which he spends on buying breakfast, lunch and snacks",
 		stepCount: 1,
+		tickKind: "year",
 		initialStep: {
 			tick: 0,
+			isBankAccountKnown: true,
 			bankAccount: 20,
+			isJoyKnown: true,
 			joy: 100,
+			isFreeTimeKnown: true,
 			freeTime: 100,
 			newActions: [],
-			oldActiveActions: [],
+			oldActiveActions: [lifeAction],
+		},
+	},
+	maria: {
+		personName: "Maria",
+		caseLLMDescriptipn:
+			"Maria is 20 years old and has 1000 levs monthly allowance, which she spends on buying food, clothes and other stuff",
+		stepCount: 1,
+		tickKind: "month",
+		initialStep: {
+			tick: 0,
+			isBankAccountKnown: true,
+			bankAccount: 20,
+			isJoyKnown: true,
+			joy: 100,
+			isFreeTimeKnown: true,
+			freeTime: 100,
+			newActions: [],
+			oldActiveActions: [lifeAction],
 		},
 	},
 };

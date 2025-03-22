@@ -14,6 +14,8 @@ import {
 	UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CaseDescription } from "@/lib/cases";
+import { standardCases } from "@/lib/cases/standard-cases";
 
 export type Step = {
 	tick: number;
@@ -31,57 +33,6 @@ export type Case = {
 	caseLLMDescription: string;
 	initialStep: Step;
 	difficulty?: "easy" | "medium" | "hard";
-};
-
-const defaultCasesData: Record<string, Case> = {
-	"case-1": {
-		id: 1,
-		personName: "John Doe",
-		caseLLMDescription:
-			"John is facing financial difficulties after a recent job loss.",
-		initialStep: {
-			tick: 1,
-			budget: 5000,
-			isBudgetKnown: true,
-			joy: 75,
-			isJoyKnown: true,
-			freeTime: 20,
-			isFreeTimeKnown: true,
-		},
-		difficulty: "easy",
-	},
-	"case-2": {
-		id: 2,
-		personName: "Jane Smith",
-		caseLLMDescription:
-			"Jane is balancing her studies with a part-time job.",
-		initialStep: {
-			tick: 1,
-			budget: 2000,
-			isBudgetKnown: true,
-			joy: 85,
-			isJoyKnown: true,
-			freeTime: 15,
-			isFreeTimeKnown: false,
-		},
-		difficulty: "medium",
-	},
-	"case-3": {
-		id: 3,
-		personName: "Alex Johnson",
-		caseLLMDescription:
-			"Alex recently moved to a new city and is adjusting to the change.",
-		initialStep: {
-			tick: 1,
-			budget: 3000,
-			isBudgetKnown: false,
-			joy: 60,
-			isJoyKnown: true,
-			freeTime: 10,
-			isFreeTimeKnown: true,
-		},
-		difficulty: "hard",
-	},
 };
 
 const getDifficultyColor = (difficulty: string) => {
@@ -116,17 +67,17 @@ const getDifficultyColor = (difficulty: string) => {
 export function CaseCards() {
 	const [hoveredCase, setHoveredCase] = useState<string | null>(null);
 	const [selectedCase, setSelectedCase] = useState<string | null>(null);
-	const [cases, setCases] = useState<Record<string, Case>>({});
+	const [cases, setCases] = useState<Record<string, CaseDescription>>({});
 
 	useEffect(() => {
-		setCases(defaultCasesData);
+		setCases({ ...standardCases });
 	}, []);
 
 	return (
 		<div className="flex flex-col space-y-6 max-w-4xl mx-auto">
-			{Object.entries(cases).map(([caseId, caseItem]) => {
+			{Object.entries(cases).map(([caseId, caseItem], index) => {
 				const difficultyColors = getDifficultyColor(
-					caseItem.difficulty || ""
+					["easy", "medium", "hard"][index]
 				);
 				const isSelected = selectedCase === caseId;
 
@@ -161,7 +112,8 @@ export function CaseCards() {
 									>
 										<Star className="h-3 w-3" />
 										<span className="capitalize">
-											{caseItem.difficulty} Quest
+											{["Easy", "Medium", "Hard"][index]}{" "}
+											Quest
 										</span>
 									</div>
 								</div>
@@ -179,14 +131,14 @@ export function CaseCards() {
 									</div>
 									<div className="absolute -bottom-1 -right-1 bg-amber-400 rounded-full p-1 shadow-md">
 										<div className="text-xs font-bold text-white">
-											Lvl {caseItem.id}
+											Lvl {index + 1}
 										</div>
 									</div>
 								</div>
 
 								<div className="flex-1">
 									<p className="text-gray-700 text-sm">
-										{caseItem.caseLLMDescription}
+										{caseItem.caseLLMDescriptipn}
 									</p>
 								</div>
 
@@ -210,7 +162,8 @@ export function CaseCards() {
 									</h3>
 
 									<div className="grid grid-cols-3 gap-4">
-										{caseItem.initialStep.isBudgetKnown && (
+										{caseItem.initialStep
+											.isBankAccountKnown && (
 											<div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
 												<div className="flex items-center gap-2 mb-2">
 													<div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -218,14 +171,14 @@ export function CaseCards() {
 													</div>
 													<div>
 														<div className="text-xs text-gray-500">
-															Budget
+															Bank Account
 														</div>
 														<div className="text-sm font-bold text-emerald-700">
 															$
 															{
 																caseItem
 																	.initialStep
-																	.budget
+																	.bankAccount
 															}
 														</div>
 													</div>
@@ -238,7 +191,7 @@ export function CaseCards() {
 																100,
 																(caseItem
 																	.initialStep
-																	.budget /
+																	.bankAccount /
 																	10000) *
 																	100
 															)}%`,
@@ -332,12 +285,6 @@ export function CaseCards() {
 									</div>
 
 									<div className="mt-4 flex justify-end">
-										<Button
-											variant="outline"
-											className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 mr-2"
-										>
-											View Details
-										</Button>
 										<Button
 											className={`bg-gradient-to-r ${difficultyColors.bg} hover:opacity-90 text-white`}
 										>

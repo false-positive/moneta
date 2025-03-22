@@ -6,11 +6,11 @@ export type Kind = "investment" | "income" | "expense" | "other";
 
 export type Step = {
 	tick: number;
-	// isBankAccountDiscovered: boolean;
+	isBankAccountKnown: boolean;
 	bankAccount: number;
-	// isJoyDiscovered: boolean;
+	isJoyKnown: boolean;
 	joy: number;
-	// isFreeTimeDiscovered: boolean;
+	isFreeTimeKnown: boolean;
 	freeTime: number;
 	newActions: Action[];
 	oldActiveActions: Action[];
@@ -70,8 +70,8 @@ export type Action = {
 
 	capital: number;
 
-	canChangeInitialPrice?: boolean,
-	canChangeRepeatedPrice?: boolean,
+	canChangeInitialPrice?: boolean;
+	canChangeRepeatedPrice?: boolean;
 };
 
 function calculateMetric(
