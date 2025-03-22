@@ -51,67 +51,71 @@ const weekUnits = Array.from({ length: 52 }, (_, i) => `Week ${i + 1}`);
 const dayUnits = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
 const createHardcodedSimulation = () => {
-	return; // ~божо
-
 	const INITIAL_BANK_ACCOUNT = 20000;
 
-	const initialStep: Step = {
-		tick: 2020,
-		bankAccount: INITIAL_BANK_ACCOUNT,
-		joy: 100,
-		freeTime: 100,
-		newActions: [],
-		isBankAccountKnown: true,
-		isJoyKnown: true,
-		isFreeTimeKnown: true,
-		oldActiveActions: [{ ...lifeAction }],
-	};
+	const caseDescription = SuperJSON.parse(
+		localStorage.getItem("case") || "{}"
+	) as CaseDescription;
+	const yearlySteps = SuperJSON.parse(localStorage.getItem("steps") || "[]");
 
-	const caseDescription: CaseDescription = {
-		personName: "Financial Explorer",
-		caseLLMDescriptipn:
-			"A financial simulation exploring different career and investment choices",
-		stepCount: 5,
-		tickKind: "year",
-		initialStep,
-	};
+	// const initialStep: Step = {
+	// 	tick: 2020,
+	// 	bankAccount: INITIAL_BANK_ACCOUNT,
+	// 	joy: 100,
+	// 	freeTime: 100,
+	// 	newActions: [],
+	// 	isBankAccountKnown: true,
+	// 	isJoyKnown: true,
+	// 	isFreeTimeKnown: true,
+	// 	oldActiveActions: [{ ...lifeAction }],
+	// };
+
+	// const caseDescription: CaseDescription = {
+	// 	...asdawd,
+	// 	personName: "Financial Explorer",
+	// 	caseLLMDescriptipn:
+	// 		"A financial simulation exploring different career and investment choices",
+	// 	stepCount: 5,
+	// 	tickKind: "year",
+	// 	initialStep,
+	// };
 
 	// Define actions for each year
-	const newActionsPerTick: Action[][] = [
-		// Year 2021 - Add waiter job
-		[
-			{
-				...waiterJobAction,
-				remainingTicks: 3, // 3 years
-			},
-		],
+	// const newActionsPerTick: Action[][] = [
+	// 	// Year 2021 - Add waiter job
+	// 	[
+	// 		{
+	// 			...waiterJobAction,
+	// 			remainingTicks: 3, // 3 years
+	// 		},
+	// 	],
 
-		// Year 2022 - Add savings deposit
-		[
-			{
-				...savingsDepositAction,
-				remainingTicks: 2, // 2 years
-				capital: 1000,
-			},
-		],
+	// 	// Year 2022 - Add savings deposit
+	// 	[
+	// 		{
+	// 			...savingsDepositAction,
+	// 			remainingTicks: 2, // 2 years
+	// 			capital: 1000,
+	// 		},
+	// 	],
 
-		// Year 2023 - No new actions
-		[],
+	// 	// Year 2023 - No new actions
+	// 	[],
 
-		// Year 2024 - No new actions
-		[],
+	// 	// Year 2024 - No new actions
+	// 	[],
 
-		// Year 2025 - Start fresh with more investment
-		[
-			{
-				...pensionInvestmentAction,
-				remainingTicks: 3, // 3 years
-				capital: 5000,
-			},
-		],
-	];
+	// 	// Year 2025 - Start fresh with more investment
+	// 	[
+	// 		{
+	// 			...pensionInvestmentAction,
+	// 			remainingTicks: 3, // 3 years
+	// 			capital: 5000,
+	// 		},
+	// 	],
+	// ];
 
-	const yearlySteps = simulateWithActions(caseDescription, newActionsPerTick);
+	// const yearlySteps = simulateWithActions(caseDescription, []);
 
 	const generateActionTimings = (steps: Step[]): ActionTiming[] => {
 		console.log("[simulation] generateActionTimings", steps);
@@ -154,8 +158,6 @@ const generateSubTimeframeSteps = (
 	yearlySteps: Step[],
 	selectedYear?: number
 ) => {
-	return; // ~божо
-
 	const monthlySteps: Step[] = [];
 	const weeklySteps: Step[] = [];
 	const dailySteps: Step[] = [];
@@ -297,41 +299,31 @@ export default function Simulation() {
 	}, [currentYear, yearlySteps, actionTimings]);
 
 	useEffect(() => {
-		// const { yearlySteps, actionTimings, caseDescription } =
-		// 	createHardcodedSimulation();
-		// const { monthlySteps, weeklySteps, dailySteps } =
-		// 	generateSubTimeframeSteps(yearlySteps);
-
-		const yearlySteps = SuperJSON.parse(
-			localStorage.getItem("steps") || "[]"
-		) as Step[];
-
-		console.log("[simulation] yearlySteps", yearlySteps);
+		const { yearlySteps, actionTimings, caseDescription } =
+			createHardcodedSimulation();
+		const { monthlySteps, weeklySteps, dailySteps } =
+			generateSubTimeframeSteps(yearlySteps, selectedYear);
 
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
 		setSelectedYear(firstYear);
-		setHighestUnlockedYear(firstYear);
-
-		const caseDescription = SuperJSON.parse(
-			localStorage.getItem("case") || "{}"
-		) as CaseDescription;
 
 		setYearlySteps(yearlySteps);
 		setCaseDescription(caseDescription);
-		// setMonthlySteps(monthlySteps);
-		// setWeeklySteps(weeklySteps);
-		// setDailySteps(dailySteps);
+		setMonthlySteps(monthlySteps);
+		setWeeklySteps(weeklySteps);
+		setDailySteps(dailySteps);
 		setActionTimings(actionTimings);
 	}, []);
 
 	useEffect(() => {
 		if (yearlySteps.length > 0) {
-			// const { monthlySteps, weeklySteps, dailySteps } =
-			// 	generateSubTimeframeSteps(yearlySteps, selectedYear);
-			// setMonthlySteps(monthlySteps);
-			// setWeeklySteps(weeklySteps);
-			// setDailySteps(dailySteps);
+			const { monthlySteps, weeklySteps, dailySteps } =
+				generateSubTimeframeSteps(yearlySteps, selectedYear);
+
+			setMonthlySteps(monthlySteps);
+			setWeeklySteps(weeklySteps);
+			setDailySteps(dailySteps);
 		}
 	}, [selectedYear, yearlySteps]);
 
@@ -404,7 +396,7 @@ export default function Simulation() {
 							<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
 								<h2 className="text-white font-bold flex items-center gap-2">
 									<Route className="h-4 w-4" />
-									The Way Of The Finance
+									Your Financial Journey
 								</h2>
 							</div>
 							<div className="p-2">
@@ -655,7 +647,7 @@ export default function Simulation() {
 												Retirement Planning
 											</h3>
 											<span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
-												+100 pts
+													+100 pts
 											</span>
 										</div>
 										<p className="text-purple-700 text-xs mt-1">
