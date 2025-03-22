@@ -46,7 +46,7 @@ export default function SkillTree() {
 			window.location.href = "/";
 		}
 
-		console.log(stepsRef.current);
+		console.log(">>>", stepsRef.current);
 
 		const currentStep = stepsRef.current[stepsRef.current.length - 1];
 		const activeActions = [
@@ -55,12 +55,16 @@ export default function SkillTree() {
 		];
 		const unlockedActionNames = activeActions.map((action) => action.name);
 
+		console.log(">>>", { unlockedActionNames });
+
 		const updatedNodes = nodes.map((node) => {
 			if (unlockedActionNames.includes(node.actionObject.name)) {
 				return { ...node, unlocked: true };
 			}
 			return node;
 		});
+
+		console.log(">>>", { updatedNodes });
 
 		setNodes(updatedNodes);
 	}, []);
@@ -415,7 +419,7 @@ export default function SkillTree() {
 												: selectedNode.actionObject
 														.kind === "income"
 												? "Work"
-												: "Buy"}
+												: "Accept Expense"}
 										</Button>
 									)}
 								</div>
