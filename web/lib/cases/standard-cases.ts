@@ -3,9 +3,9 @@ import { lifeAction } from "./standard-actions";
 
 export const standardCases: Record<string, CaseDescription> = {
 	ivan: {
-		personName: "Ivan",
+		personName: "Maria",
 		caseLLMDescriptipn:
-			"Ivan is 6 years old and has 20 levs monthly allowance, which he spends on buying breakfast, lunch and snacks",
+			"Maria is 6 years old and has 1000 BGN monthly allowance, which she spends on buying food, clothes and other stuff",
 		stepCount: 1,
 		tickKind: "month",
 		initialStep: {
