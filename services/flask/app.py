@@ -34,7 +34,7 @@ def load_instruct_agent():
         InstructAgent = Agent()
 
 def load_whisper_agent():
-    global WhisperAgent
+    global WhisperAgent, InstructAgent
 
     if not WhisperAgent:
         if InstructAgent and torch.cuda.is_available():
@@ -88,8 +88,28 @@ def load_discover_agent(data):
     metrics_description = data.get('metrics_description')
     target_description = data.get('target_description')
 
-    if not agent_title or not agent_description or not scenario_setting or not scenario or not metrics_description or not target_description:
-        raise Exception("Required context variables missed. Please add agent_title, agent_description, scenario_setting, scenario, metrics_description, target_description to request body")
+    missing = []
+
+    if not agent_title:
+        missing.append("agent_title")
+
+    if not agent_description:
+        missing.append("agent_description")
+
+    if not scenario_setting:
+        missing.append("scenario_setting")
+
+    if not scenario:
+        missing.append("scenario")
+
+    if not metrics_description:
+        missing.append("metrics_description")
+
+    if not target_description:
+        missing.append("target_description")
+
+    if len(missing) > 0:
+        raise Exception(f"Required context variables missed. Please add {missing} to request body")
 
     DiscoverAgent = ScenarioAgent(InstructAgent, agent_title, agent_description, scenario_setting, scenario, metrics_description,
                                   target_description)
@@ -127,19 +147,11 @@ def discover():
     return jsonify({'response': response, 'discoveries': discoveries}), 200
 
 
-@app.route('/transcribe', methods=['POST'])
-def transcribe_audio():
+@app.route('/transcribe-discover', methods=['POST'])
+def transcribe_discover_audio():
     global DiscoverAgent, WhisperAgent
 
-    if not WhisperAgent:
-        if DiscoverAgent:
-            del DiscoverAgent
-            torch.cuda.empty_cache()
-
-        try:
-            WhisperAgent = whisper.load_model("base")  # For memory reasons
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+    load_whisper_agent()
 
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
@@ -156,13 +168,17 @@ def transcribe_audio():
     try:
         result = WhisperAgent.transcribe(temp_filepath)
         transcription = result.get("text", "")
+
+        load_discover_agent(None)
+
+        response, discoveries = DiscoverAgent.process_question(transcription)
+
         print("Transcription:", transcription)
+        os.remove(temp_filepath)
+        return jsonify({'response': response, 'discoveries': discoveries, 'transcription': transcription}), 200
     except Exception as e:
         os.remove(temp_filepath)
         return jsonify({'error': str(e)}), 500
-
-    os.remove(temp_filepath)
-    return jsonify({'transcription': transcription})
 
 
 if __name__ == '__main__':

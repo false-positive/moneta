@@ -3,23 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-import { allActionsList, initialNodes, Node } from "@/lib/cases/skill-tree";
-import { Info } from "lucide-react";
-import { computeNextStep, Step } from "@/lib/cases/actions";
+import {
+	allActionsList,
+	initialNodes,
+	type Node,
+} from "@/lib/cases/skill-tree";
+import {
+	Sparkles,
+	Zap,
+	ArrowRight,
+	Send,
+	Lightbulb,
+	Coins,
+	TrendingUp,
+	DollarSign,
+} from "lucide-react";
+import { computeNextStep, type Step } from "@/lib/cases/actions";
 import SuperJSON from "superjson";
-import { lifeAction } from "@/lib/cases/standard-actions";
-import invariant from "tiny-invariant";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -162,16 +166,13 @@ export default function SkillTree() {
 				});
 			}
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_URL}/hint`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body,
-				}
-			);
+			const response = await fetch("http://192.168.74.18:5000/hint", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body,
+			});
 
 			if (response.ok) {
 				const data = await response.json();
@@ -292,62 +293,90 @@ export default function SkillTree() {
 	return (
 		<div className="flex flex-col md:flex-row gap-4 p-4 h-full">
 			<div className="flex-1">
-				<Card className="h-full">
-					<CardHeader>
-						<CardTitle>Year {stepsRef.current.length}</CardTitle>
-					</CardHeader>
-					<CardContent className="h-full">
-						<div className="border rounded-md overflow-hidden bg-slate-50 dark:bg-slate-950 h-full">
+				<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
+					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+						<div className="text-white text-lg flex items-center gap-2 font-semibold">
+							<Sparkles className="h-5 w-5" />
+							Financial Journey - Year {stepsRef.current.length}
+						</div>
+					</div>
+					<div className="h-full p-3">
+						<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
 							<svg ref={svgRef} className="w-full h-full"></svg>
 						</div>
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			</div>
 
-			{/* The details container */}
 			<div className="w-full md:w-80 relative">
-				<Card>
-					<CardHeader className="flex items-start justify-between">
+				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
+					<div className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div>
-							<CardTitle>Skill Details</CardTitle>
-							<CardDescription>
-								Select a skill to view details
-							</CardDescription>
+							<div className="text-white text-lg flex items-center gap-2 font-semibold">
+								<Zap className="h-5 w-5" />
+								Skill Details
+							</div>
 						</div>
 						<div className="relative group mt-1">
 							<button
-								className="w-7 h-7 rounded-full bg-black/80 flex items-center
+								className="w-8 h-8 rounded-full bg-white/20 flex items-center
                   justify-center transition-all duration-300
-                  hover:bg-black hover:scale-110 group"
+                  hover:bg-white/30 hover:scale-110 group"
 								onClick={() => sendHint()}
 							>
-								<Info className="h-6 w-6 text-white group-hover:animate-pulse" />
+								<Lightbulb className="h-5 w-5 text-white group-hover:animate-pulse" />
 							</button>
 						</div>
-					</CardHeader>
-					<CardContent>
+					</div>
+					<div className="p-4">
 						{selectedNode ? (
 							<div className="space-y-4">
-								<div>
-									<h3 className="font-semibold text-lg">
+								<div className="p-3 bg-indigo-50 border-indigo-100">
+									<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
+										{selectedNode.actionObject.kind ===
+											"investment" && (
+											<Coins className="h-5 w-5 text-amber-500" />
+										)}
+										{selectedNode.actionObject.kind ===
+											"income" && (
+											<TrendingUp className="h-5 w-5 text-emerald-500" />
+										)}
+										{selectedNode.actionObject.kind ===
+											"expense" && (
+											<DollarSign className="h-5 w-5 text-rose-500" />
+										)}
 										{selectedNode.actionObject.name}
 									</h3>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-sm text-indigo-600 mt-1">
 										{
 											selectedNode.actionObject
 												.shortDescription
 										}
 									</p>
+									<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
+										{selectedNode.actionObject.kind
+											.charAt(0)
+											.toUpperCase() +
+											selectedNode.actionObject.kind.slice(
+												1
+											)}
+									</div>
 								</div>
 
 								{/* ----------- Conditional Number Inputs ----------- */}
 								{/** Example: show the number fields only if this action requires them */}
 								{!selectedNode.unlocked && (
-									<div className="space-y-2">
+									<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+										<h4 className="font-medium text-gray-700">
+											Configuration
+										</h4>
 										{selectedNode.actionObject.kind ===
 											"investment" && (
 											<div>
-												<Label htmlFor="ticks">
+												<Label
+													htmlFor="ticks"
+													className="text-sm text-gray-600"
+												>
 													Years
 												</Label>
 												<Input
@@ -361,13 +390,17 @@ export default function SkillTree() {
 															)
 														)
 													}
+													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
 												/>
 											</div>
 										)}
 										{selectedNode.actionObject
 											.canChangeInitialPrice && (
 											<div>
-												<Label htmlFor="initialPrice">
+												<Label
+													htmlFor="initialPrice"
+													className="text-sm text-gray-600"
+												>
 													Initial Price
 												</Label>
 												<Input
@@ -381,13 +414,17 @@ export default function SkillTree() {
 															)
 														)
 													}
+													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
 												/>
 											</div>
 										)}
 										{selectedNode.actionObject
 											.canChangeRepeatedPrice && (
 											<div>
-												<Label htmlFor="repeatedPrice">
+												<Label
+													htmlFor="repeatedPrice"
+													className="text-sm text-gray-600"
+												>
 													Repeated Price
 												</Label>
 												<Input
@@ -401,6 +438,7 @@ export default function SkillTree() {
 															)
 														)
 													}
+													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
 												/>
 											</div>
 										)}
@@ -414,7 +452,7 @@ export default function SkillTree() {
 											onClick={() =>
 												unlockSkill(selectedNode.id)
 											}
-											className="w-full"
+											className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 										>
 											{selectedNode.actionObject.kind ===
 											"investment"
@@ -423,19 +461,26 @@ export default function SkillTree() {
 														.kind === "income"
 												? "Work"
 												: "Accept Expense"}
+											<ArrowRight className="ml-2 h-4 w-4" />
 										</Button>
 									)}
 								</div>
 							</div>
 						) : (
-							<p className="text-muted-foreground">
-								Click on a skill node to view details
-							</p>
+							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+								<Zap className="h-10 w-10 text-indigo-400 mb-2" />
+								<p className="text-indigo-600 font-medium">
+									Click on a skill node to view details
+								</p>
+								<p className="text-xs text-indigo-500 mt-1">
+									Explore the skill tree to unlock new
+									abilities
+								</p>
+							</div>
 						)}
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 
-				{/* Expandable Chat */}
 				<div
 					className={`mt-4 transition-all duration-500 ease-in-out transform origin-top overflow-hidden
           ${
@@ -444,33 +489,43 @@ export default function SkillTree() {
 					: "opacity-0 scale-y-0 h-0"
 			}`}
 				>
-					<Card className="flex flex-col h-full">
-						<CardHeader>
-							<CardTitle>Chat</CardTitle>
-							<CardDescription>
+					<div className="flex flex-col h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
+						<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+							<div className="text-white text-lg flex items-center gap-2 font-semibold">
+								<Lightbulb className="h-5 w-5" />
+								Advisor Chat
+							</div>
+							<div className="text-indigo-100 text-sm">
 								Ask for guidance or hints
-							</CardDescription>
-						</CardHeader>
+							</div>
+						</div>
 
-						<CardContent className="flex flex-col flex-1 space-y-2 overflow-hidden">
-							{/* Message list */}
-							<div className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-slate-50 dark:bg-slate-900 text-sm">
-								{messages.map((msg, idx) => (
-									<div
-										key={idx}
-										className={`px-2 py-1 rounded-md max-w-[90%] break-words ${
-											msg.role === "user"
-												? "ml-auto bg-blue-500 text-white"
-												: "mr-auto bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
-										}`}
-									>
-										{msg.content}
+						<div className="flex flex-col flex-1 space-y-2 overflow-hidden p-3">
+							<div className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
+								{messages.length > 0 ? (
+									messages.map((msg, idx) => (
+										<div
+											key={idx}
+											className={`px-3 py-2 rounded-lg max-w-[90%] break-words ${
+												msg.role === "user"
+													? "ml-auto bg-indigo-500 text-white"
+													: "mr-auto bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200"
+											}`}
+										>
+											{msg.content}
+										</div>
+									))
+								) : (
+									<div className="flex flex-col items-center justify-center h-full text-center p-4">
+										<p className="text-gray-500 text-sm">
+											Ask a question about the selected
+											skill
+										</p>
 									</div>
-								))}
+								)}
 								<div ref={chatEndRef} />
 							</div>
 
-							{/* Input area */}
 							<form
 								className="flex items-center gap-2 pt-2"
 								onSubmit={(e) => {
@@ -488,7 +543,7 @@ export default function SkillTree() {
 							>
 								<Textarea
 									placeholder="Type your question..."
-									className="flex-1 resize-none"
+									className="flex-1 resize-none focus:ring-indigo-500 focus:border-indigo-500"
 									rows={2}
 									value={chatInput}
 									onChange={(e) =>
@@ -501,15 +556,25 @@ export default function SkillTree() {
 										}
 									}}
 								/>
-								<Button type="submit">Send</Button>
+								<Button
+									type="submit"
+									className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+								>
+									<Send className="h-4 w-4" />
+								</Button>
 							</form>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 				</div>
 
-				{/* Submit button at the bottom-right */}
 				<div className="absolute bottom-4 right-4">
-					<Button onClick={handleSubmit}>Submit</Button>
+					<Button
+						onClick={handleSubmit}
+						className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
+					>
+						Submit Your Choice
+						<ArrowRight className="ml-3 h-6 w-6" />
+					</Button>
 				</div>
 			</div>
 		</div>
