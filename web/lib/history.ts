@@ -151,7 +151,6 @@ export function getPercent(tick: number, tickKind: TickKind, prices: number[]) {
 	const { before, after } = getBeforeAfter(tick, prices, tickKind);
 
 	const percentChange = ((after - before) / before) * 100;
-	console.log("XXXXXXXXX", percentChange);
 	return percentChange;
 }
 
