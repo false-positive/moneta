@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import {useState} from "react";
 
 const initialData = {
 	joy: 75,
@@ -27,6 +28,10 @@ export default function ChatPage() {
 		// Reload the page to reinitialize the chat with default messages
 		window.location.reload();
 	};
+
+	const [card1Text, setCard1Text] = useState();
+	const [card2Text, setCard2Text] = useState();
+	const [card3Text, setCard3Text] = useState(123);
 
 	return (
 		<main className="flex flex-col h-screen p-4 bg-gradient-to-b from-indigo-50 to-white">
@@ -216,7 +221,11 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											<HelpCircle className="h-12 w-12 text-indigo-300" />
+											{ card3Text ? (
+												<div>{card3Text}</div>
+											) : (
+												<HelpCircle className="h-12 w-12 text-indigo-300" />
+											)}
 										</div>
 									</motion.div>
 								</div>

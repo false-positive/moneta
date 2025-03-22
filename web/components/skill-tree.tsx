@@ -20,6 +20,7 @@ import { computeNextStep, Step } from "@/lib/cases/actions";
 import SuperJSON from "superjson";
 import { lifeAction } from "@/lib/cases/standard-actions";
 import invariant from "tiny-invariant";
+import { useRouter } from "next/navigation";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -31,10 +32,11 @@ export default function SkillTree() {
 	);
 	const [showChat, setShowChat] = useState(false);
 
-	// Example local states for two number inputs
 	const [ticks, setTicks] = useState<number>(0);
 	const [initialPrice, setInitialPrice] = useState<number>(0);
 	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
+
+	const router = useRouter();
 
 	useEffect(() => {
 		const storedSteps = localStorage.getItem("steps");
@@ -129,7 +131,7 @@ export default function SkillTree() {
 		stepsRef.current.push(nextStep);
 		localStorage.setItem("steps", SuperJSON.stringify(stepsRef.current));
 
-		window.location.reload();
+		router.push("/simulation");
 	};
 
 	// Function for chat/hint
