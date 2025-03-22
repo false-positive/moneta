@@ -102,7 +102,7 @@ export function MetricsCard({
 
 		investmentCapital: allActions.reduce((sum, action) => {
 			if (action.kind === "investment") {
-				return sum + action.capital * scaling;
+				return sum + action.capital;
 			}
 			return sum;
 		}, 0),
