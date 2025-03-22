@@ -11,7 +11,7 @@ type Message = {
 	sender: "user" | "bot";
 };
 
-export default function ChatInterface() {
+export default function ChatInterface({handleDiscovery}: any) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
 	const [isRecording, setIsRecording] = useState(false);
@@ -66,37 +66,46 @@ export default function ChatInterface() {
 			setIsWaitingForResponse(true);
 
 			const scenarioConfig = {
-				agent_title: "factory foreman",
-				agent_description:
-					"As the Factory Manager, your job is to interpret and explain key factory metrics in plain language to the team.",
-				scenario_setting: "factory",
+				agent_title: "Ivan",
+				agent_description: "You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences.",
+				scenario_setting: "The Life & Financial Situation of Ivan",
 				scenario: {
-					description:
-						"A factory produces widgets with varying efficiency based on worker skill, machine condition, and raw material quality. The factory has been operating for 5 years and has recently experienced some changes in production patterns.",
+					description: "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
 					metrics: {
-						production_rate: 120,
-						defect_rate: 8,
-						worker_productivity: 25,
+						bank_account: 2000,
+						joy: 50,
+						free_time: 100,
 					},
 					targets: {
-						production_rate_target: 150,
+						bank_account_target: 15000,
+						joy_target: 100,
+						free_time_target: 16
 					},
-					modifiers: {},
 				},
 				metrics_description: {
-					production_rate:
-						"The production rate is the number of widgets produced per hour.",
-					defect_rate:
-						"The defect rate is the percentage of defective widgets produced.",
-					worker_productivity:
-						"Worker productivity is the average number of widgets produced per worker per hour.",
+					bank_account: "The current state of Ivan's bank account in BGN.",
+					joy: "A general metric describing Ivan's current life satisfaction and happiness.",
+					free_time: "How many free hours per week Ivan has, which determines what actions can be taken."
 				},
 				target_description: {
-					production_rate_target:
-						"The production rate target is the desired number of widgets to be produced per hour.",
+					bank_account_target: "Ivan's end financial goal for his bank account value.",
+					joy_target: "Ivan's life satisfaction goal for the end of the scenario. Percent value",
+					free_time_target: "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
 				},
-				question: "What is the current production rate and target?",
+				question: "What is your current financial and life situation, and how can he plan his actions to achieve his targets?",
 			};
+
+			const showNewDiscoveries = (discoveries: string[]) => {
+				if (discoveries.includes("bank_account")) {
+					handleDiscovery(`Your bank account is ${scenarioConfig.scenario.metrics.bank_account} BGN`, 1);
+				}
+				if (discoveries.includes("joy")) {
+					handleDiscovery(`Your current joy level is ${scenarioConfig.scenario.metrics.joy}`, 2);
+				}
+				if (discoveries.includes("free_time")) {
+					handleDiscovery(`You have ${scenarioConfig.scenario.metrics.free_time} hours of free time per week`, 3);
+				}
+			}
 
 			// Send the user message to the backend
 			fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover`, {
@@ -114,6 +123,10 @@ export default function ChatInterface() {
 				})
 				.then((data) => {
 					console.log(data);
+					if (data.discoveries) {
+						showNewDiscoveries(data.discoveries);
+					}
+
 					const botResponseText =
 						data.response || "No response from backend";
 					const botResponse: Message = {

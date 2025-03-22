@@ -31,7 +31,21 @@ export default function ChatPage() {
 
 	const [card1Text, setCard1Text] = useState();
 	const [card2Text, setCard2Text] = useState();
-	const [card3Text, setCard3Text] = useState(123);
+	const [card3Text, setCard3Text] = useState();
+
+	const handleDiscovery = (text: string, card: number) => {
+		switch (card) {
+			case 1:
+				setCard1Text(text);
+				break;
+			case 2:
+				setCard2Text(text);
+				break;
+			case 3:
+				setCard3Text(text);
+				break;
+		}
+	};
 
 	return (
 		<main className="flex flex-col h-screen p-4 bg-gradient-to-b from-indigo-50 to-white">
@@ -183,8 +197,11 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											<HelpCircle className="h-12 w-12 text-indigo-300" />
-										</div>
+											{ card1Text ? (
+												<div>{card1Text}</div>
+											) : (
+												<HelpCircle className="h-12 w-12 text-indigo-300" />
+											)}										</div>
 									</motion.div>
 
 									<motion.div
@@ -202,8 +219,11 @@ export default function ChatPage() {
 										className="bg-white rounded-lg p-2 border border-indigo-200 relative mb-3"
 									>
 										<div className="flex justify-center items-center h-16">
-											<HelpCircle className="h-12 w-12 text-indigo-300" />
-										</div>
+											{ card2Text ? (
+												<div>{card2Text}</div>
+											) : (
+												<HelpCircle className="h-12 w-12 text-indigo-300" />
+											)}										</div>
 									</motion.div>
 
 									<motion.div
@@ -237,7 +257,7 @@ export default function ChatPage() {
 					</div>
 
 					<div className="md:col-span-2 flex flex-col">
-						<ChatInterface />
+						<ChatInterface handleDiscovery={handleDiscovery} />
 					</div>
 				</div>
 

@@ -310,10 +310,11 @@ export default function SkillTree() {
 
 			<div className="w-full md:w-80 relative">
 				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-					<div className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+					<div
+						className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div>
 							<div className="text-white text-lg flex items-center gap-2 font-semibold">
-								<Zap className="h-5 w-5" />
+								<Zap className="h-5 w-5"/>
 								Skill Details
 							</div>
 						</div>
@@ -324,7 +325,7 @@ export default function SkillTree() {
                   hover:bg-white/30 hover:scale-110 group"
 								onClick={() => sendHint()}
 							>
-								<Lightbulb className="h-5 w-5 text-white group-hover:animate-pulse" />
+								<Lightbulb className="h-5 w-5 text-white group-hover:animate-pulse"/>
 							</button>
 						</div>
 					</div>
@@ -335,16 +336,16 @@ export default function SkillTree() {
 									<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
 										{selectedNode.actionObject.kind ===
 											"investment" && (
-											<Coins className="h-5 w-5 text-amber-500" />
-										)}
+												<Coins className="h-5 w-5 text-amber-500"/>
+											)}
 										{selectedNode.actionObject.kind ===
 											"income" && (
-											<TrendingUp className="h-5 w-5 text-emerald-500" />
-										)}
+												<TrendingUp className="h-5 w-5 text-emerald-500"/>
+											)}
 										{selectedNode.actionObject.kind ===
 											"expense" && (
-											<DollarSign className="h-5 w-5 text-rose-500" />
-										)}
+												<DollarSign className="h-5 w-5 text-rose-500"/>
+											)}
 										{selectedNode.actionObject.name}
 									</h3>
 									<p className="text-sm text-indigo-600 mt-1">
@@ -353,10 +354,11 @@ export default function SkillTree() {
 												.shortDescription
 										}
 									</p>
-									<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
+									<div
+										className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
 										{selectedNode.actionObject.kind
-											.charAt(0)
-											.toUpperCase() +
+												.charAt(0)
+												.toUpperCase() +
 											selectedNode.actionObject.kind.slice(
 												1
 											)}
@@ -365,35 +367,35 @@ export default function SkillTree() {
 
 								{/* ----------- Conditional Number Inputs ----------- */}
 								{/** Example: show the number fields only if this action requires them */}
-								{!selectedNode.unlocked && (
+								{!selectedNode.unlocked && (selectedNode.actionObject.canChangeInitialPrice || selectedNode.actionObject.canChangeRepeatedPrice) && (
 									<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
 										<h4 className="font-medium text-gray-700">
 											Configuration
 										</h4>
 										{selectedNode.actionObject.kind ===
 											"investment" && (
-											<div>
-												<Label
-													htmlFor="ticks"
-													className="text-sm text-gray-600"
-												>
-													Years
-												</Label>
-												<Input
-													id="ticks"
-													type="number"
-													value={ticks}
-													onChange={(e) =>
-														setTicks(
-															Number(
-																e.target.value
+												<div>
+													<Label
+														htmlFor="ticks"
+														className="text-sm text-gray-600"
+													>
+														Years
+													</Label>
+													<Input
+														id="ticks"
+														type="number"
+														value={ticks}
+														onChange={(e) =>
+															setTicks(
+																Number(
+																	e.target.value
+																)
 															)
-														)
-													}
-													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-												/>
-											</div>
-										)}
+														}
+														className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+													/>
+												</div>
+											)}
 										{selectedNode.actionObject
 											.canChangeInitialPrice && (
 											<div>
@@ -458,17 +460,18 @@ export default function SkillTree() {
 											"investment"
 												? "Invest"
 												: selectedNode.actionObject
-														.kind === "income"
-												? "Work"
-												: "Accept Expense"}
-											<ArrowRight className="ml-2 h-4 w-4" />
+													.kind === "income"
+													? "Work"
+													: "Accept Expense"}
+											<ArrowRight className="ml-2 h-4 w-4"/>
 										</Button>
 									)}
 								</div>
 							</div>
 						) : (
-							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-								<Zap className="h-10 w-10 text-indigo-400 mb-2" />
+							<div
+								className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+								<Zap className="h-10 w-10 text-indigo-400 mb-2"/>
 								<p className="text-indigo-600 font-medium">
 									Click on a skill node to view details
 								</p>
@@ -482,87 +485,86 @@ export default function SkillTree() {
 				</div>
 
 				<div
-					className={`mt-4 transition-all duration-500 ease-in-out transform origin-top overflow-hidden
-          ${
-				showChat
-					? "opacity-100 scale-y-100 h-96"
-					: "opacity-0 scale-y-0 h-0"
-			}`}
-				>
-					<div className="flex flex-col h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-						<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
-							<div className="text-white text-lg flex items-center gap-2 font-semibold">
-								<Lightbulb className="h-5 w-5" />
-								Advisor Chat
+					className={`fixed inset-0 z-50 flex items-center justify-center ${showChat ? "pointer-events-auto" : "pointer-events-none opacity-0"}`}>
+					<div
+						className="absolute inset-0 bg-black opacity-50"
+						onClick={() => setShowChat(false)}
+					></div>
+					<div
+						className={`w-1/2 relative bg-white dark:bg-slate-900 rounded-md shadow-md transition-all duration-500 ease-in-out transform origin-top overflow-hidden ${
+							showChat ? "opacity-100 scale-y-100 h-96" : "opacity-100 scale-y-0 h-0"
+						}`}
+					>
+						<div className="flex flex-col h-full border-0 shadow-md overflow-hidden rounded-md">
+							<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+								<div className="text-white text-lg flex items-center gap-2 font-semibold">
+									<Lightbulb className="h-5 w-5"/>
+									Advisor Chat
+								</div>
+								<div className="text-indigo-100 text-sm">
+									Ask for guidance or hints
+								</div>
 							</div>
-							<div className="text-indigo-100 text-sm">
-								Ask for guidance or hints
-							</div>
-						</div>
-
-						<div className="flex flex-col flex-1 space-y-2 overflow-hidden p-3">
-							<div className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
-								{messages.length > 0 ? (
-									messages.map((msg, idx) => (
-										<div
-											key={idx}
-											className={`px-3 py-2 rounded-lg max-w-[90%] break-words ${
-												msg.role === "user"
-													? "ml-auto bg-indigo-500 text-white"
-													: "mr-auto bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200"
-											}`}
-										>
-											{msg.content}
+							<div className="flex flex-col flex-1 space-y-2 overflow-hidden p-3">
+								<div
+									className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
+									{messages.length > 0 ? (
+										messages.map((msg, idx) => (
+											<div
+												key={idx}
+												className={`px-3 py-2 rounded-lg max-w-[90%] break-words ${
+													msg.role === "user"
+														? "ml-auto bg-indigo-500 text-white"
+														: "mr-auto bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border border-gray-200"
+												}`}
+											>
+												{msg.content}
+											</div>
+										))
+									) : (
+										<div className="flex flex-col items-center justify-center h-full text-center p-4">
+											<p className="text-gray-500 text-sm">
+												Ask a question about the selected skill
+											</p>
 										</div>
-									))
-								) : (
-									<div className="flex flex-col items-center justify-center h-full text-center p-4">
-										<p className="text-gray-500 text-sm">
-											Ask a question about the selected
-											skill
-										</p>
-									</div>
-								)}
-								<div ref={chatEndRef} />
-							</div>
-
-							<form
-								className="flex items-center gap-2 pt-2"
-								onSubmit={(e) => {
-									e.preventDefault();
-									if (!chatInput.trim()) return;
-
-									const input = chatInput.trim();
-									setMessages((prev) => [
-										...prev,
-										{ role: "user", content: input },
-									]);
-									setChatInput("");
-									sendHint(input);
-								}}
-							>
-								<Textarea
-									placeholder="Type your question..."
-									className="flex-1 resize-none focus:ring-indigo-500 focus:border-indigo-500"
-									rows={2}
-									value={chatInput}
-									onChange={(e) =>
-										setChatInput(e.target.value)
-									}
-									onKeyDown={(e) => {
-										if (e.key === "Enter" && !e.shiftKey) {
-											e.preventDefault();
-											e.currentTarget.form?.requestSubmit();
-										}
+									)}
+									<div ref={chatEndRef}/>
+								</div>
+								<form
+									className="flex items-center gap-2 pt-2"
+									onSubmit={(e) => {
+										e.preventDefault();
+										if (!chatInput.trim()) return;
+										const input = chatInput.trim();
+										setMessages((prev) => [
+											...prev,
+											{role: "user", content: input},
+										]);
+										setChatInput("");
+										sendHint(input);
 									}}
-								/>
-								<Button
-									type="submit"
-									className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 								>
-									<Send className="h-4 w-4" />
-								</Button>
-							</form>
+									<Textarea
+										placeholder="Type your question..."
+										className="flex-1 resize-none focus:ring-indigo-500 focus:border-indigo-500"
+										rows={2}
+										value={chatInput}
+										onChange={(e) => setChatInput(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" && !e.shiftKey) {
+												e.preventDefault();
+												e.currentTarget.form?.requestSubmit();
+											}
+										}}
+									/>
+									<Button
+										type="submit"
+										className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+									>
+										<Send className="h-4 w-4"/>
+									</Button>
+								</form>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -573,7 +575,7 @@ export default function SkillTree() {
 						className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
 					>
 						Submit Your Choice
-						<ArrowRight className="ml-3 h-6 w-6" />
+						<ArrowRight className="ml-3 h-6 w-6"/>
 					</Button>
 				</div>
 			</div>
