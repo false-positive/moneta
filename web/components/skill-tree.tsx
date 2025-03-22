@@ -162,13 +162,16 @@ export default function SkillTree() {
 				});
 			}
 
-			const response = await fetch("http://192.168.74.18:5000/hint", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body,
-			});
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_URL}/hint`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body,
+				}
+			);
 
 			if (response.ok) {
 				const data = await response.json();

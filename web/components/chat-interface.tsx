@@ -120,7 +120,7 @@ export default function ChatInterface() {
 			};
 
 			// Send the user message to the backend
-			fetch("http://192.168.74.18:5000/discover", {
+			fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
