@@ -19,6 +19,7 @@ import { Info } from "lucide-react";
 import { computeNextStep, Step } from "@/lib/cases/actions";
 import SuperJSON from "superjson";
 import { lifeAction } from "@/lib/cases/standard-actions";
+import invariant from "tiny-invariant";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -42,18 +43,7 @@ export default function SkillTree() {
 		if (parsedSteps && parsedSteps.length > 0) {
 			stepsRef.current = parsedSteps;
 		} else {
-			const initialStep: Step = {
-				tick: 0,
-				isBankAccountKnown: true,
-				bankAccount: 10_000,
-				isJoyKnown: true,
-				joy: 100,
-				isFreeTimeKnown: true,
-				freeTime: 2134,
-				newActions: [],
-				oldActiveActions: [lifeAction],
-			};
-			stepsRef.current = [initialStep];
+			window.location.href = "/";
 		}
 
 		console.log(stepsRef.current);
