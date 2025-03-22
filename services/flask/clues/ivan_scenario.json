@@ -6,12 +6,12 @@
     "description": "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
     "metrics": {
       "bank_account": 2000,
-      "joy": 100,
+      "joy": 50,
       "free_time": 100
     },
     "targets": {
       "bank_account_target": 15000,
-      "joy_target": 200,
+      "joy_target": 100,
       "free_time_target": 16
     }
   },
@@ -22,8 +22,8 @@
   },
   "targets_description": {
     "bank_account_target": "Ivan's end financial goal for his bank account value.",
-    "joy_target": "Ivan's life satisfaction goal for the end of the scenario.",
+    "joy_target": "Ivan's life satisfaction goal for the end of the scenario. Percent value",
     "free_time_target": "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
   },
-  "question": "What is Ivan's current financial and life situation, and how can he plan his actions to achieve his targets?"
+  "question": "What is your current financial and life situation, and how can he plan his actions to achieve his targets?"
 }
