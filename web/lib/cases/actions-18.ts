@@ -60,7 +60,7 @@ export const waiterFullTimeJobAction: Action = {
 
 export const juniorSweJobAction: Action = {
 	...noOpAction,
-	name: "Job as a software engineer",
+	name: "Job as a junior software engineer",
 	kind: "income",
 	shortDescription: "Work as a software engineer",
 	llmDescription: "Work as a software engineer",
@@ -74,7 +74,7 @@ export const juniorSweJobAction: Action = {
 
 export const seniorSweJobAction: Action = {
 	...noOpAction,
-	name: "Job as a software engineer",
+	name: "Job as a senior software engineer",
 	kind: "income",
 	shortDescription: "Work as a software engineer",
 	llmDescription: "Work as a software engineer",
@@ -87,7 +87,7 @@ export const seniorSweJobAction: Action = {
 export const savingsDepositAction: Action = {
 	...noOpAction,
 	name: "Savings Deposit",
-	kind: "income",
+	kind: "investment",
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
@@ -97,6 +97,8 @@ export const savingsDepositAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 2, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: true,
 };
 
 export const pensionDepositAction: Action = {
@@ -113,6 +115,8 @@ export const pensionDepositAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 10, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: true,
 };
 
 export const etfInvestmentOnceAction: Action = {
@@ -128,6 +132,7 @@ export const etfInvestmentOnceAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 10, // years
+	canChangeInitialPrice: true,
 };
 
 export const etfInvestmentRepeatedAction: Action = {
@@ -143,6 +148,8 @@ export const etfInvestmentRepeatedAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 10, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: true,
 };
 
 export const stocksInvestmentAction: Action = {
@@ -158,6 +165,8 @@ export const stocksInvestmentAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 10, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: true,
 };
 
 export const cryptoInvestmentAction: Action = {
@@ -173,6 +182,8 @@ export const cryptoInvestmentAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 5, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: true,
 };
 
 export const goldInvestmentAction: Action = {
@@ -188,6 +199,8 @@ export const goldInvestmentAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingTicks: 5, // years
+	canChangeInitialPrice: true,
+	canChangeRepeatedPrice: false,
 };
 
 export const skiTripAction: Action = {

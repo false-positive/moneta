@@ -11,6 +11,7 @@ export interface Node {
   unlocked: boolean
   icon: string
   actionObject: Action
+
   x?: number
   y?: number
   fx?: number | null
@@ -46,7 +47,5 @@ export const initialNodes: Node[] = [
 ]
 
 export const links: Link[] = [
-  { source: "lifeAction", target: "liveWithParentsAction" },
-  { source: "lifeAction", target: "savingsDepositAction" },
-  { source: "etfInvestmentOnceAction", target: "etfInvestmentRepeatedAction" },
+
 ]

@@ -69,6 +69,9 @@ export type Action = {
 	freeTimeImpact: MetricImpact;
 
 	capital: number;
+
+	canChangeInitialPrice?: boolean,
+	canChangeRepeatedPrice?: boolean,
 };
 
 function calculateMetric(
