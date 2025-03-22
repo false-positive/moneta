@@ -30,6 +30,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import SuperJSON from "superjson";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -234,9 +235,7 @@ export default function Simulation() {
 	const [dailySteps, setDailySteps] = useState<Step[]>([]);
 	const [actionTimings, setActionTimings] = useState<ActionTiming[]>([]);
 	const [caseDescription, setCaseDescription] = useState<CaseDescription>();
-	const [timeframe, setTimeframe] = useState<
-		"years" | "months" | "weeks" | "days"
-	>("years");
+	const timeframe = "years";
 
 	useEffect(() => {
 		const currentYearStep = yearlySteps.find(
@@ -302,9 +301,17 @@ export default function Simulation() {
 		// const { monthlySteps, weeklySteps, dailySteps } =
 		// 	generateSubTimeframeSteps(yearlySteps);
 
+		const yearlySteps = SuperJSON.parse(
+			localStorage.getItem("steps") || "[]"
+		) as Step[];
+
 		const firstYear = yearlySteps[0]?.tick || 2020;
 		setCurrentYear(firstYear);
 		setSelectedYear(firstYear);
+
+		const caseDescription = SuperJSON.parse(
+			localStorage.getItem("case") || "{}"
+		) as CaseDescription;
 
 		setYearlySteps(yearlySteps);
 		setCaseDescription(caseDescription);
