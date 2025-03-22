@@ -139,7 +139,7 @@ ALREADY DISCUSSED METRICS/TARGETS/FACTORS:
 - Targets: {[k for k in self.targets if k in self.discovered_targets]}
 
 INSTRUCTIONS:
-1. Speak directly as the {self.agent_title} - use professional but accessible language
+1. Speak directly as the {self.agent_title} - use professional but accessible language. Speak from first person perspective
 2. Explain ONLY the metrics/values mentioned in the data point(s) above
 3. Include the EXACT numerical values in your explanation
 4. Keep your explanation concise and focused (1-2 sentences MAXIMUM)
@@ -260,45 +260,3 @@ INSTRUCTIONS:
         """Clear CUDA cache to free up memory."""
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-
-
-if __name__ == "__main__":
-    agent_title = "Ivan"
-    agent_description = "You are Ivan, an 18 year old recently graduated male in dire need of financial advice. Your job is to carefully inform of your situation in a human manner, that at times may be a bit more dumbed more and is always short. You try to answer concisely as possible, maximum 3 - 4 sentences."
-    scenario_setting = "The Life & Financial Situation of Ivan"
-    scenario = {
-        "description": "Ivan, a newly graduated 18-year-old, faces the challenges of transitioning into adulthood with limited savings. With only 2000 BGN in his bank account, he must find a balance between increasing his wealth, maintaining his happiness, and managing his abundant free time. His goal is to strategically grow his finances to 15000 BGN while also enhancing his overall life satisfaction.",
-        "metrics": {
-          "bank_account": 2000,
-          "joy": 100,
-          "free_time": 100
-        },
-        "targets": {
-          "bank_account_target": 15000,
-          "joy_target": 200,
-          "free_time_target": 16
-        }
-    }
-    metrics_description = {
-        "bank_account": "The current state of Ivan's bank account in BGN.",
-        "joy": "A general metric describing Ivan's current life satisfaction and happiness.",
-        "free_time": "How many free hours per week Ivan has, which determines what actions can be taken."
-    }
-
-    target_description = {
-        "bank_account_target": "Ivan's end financial goal for his bank account value.",
-        "joy_target": "Ivan's life satisfaction goal for the end of the scenario.",
-        "free_time_target": "The least amount of free time required for Ivan to consider himself successful in achieving his goals. Can be described as either a goal or a target. He wants to have more than that number of free hours per week"
-    }
-
-    InstructAgent = Agent()
-
-    DiscoverAgent = ScenarioAgent(InstructAgent, agent_title, agent_description, scenario_setting, scenario, metrics_description, target_description)
-
-    response, discoveries = DiscoverAgent.process_question("What do you think of your free time? Do you have any target in mind for it?")
-
-    print("response: ", response, "discoveries: ", discoveries)
-
-    response, discoveries = DiscoverAgent.process_question("Do you have any other targets or goals for the future? Maybe bank number or joy in life?")
-
-    print("response: ", response, "discoveries: ", discoveries)
