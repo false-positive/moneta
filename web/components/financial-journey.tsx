@@ -16,6 +16,7 @@ import { TransactionList } from "@/components/transaction-list";
 import { SpendingGraph } from "@/components/spending-graph";
 import { Timeline, type ActionTiming } from "@/components/timeline";
 import type { Step } from "@/lib/cases/actions";
+import { useRouter } from "next/navigation";
 
 interface FinancialJourneyProps {
 	steps: Step[];
@@ -97,6 +98,7 @@ export function FinancialJourney({
 		"metrics" | "transactions" | "spending"
 	>("metrics");
 	const [minWidth, setMinWidth] = useState(0);
+	const router = useRouter();
 
 	// Update selectedNode if currentYear changes
 	useEffect(() => {
@@ -158,6 +160,7 @@ export function FinancialJourney({
 
 	const getNodeStatus = useCallback(
 		(year: number) => {
+			return "unlocked"
 			if (year < selectedNode) return "completed";
 			if (year === selectedNode) return "current";
 			if (year <= highestUnlockedYear) return "unlocked";
@@ -209,6 +212,8 @@ export function FinancialJourney({
 				setSelectedNode(year);
 				setDetailsOpen(true);
 			}
+			onUnlockNextYear(year + 1)
+			router.push('/choices')
 		},
 		[highestUnlockedYear]
 	);
@@ -293,142 +298,142 @@ export function FinancialJourney({
 				})}
 			</div>
 
-			<Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-				<DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[90vh] overflow-auto">
-					<DialogHeader>
-						<DialogTitle className="text-xl font-bold text-indigo-700 flex items-center gap-2">
-							<span>Financial Journey: {selectedNode}</span>
-							{selectedNode && (
-								<div
-									className={`px-2 py-0.5 rounded-full text-xs ${
-										getNodeStatus(selectedNode) ===
-										"completed"
-											? "bg-emerald-100 text-emerald-700"
-											: "bg-indigo-100 text-indigo-700"
-									}`}
-								>
-									{getNodeStatus(selectedNode) === "completed"
-										? "Completed"
-										: getNodeStatus(selectedNode) ===
-										  "current"
-										? "In Progress"
-										: "Available"}
-								</div>
-							)}
-						</DialogTitle>
-						<DialogDescription className="text-gray-600">
-							Review your financial progress and make decisions
-						</DialogDescription>
-					</DialogHeader>
+			{/*<Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>*/}
+			{/*	<DialogContent className="sm:max-w-[800px] bg-white border-0 shadow-xl max-h-[90vh] overflow-auto">*/}
+			{/*		<DialogHeader>*/}
+			{/*			<DialogTitle className="text-xl font-bold text-indigo-700 flex items-center gap-2">*/}
+			{/*				<span>Financial Journey: {selectedNode}</span>*/}
+			{/*				{selectedNode && (*/}
+			{/*					<div*/}
+			{/*						className={`px-2 py-0.5 rounded-full text-xs ${*/}
+			{/*							getNodeStatus(selectedNode) ===*/}
+			{/*							"completed"*/}
+			{/*								? "bg-emerald-100 text-emerald-700"*/}
+			{/*								: "bg-indigo-100 text-indigo-700"*/}
+			{/*						}`}*/}
+			{/*					>*/}
+			{/*						{getNodeStatus(selectedNode) === "completed"*/}
+			{/*							? "Completed"*/}
+			{/*							: getNodeStatus(selectedNode) ===*/}
+			{/*							  "current"*/}
+			{/*							? "In Progress"*/}
+			{/*							: "Available"}*/}
+			{/*					</div>*/}
+			{/*				)}*/}
+			{/*			</DialogTitle>*/}
+			{/*			<DialogDescription className="text-gray-600">*/}
+			{/*				Review your financial progress and make decisions*/}
+			{/*			</DialogDescription>*/}
+			{/*		</DialogHeader>*/}
 
-					<div className="flex border-b mb-4">
-						{["metrics", "transactions", "spending"].map((tab) => (
-							<button
-								key={tab}
-								className={`px-4 py-2 font-medium text-sm ${
-									activeTab === tab
-										? "text-indigo-600 border-b-2 border-indigo-600"
-										: "text-gray-500"
-								}`}
-								onClick={() => setActiveTab(tab as any)}
-							>
-								{tab.charAt(0).toUpperCase() + tab.slice(1)}
-							</button>
-						))}
-					</div>
+			{/*		<div className="flex border-b mb-4">*/}
+			{/*			{["metrics", "transactions", "spending"].map((tab) => (*/}
+			{/*				<button*/}
+			{/*					key={tab}*/}
+			{/*					className={`px-4 py-2 font-medium text-sm ${*/}
+			{/*						activeTab === tab*/}
+			{/*							? "text-indigo-600 border-b-2 border-indigo-600"*/}
+			{/*							: "text-gray-500"*/}
+			{/*					}`}*/}
+			{/*					onClick={() => setActiveTab(tab as any)}*/}
+			{/*				>*/}
+			{/*					{tab.charAt(0).toUpperCase() + tab.slice(1)}*/}
+			{/*				</button>*/}
+			{/*			))}*/}
+			{/*		</div>*/}
 
-					<div className="space-y-4">
-						{activeTab === "metrics" && selectedNode && (
-							<MetricsCard
-								selectedYear={selectedNode}
-								currentYear={selectedNode}
-								timeframe="years"
-								steps={steps}
-								actionTimings={actionTimings}
-							/>
-						)}
+			{/*		<div className="space-y-4">*/}
+			{/*			{activeTab === "metrics" && selectedNode && (*/}
+			{/*				<MetricsCard*/}
+			{/*					selectedYear={selectedNode}*/}
+			{/*					currentYear={selectedNode}*/}
+			{/*					timeframe="years"*/}
+			{/*					steps={steps}*/}
+			{/*					actionTimings={actionTimings}*/}
+			{/*				/>*/}
+			{/*			)}*/}
 
-						{activeTab === "transactions" && selectedNode && (
-							<TransactionList
-								selectedTimeframe="years"
-								selectedUnit={selectedNode}
-								currentYear={selectedNode}
-								actions={
-									steps.find(
-										(step) => step?.tick === selectedNode
-									)
-										? [
-												...(steps.find(
-													(step) =>
-														step?.tick ===
-														selectedNode
-												)?.newActions || []),
-												...(steps.find(
-													(step) =>
-														step?.tick ===
-														selectedNode
-												)?.oldActiveActions || []),
-										  ]
-										: []
-								}
-								actionTimings={actionTimings}
-							/>
-						)}
+			{/*			{activeTab === "transactions" && selectedNode && (*/}
+			{/*				<TransactionList*/}
+			{/*					selectedTimeframe="years"*/}
+			{/*					selectedUnit={selectedNode}*/}
+			{/*					currentYear={selectedNode}*/}
+			{/*					actions={*/}
+			{/*						steps.find(*/}
+			{/*							(step) => step?.tick === selectedNode*/}
+			{/*						)*/}
+			{/*							? [*/}
+			{/*									...(steps.find(*/}
+			{/*										(step) =>*/}
+			{/*											step?.tick ===*/}
+			{/*											selectedNode*/}
+			{/*									)?.newActions || []),*/}
+			{/*									...(steps.find(*/}
+			{/*										(step) =>*/}
+			{/*											step?.tick ===*/}
+			{/*											selectedNode*/}
+			{/*									)?.oldActiveActions || []),*/}
+			{/*							  ]*/}
+			{/*							: []*/}
+			{/*					}*/}
+			{/*					actionTimings={actionTimings}*/}
+			{/*				/>*/}
+			{/*			)}*/}
 
-						{activeTab === "spending" && selectedNode && (
-							<SpendingGraph
-								timeUnits={timeUnits}
-								selectedUnit={selectedNode}
-								timeframe="years"
-								currentYear={selectedNode}
-								actionTimings={actionTimings}
-							/>
-						)}
+			{/*			{activeTab === "spending" && selectedNode && (*/}
+			{/*				<SpendingGraph*/}
+			{/*					timeUnits={timeUnits}*/}
+			{/*					selectedUnit={selectedNode}*/}
+			{/*					timeframe="years"*/}
+			{/*					currentYear={selectedNode}*/}
+			{/*					actionTimings={actionTimings}*/}
+			{/*				/>*/}
+			{/*			)}*/}
 
-						<div className="mt-4 pt-4 border-t border-gray-200">
-							<h3 className="text-sm font-bold text-gray-700 mb-2">
-								Timeline
-							</h3>
-							<Timeline
-								timeUnits={timeUnits}
-								steps={steps}
-								selectedUnit={selectedNode}
-								unitType="years"
-								onUnitClick={(unit) => {
-									if (
-										typeof unit === "number" &&
-										unit <= highestUnlockedYear
-									) {
-										setSelectedNode(unit);
-									}
-								}}
-								actionTimings={actionTimings}
-							/>
-						</div>
+			{/*			<div className="mt-4 pt-4 border-t border-gray-200">*/}
+			{/*				<h3 className="text-sm font-bold text-gray-700 mb-2">*/}
+			{/*					Timeline*/}
+			{/*				</h3>*/}
+			{/*				<Timeline*/}
+			{/*					timeUnits={timeUnits}*/}
+			{/*					steps={steps}*/}
+			{/*					selectedUnit={selectedNode}*/}
+			{/*					unitType="years"*/}
+			{/*					onUnitClick={(unit) => {*/}
+			{/*						if (*/}
+			{/*							typeof unit === "number" &&*/}
+			{/*							unit <= highestUnlockedYear*/}
+			{/*						) {*/}
+			{/*							setSelectedNode(unit);*/}
+			{/*						}*/}
+			{/*					}}*/}
+			{/*					actionTimings={actionTimings}*/}
+			{/*				/>*/}
+			{/*			</div>*/}
 
-						<div className="flex justify-between mt-4 pt-4 border-t border-gray-200">
-							<Button
-								variant="outline"
-								onClick={() => setDetailsOpen(false)}
-								className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-							>
-								Close
-							</Button>
+			{/*			<div className="flex justify-between mt-4 pt-4 border-t border-gray-200">*/}
+			{/*				<Button*/}
+			{/*					variant="outline"*/}
+			{/*					onClick={() => setDetailsOpen(false)}*/}
+			{/*					className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"*/}
+			{/*				>*/}
+			{/*					Close*/}
+			{/*				</Button>*/}
 
-							{selectedNode &&
-								getNodeStatus(selectedNode) === "current" && (
-									<Button
-										className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-										onClick={handleCompleteYear}
-									>
-										Complete Year{" "}
-										<ChevronRight className="h-4 w-4 ml-1" />
-									</Button>
-								)}
-						</div>
-					</div>
-				</DialogContent>
-			</Dialog>
+			{/*				{selectedNode &&*/}
+			{/*					getNodeStatus(selectedNode) === "current" && (*/}
+			{/*						<Button*/}
+			{/*							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"*/}
+			{/*							onClick={handleCompleteYear}*/}
+			{/*						>*/}
+			{/*							Complete Year{" "}*/}
+			{/*							<ChevronRight className="h-4 w-4 ml-1" />*/}
+			{/*						</Button>*/}
+			{/*					)}*/}
+			{/*			</div>*/}
+			{/*		</div>*/}
+			{/*	</DialogContent>*/}
+			{/*</Dialog>*/}
 		</div>
 	);
 }
