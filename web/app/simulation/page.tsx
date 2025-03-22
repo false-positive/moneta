@@ -353,8 +353,8 @@ export default function Simulation() {
 	};
 
 	return (
-		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white">
-			<div className="max-w-7xl mx-auto">
+		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white flex justify-center">
+			<div className="max-w-6xl w-full">
 				<div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-md">
 					<h1 className="text-2xl font-bold text-indigo-900 flex items-center gap-2">
 						<span className="bg-indigo-600 text-white p-2 rounded-lg">
@@ -362,8 +362,6 @@ export default function Simulation() {
 						</span>
 						{caseDescription?.personName}'s Financial Journey
 					</h1>
-
-					</div>
 				</div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -581,7 +579,6 @@ export default function Simulation() {
 											<h3 className="font-bold text-amber-800 text-sm">
 												Diversify Investments
 											</h3>
-											
 										</div>
 										<p className="text-amber-700 text-xs mt-1">
 											Allocate your portfolio across
@@ -601,8 +598,8 @@ export default function Simulation() {
 												Emergency Fund
 											</h3>
 											{/* <span className="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-xs">
-												+75 pts
-											</span> */}
+													+75 pts
+												</span> */}
 										</div>
 										<p className="text-emerald-700 text-xs mt-1">
 											Save 6 months of expenses in a
@@ -621,6 +618,9 @@ export default function Simulation() {
 											<h3 className="font-bold text-purple-800 text-sm">
 												Retirement Planning
 											</h3>
+											{/* <span className="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs">
+													+100 pts
+												</span> */}
 										</div>
 										<p className="text-purple-700 text-xs mt-1">
 											Set up automatic contributions to
