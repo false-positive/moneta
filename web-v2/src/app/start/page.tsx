@@ -5,10 +5,25 @@ import { User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { db } from "@/lib/db";
+import { useLiveQuery } from "dexie-react-hooks";
+import { useRouter } from "next/navigation";
+
+const LOADING = Symbol.for("loading");
 
 export default function OnboardingScreen() {
+  const router = useRouter();
+
+  const existingProfile = useLiveQuery(() => db.profiles.get(1), [], LOADING);
+
   const [nickname, setNickname] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+
+  useEffect(() => {
+    if (existingProfile !== LOADING && existingProfile) {
+      setNickname(existingProfile.nickname);
+    }
+  }, [existingProfile]);
 
   // Update avatar when nickname changes
   useEffect(() => {
@@ -21,16 +36,24 @@ export default function OnboardingScreen() {
     }
   }, [nickname]);
 
-  const handleContinue = () => {
-    if (nickname.trim()) {
-      // Navigate to next screen
-      console.log(`User nickname: ${nickname}`);
-      // Example: router.push('/character-selection')
+  const handleContinue = async () => {
+    if (!nickname.trim()) return;
+
+    if (existingProfile) {
+      await db.profiles.update(1, { nickname });
+    } else {
+      await db.profiles.add({ nickname });
     }
+
+    router.push("/");
   };
 
+  if (existingProfile === LOADING) {
+    return null;
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-purple-50 p-6">
+    <div className="fade-in animate-in flex min-h-screen flex-col items-center justify-center bg-purple-50 p-6 duration-500">
       <div className="mx-auto w-full max-w-md">
         <header className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-purple-700">Welcome!</h1>
