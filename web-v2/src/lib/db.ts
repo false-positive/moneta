@@ -12,3 +12,7 @@ export const db = new Dexie("Moneta") as Dexie & {
 db.version(1).stores({
   profiles: "++id, nickname",
 });
+
+db.on("populate", (tx) => {
+  tx.table("profiles").add({ id: 1, nickname: "" } satisfies Profile);
+});

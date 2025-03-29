@@ -1,58 +1,57 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useReducer,
+  useOptimistic,
+  startTransition,
+} from "react";
 import { User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { db } from "@/lib/db";
+import { db, type Profile } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useRouter } from "next/navigation";
+import invariant from "tiny-invariant";
 
 const LOADING = Symbol.for("loading");
 
 export default function OnboardingScreen() {
   const existingProfile = useLiveQuery(
-    () => db.profiles.limit(1).last(),
+    async () => {
+      const profile = await db.profiles.get(1);
+      invariant(profile, "Profile does not exist");
+      return profile;
+    },
     [],
     LOADING,
   );
 
-  const [nickname, setNickname] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  return existingProfile === LOADING ? null : (
+    <ProfileEditor existingProfile={existingProfile} />
+  );
+}
 
-  useEffect(() => {
-    if (existingProfile !== LOADING && existingProfile) {
-      setNickname(existingProfile.nickname);
-    }
-  }, [existingProfile]);
+function ProfileEditor(props: { existingProfile: Profile }) {
+  const [profile, patchProfile] = useOptimistic(
+    props.existingProfile,
+    (prev, update: Partial<Profile>) => ({ ...prev, ...update }),
+  );
 
   // Update avatar when nickname changes
-  useEffect(() => {
-    if (nickname.trim()) {
-      setAvatarUrl(
-        `https://api.dicebear.com/7.x/big-smile/svg?seed=${encodeURIComponent(nickname)}`,
-      );
-    } else {
-      setAvatarUrl("");
-    }
-  }, [nickname]);
+  const avatarUrl = useMemo(
+    () =>
+      profile.nickname.trim()
+        ? `https://api.dicebear.com/7.x/big-smile/svg?seed=${encodeURIComponent(profile.nickname)}`
+        : "",
+    [profile.nickname],
+  );
 
   const handleContinue = async () => {
-    if (!nickname.trim()) return;
-
-    if (existingProfile && existingProfile !== LOADING) {
-      await db.profiles.update(existingProfile.id, { nickname });
-    } else {
-      await db.profiles.add({ nickname });
-    }
-
-    // router.push("/");
+    if (!profile.nickname.trim()) return;
   };
-
-  if (existingProfile === LOADING) {
-    return null;
-  }
 
   return (
     <div className="fade-in animate-in flex min-h-screen flex-col items-center justify-center p-6 duration-500">
@@ -81,13 +80,19 @@ export default function OnboardingScreen() {
           <Input
             type="text"
             placeholder="Enter your nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            value={profile.nickname}
+            onChange={(e) => {
+              const nickname = e.target.value;
+              startTransition(async () => {
+                patchProfile({ nickname });
+                await db.profiles.update(1, { nickname });
+              });
+            }}
             className="w-full"
           />
 
           {/* Continue Button */}
-          <Button onClick={handleContinue} disabled={!nickname.trim()}>
+          <Button onClick={handleContinue} disabled={!profile.nickname.trim()}>
             Continue
             <ArrowRight className="h-5 w-5" />
           </Button>
