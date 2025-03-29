@@ -10,7 +10,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
 
   --background: oklch(97.61% 0.013856865730008343 304.14156330154907);
   --foreground: oklch(38.07% 0.166 304.99);
@@ -37,7 +37,7 @@
   /* --destructive-foreground: oklch(1 0 0); - missing in newer shadcn */
   --border: oklch(90.24% 0.06 306.7);
   --input: oklch(90.24% 0.06 306.7);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.9 0.06 307);
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
