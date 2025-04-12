@@ -6,11 +6,8 @@ export type Kind = "investment" | "income" | "expense" | "other";
 
 export type Step = {
 	tick: number;
-	isBankAccountKnown: boolean;
 	bankAccount: number;
-	isJoyKnown: boolean;
 	joy: number;
-	isFreeTimeKnown: boolean;
 	freeTime: number;
 	newActions: Action[];
 	oldActiveActions: Action[];

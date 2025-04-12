@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import { CaseDescription, simulateWithActions } from "..";
-import { Case, defaultCase } from "..";
 import {
 	lifeAction,
 	savingsDepositAction,
