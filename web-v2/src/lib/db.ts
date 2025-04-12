@@ -1,12 +1,10 @@
+import { defaultProfile, type Profile } from "@/game/profile";
 import Dexie, { type EntityTable } from "dexie";
 
-export type Profile = {
-  id: number;
-  nickname: string;
-};
+type ProfileWithID = Profile & { id: number };
 
 export const db = new Dexie("Moneta") as Dexie & {
-  profiles: EntityTable<Profile, "id">;
+  profiles: EntityTable<ProfileWithID>;
 };
 
 db.version(1).stores({
@@ -14,5 +12,8 @@ db.version(1).stores({
 });
 
 db.on("populate", (tx) => {
-  tx.table("profiles").add({ id: 1, nickname: "" } satisfies Profile);
+  tx.table("profiles").add({
+    id: 1,
+    ...defaultProfile,
+  } satisfies ProfileWithID);
 });
