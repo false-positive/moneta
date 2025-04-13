@@ -1,5 +1,5 @@
 import invariant from "tiny-invariant";
-import { TickKind } from "./cases/index";
+import { TickKind } from "./engine/index";
 
 const etfPrices = [
 	39.04556656, 40.56109619, 40.72795486, 42.65797806, 42.19408035,
