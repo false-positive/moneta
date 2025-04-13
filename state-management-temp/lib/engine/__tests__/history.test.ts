@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { CaseDescription, simulateWithActions } from "..";
-import { etfInvestmentOnceAction } from "../standard-actions";
+import { etfInvestmentOnceAction } from "../actions/standard-actions";
 
 test("simulate with actions", () => {
 	const INITIAL_BANK_ACCOUNT = 10000;

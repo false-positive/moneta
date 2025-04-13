@@ -1,8 +1,8 @@
 import invariant from "tiny-invariant";
 import { TickKind } from "../index";
-import { getPercent, getPrices } from "../history";
+import { getPercent, getPrices, InvestmentKind } from "../history";
 
-export type Kind = "investment" | "income" | "expense" | "other";
+export type ActionKind = "investment" | "income" | "expense" | "other";
 
 export type Step = {
 	tick: number;
@@ -13,18 +13,38 @@ export type Step = {
 	oldActiveActions: Action[];
 };
 
+export type RepeatedPercent =
+	| {
+			source: "constant";
+			percent: number;
+	  }
+	| {
+			source: "history";
+			investmentKind: InvestmentKind;
+	  };
+
+export const constantPercent = (percent: number): RepeatedPercent => ({
+	source: "constant",
+	percent,
+});
+
+export const historyPercent = (
+	investmentKind: InvestmentKind
+): RepeatedPercent => ({
+	source: "history",
+	investmentKind,
+});
+
 export type MetricImpact = {
 	hasImpact: boolean;
 	minRequired: number;
 	maxRequired: number;
 
 	repeatedAbsoluteDelta: number;
-	repeatedPercent: number;
+	repeatedPercent: RepeatedPercent;
 
 	initialPrice: number;
 	repeatedPrice: number;
-
-	percentFromHistory: string;
 };
 
 export const noImpact: MetricImpact = {
@@ -33,12 +53,10 @@ export const noImpact: MetricImpact = {
 	maxRequired: Infinity,
 
 	repeatedAbsoluteDelta: 0,
-	repeatedPercent: 0,
+	repeatedPercent: { source: "constant", percent: 0 },
 
 	initialPrice: 0,
 	repeatedPrice: 0,
-
-	percentFromHistory: "",
 };
 
 export const impact = (partialImpact: Partial<MetricImpact>) => ({
@@ -48,13 +66,13 @@ export const impact = (partialImpact: Partial<MetricImpact>) => ({
 });
 
 export const percentImpact = (percent: number) =>
-	impact({ repeatedPercent: percent });
+	impact({ repeatedPercent: { source: "constant", percent } });
 export const absoluteImpact = (absoluteDelta: number) =>
 	impact({ repeatedAbsoluteDelta: absoluteDelta });
 
 export type Action = {
 	name: string;
-	kind: Kind;
+	kind: ActionKind;
 	shortDescription: string; // Short description for UI display
 	llmDescription: string; // Detailed description for LLM context
 
@@ -81,15 +99,15 @@ function calculateMetric(
 		return previousValue;
 	}
 
-	let percent = metricImpact.repeatedPercent;
-	if (metricImpact.percentFromHistory != "") {
-		invariant(percent == 0);
-		percent = getPercent(
-			tick,
-			tickKind,
-			getPrices(metricImpact.percentFromHistory)
-		);
-	}
+	const percent =
+		metricImpact.repeatedPercent.source == "constant"
+			? metricImpact.repeatedPercent.percent
+			: getPercent(
+					tick,
+					tickKind,
+					getPrices(metricImpact.repeatedPercent.investmentKind)
+			  );
+
 	const absoluteValue = previousValue + metricImpact.repeatedAbsoluteDelta;
 	return absoluteValue + absoluteValue * (percent / 100);
 }

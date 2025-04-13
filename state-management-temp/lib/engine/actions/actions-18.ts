@@ -4,6 +4,8 @@ import {
 	impact,
 	absoluteImpact,
 	percentImpact,
+	historyPercent,
+	constantPercent,
 } from "../actions";
 
 const noOpAction: Action = {
@@ -27,7 +29,7 @@ export const liveWithParentsAction: Action = {
 	llmDescription: "Living expenses when living with your parents",
 	bankAccountImpact: impact({
 		repeatedAbsoluteDelta: -(200 * 12),
-		repeatedPercent: -2,
+		repeatedPercent: constantPercent(-2),
 	}), // levs and inflation per year
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(100), // hours per week
@@ -91,7 +93,7 @@ export const savingsDepositAction: Action = {
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
-		repeatedPercent: 0.2,
+		repeatedPercent: constantPercent(0.2),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -108,7 +110,7 @@ export const pensionDepositAction: Action = {
 	shortDescription: "Deposit money into a pension account",
 	llmDescription: "Deposit money into a pension account",
 	investmentImpact: impact({
-		repeatedPercent: 2,
+		repeatedPercent: constantPercent(2),
 		initialPrice: 0,
 		repeatedPrice: 5000,
 	}),
@@ -126,7 +128,7 @@ export const etfInvestmentOnceAction: Action = {
 	shortDescription: "Buy an ETF fund",
 	llmDescription: "Buy an ETF fund",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		initialPrice: 10000,
 	}),
 	joyImpact: noImpact,
@@ -142,7 +144,7 @@ export const etfInvestmentRepeatedAction: Action = {
 	shortDescription: "Buy an ETF fund regularly",
 	llmDescription: "Buy an ETF fund regularly",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		repeatedPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -159,7 +161,7 @@ export const stocksInvestmentAction: Action = {
 	shortDescription: "Buy an individual stock",
 	llmDescription: "Buy an individual stock",
 	investmentImpact: impact({
-		repeatedPercent: 10,
+		repeatedPercent: constantPercent(10),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -176,7 +178,7 @@ export const cryptoInvestmentAction: Action = {
 	shortDescription: "Buy a crypto currency",
 	llmDescription: "Buy a crypto currency",
 	investmentImpact: impact({
-		percentFromHistory: "btc",
+		repeatedPercent: historyPercent("btc"),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
@@ -193,7 +195,7 @@ export const goldInvestmentAction: Action = {
 	shortDescription: "Buy investment gold",
 	llmDescription: "Buy investment gold",
 	investmentImpact: impact({
-		percentFromHistory: "gold",
+		repeatedPercent: historyPercent("gold"),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,

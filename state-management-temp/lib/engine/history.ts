@@ -1,4 +1,3 @@
-import invariant from "tiny-invariant";
 import { TickKind } from ".";
 
 const etfPrices = [
@@ -154,9 +153,14 @@ export function getPercent(tick: number, tickKind: TickKind, prices: number[]) {
 	return percentChange;
 }
 
-export function getPrices(investment: string) {
-	if (investment == "etf") return etfPrices;
-	if (investment == "gold") return goldPrices;
-	if (investment == "btc") return btcPrices;
-	invariant(false, "No historical data for investment");
+const investmentPrices = {
+	etf: etfPrices,
+	gold: goldPrices,
+	btc: btcPrices,
+};
+
+export type InvestmentKind = keyof typeof investmentPrices;
+
+export function getPrices(investment: InvestmentKind) {
+	return investmentPrices[investment];
 }

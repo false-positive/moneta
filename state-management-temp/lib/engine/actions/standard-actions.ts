@@ -1,4 +1,12 @@
-import { Action, noImpact, impact, absoluteImpact, percentImpact } from ".";
+import {
+	Action,
+	noImpact,
+	impact,
+	absoluteImpact,
+	percentImpact,
+	historyPercent,
+	constantPercent,
+} from ".";
 
 const noOpAction: Action = {
 	name: "No Op",
@@ -21,7 +29,7 @@ export const lifeAction: Action = {
 	llmDescription: "Pay for living expenses",
 	bankAccountImpact: impact({
 		repeatedAbsoluteDelta: -1000,
-		repeatedPercent: -2 / 12,
+		repeatedPercent: constantPercent(-2 / 12),
 	}), // levs per month + inflation per month
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(100), // hours per week
@@ -59,7 +67,7 @@ export const savingsDepositAction: Action = {
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
-		repeatedPercent: 0.2,
+		repeatedPercent: constantPercent(0.2),
 		initialPrice: 1000,
 	}),
 	joyImpact: noImpact,
@@ -74,7 +82,7 @@ export const pensionInvestmentAction: Action = {
 	shortDescription: "Pension fund contribution cost",
 	llmDescription: "Pension fund contribution cost",
 	investmentImpact: impact({
-		repeatedPercent: 2,
+		repeatedPercent: constantPercent(2),
 		repeatedPrice: 1000,
 	}),
 	joyImpact: noImpact,
@@ -89,7 +97,7 @@ export const etfInvestmentOnceAction: Action = {
 	shortDescription: "Buy an ETF fund",
 	llmDescription: "Buy an ETF fund",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		initialPrice: 10000,
 	}),
 	joyImpact: noImpact,

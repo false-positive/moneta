@@ -20,7 +20,7 @@ export function simulateWithActions(
 	caseDescription: CaseDescription,
 	newActionsPerTick: Action[][]
 ) {
-	let steps: Step[] = [caseDescription.initialStep];
+	const steps: Step[] = [caseDescription.initialStep];
 	for (const actions of newActionsPerTick) {
 		steps.push(
 			computeNextStep(

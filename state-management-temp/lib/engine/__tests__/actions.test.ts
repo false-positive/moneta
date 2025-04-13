@@ -5,7 +5,7 @@ import {
 	pensionInvestmentAction,
 	savingsDepositAction,
 	waiterJobAction,
-} from "../standard-actions";
+} from "../actions/standard-actions";
 
 test("life action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;

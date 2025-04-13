@@ -4,7 +4,7 @@ import {
 	lifeAction,
 	savingsDepositAction,
 	waiterJobAction,
-} from "../standard-actions";
+} from "../actions/standard-actions";
 
 test("simulate with actions", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
