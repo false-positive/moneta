@@ -1,5 +1,5 @@
 import invariant from "tiny-invariant";
-import { TickKind } from "../index";
+import { TickKind } from "../quests/index";
 import { getPercent, getPrices, InvestmentKind } from "../history";
 
 export type ActionKind = "investment" | "income" | "expense" | "other";

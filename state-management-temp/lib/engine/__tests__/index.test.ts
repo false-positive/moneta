@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { CaseDescription, simulateWithActions } from "..";
+import { QuestDescription, simulateWithActions } from "../quests";
 import {
 	lifeAction,
 	savingsDepositAction,
@@ -9,9 +9,9 @@ import {
 test("simulate with actions", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
-	const caseDescription: CaseDescription = {
+	const questDescription: QuestDescription = {
 		personName: "John",
-		caseLLMDescriptipn: "John is a waiter",
+		questLLMDescription: "John is a waiter",
 		initialStep: {
 			tick: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
@@ -34,7 +34,7 @@ test("simulate with actions", () => {
 		capital,
 	});
 
-	const steps = simulateWithActions(caseDescription, [
+	const steps = simulateWithActions(questDescription, [
 		[],
 		[job(2)],
 		[invest(2, 1000)],

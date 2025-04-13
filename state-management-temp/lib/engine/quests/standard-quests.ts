@@ -1,10 +1,10 @@
-import { CaseDescription } from ".";
-import { lifeAction } from "./actions/standard-actions";
+import { QuestDescription } from ".";
+import { lifeAction } from "../actions/standard-actions";
 
-export const standardCases: Record<string, CaseDescription> = {
+export const standardQuests: Record<string, QuestDescription> = {
 	ivan: {
 		personName: "Maria",
-		caseLLMDescriptipn:
+		questLLMDescription:
 			"Maria is 6 years old and has 100 BGN monthly allowance, which she spends on buying food, clothes and other stuff",
 		stepCount: 1,
 		tickKind: "month",
@@ -19,7 +19,7 @@ export const standardCases: Record<string, CaseDescription> = {
 	},
 	marti: {
 		personName: "Marti",
-		caseLLMDescriptipn:
+		questLLMDescription:
 			"Marti is 10 years old and has 20 BGN monthly allowance, which she spends on buying breakfast, lunch and snacks",
 		stepCount: 5,
 		tickKind: "year",
@@ -34,7 +34,7 @@ export const standardCases: Record<string, CaseDescription> = {
 	},
 	maria: {
 		personName: "Ivan",
-		caseLLMDescriptipn:
+		questLLMDescription:
 			"Ivan is 18 years old and has 5000 BGN in his bank account, which he spends on buying food, clothes and other stuff",
 		stepCount: 5,
 		tickKind: "year",
