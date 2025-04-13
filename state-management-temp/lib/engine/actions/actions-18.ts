@@ -4,7 +4,7 @@ import {
 	impact,
 	absoluteImpact,
 	percentImpact,
-} from "./actions";
+} from "../actions";
 
 const noOpAction: Action = {
 	name: "No Op",

@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
-import { TickKind } from ".";
-import { getPercent, getPrices } from "./history";
+import { TickKind } from "../index";
+import { getPercent, getPrices } from "../history";
 
 export type Kind = "investment" | "income" | "expense" | "other";
 

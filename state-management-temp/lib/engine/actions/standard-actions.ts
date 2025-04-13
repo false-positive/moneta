@@ -1,10 +1,4 @@
-import {
-	Action,
-	noImpact,
-	impact,
-	absoluteImpact,
-	percentImpact,
-} from "./actions";
+import { Action, noImpact, impact, absoluteImpact, percentImpact } from ".";
 
 const noOpAction: Action = {
 	name: "No Op",

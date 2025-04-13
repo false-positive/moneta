@@ -1,6 +1,6 @@
 import { Action } from "./actions";
-import { allActionsList as a1 } from "./standard-actions";
-import { allActionsList as a2 } from "./actions-18";
+import { allActionsList as a1 } from "./actions/standard-actions";
+import { allActionsList as a2 } from "./actions/actions-18";
 
 export const allActionsList = { ...a1, ...a2 };
 

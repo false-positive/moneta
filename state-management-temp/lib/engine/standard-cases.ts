@@ -1,5 +1,5 @@
 import { CaseDescription } from ".";
-import { lifeAction } from "./standard-actions";
+import { lifeAction } from "./actions/standard-actions";
 
 export const standardCases: Record<string, CaseDescription> = {
 	ivan: {
