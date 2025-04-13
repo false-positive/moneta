@@ -8,7 +8,7 @@ export type Step = {
 	tick: number;
 	bankAccount: number;
 	joy: number;
-	freeTime: number;
+	freeTimeHours: number;
 	newActions: Action[];
 	oldActiveActions: Action[];
 };
@@ -140,9 +140,9 @@ function applyAction(
 			(isNew ? newAction.investmentImpact.initialPrice : 0) -
 			newAction.investmentImpact.repeatedPrice,
 		joy: calculateMetric(action.joyImpact, step.joy, step.tick, tickKind),
-		freeTime: calculateMetric(
+		freeTimeHours: calculateMetric(
 			action.freeTimeImpact,
-			step.freeTime,
+			step.freeTimeHours,
 			step.tick,
 			tickKind
 		),
@@ -180,7 +180,7 @@ export function computeNextStep(
 		...previousStep,
 		newActions,
 		oldActiveActions: [],
-		freeTime: 0,
+		freeTimeHours: 0,
 		tick: previousStep.tick + 1,
 	};
 

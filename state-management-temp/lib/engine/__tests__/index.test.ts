@@ -16,11 +16,11 @@ test("simulate with actions", () => {
 			tick: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
-			freeTime: 100,
+			freeTimeHours: 100,
 			newActions: [],
 			oldActiveActions: [lifeAction],
 		},
-		stepCount: 5,
+		maxStepCount: 5,
 		tickKind: "week",
 	};
 
@@ -49,7 +49,7 @@ test("simulate with actions", () => {
 
 	expect(steps[1].bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(steps[1].joy).toBeCloseTo(expectedJoy);
-	expect(steps[1].freeTime).toBe(100);
+	expect(steps[1].freeTimeHours).toBe(100);
 	expect(steps[1].newActions).toEqual([]);
 	expect(steps[1].oldActiveActions).toEqual([lifeAction]);
 
@@ -58,7 +58,7 @@ test("simulate with actions", () => {
 
 	expect(steps[2].bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(steps[2].joy).toBeCloseTo(expectedJoy);
-	expect(steps[2].freeTime).toBe(80);
+	expect(steps[2].freeTimeHours).toBe(80);
 	expect(steps[2].newActions).toEqual([job(2)]);
 	expect(steps[2].oldActiveActions).toEqual([lifeAction, job(1)]);
 
@@ -68,7 +68,7 @@ test("simulate with actions", () => {
 
 	expect(steps[3].bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(steps[3].joy).toBeCloseTo(expectedJoy);
-	expect(steps[3].freeTime).toBe(80);
+	expect(steps[3].freeTimeHours).toBe(80);
 	expect(steps[3].newActions).toEqual([invest(2, 1000)]);
 	expect(steps[3].oldActiveActions).toEqual([
 		lifeAction,
@@ -81,7 +81,7 @@ test("simulate with actions", () => {
 
 	expect(steps[4].bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(steps[4].joy).toBeCloseTo(expectedJoy);
-	expect(steps[4].freeTime).toBe(100);
+	expect(steps[4].freeTimeHours).toBe(100);
 	expect(steps[4].newActions).toEqual([]);
 	expect(steps[4].oldActiveActions).toEqual([
 		lifeAction,
@@ -94,7 +94,7 @@ test("simulate with actions", () => {
 
 	expect(steps[5].bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(steps[5].joy).toBeCloseTo(expectedJoy);
-	expect(steps[5].freeTime).toBe(100);
+	expect(steps[5].freeTimeHours).toBe(100);
 	expect(steps[5].newActions).toEqual([]);
 	expect(steps[5].oldActiveActions).toEqual([lifeAction]);
 	expect(steps[5].tick).toBe(5);

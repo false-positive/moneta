@@ -14,7 +14,7 @@ test("life action", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 2134,
+		freeTimeHours: 2134,
 		newActions: [],
 		oldActiveActions: [lifeAction],
 	};
@@ -25,7 +25,7 @@ test("life action", () => {
 		(INITIAL_BANK_ACCOUNT - 1000) * (1 - 2 / 100 / 12)
 	);
 	expect(nextStep.joy).toBe(90);
-	expect(nextStep.freeTime).toBe(100);
+	expect(nextStep.freeTimeHours).toBe(100);
 	expect(nextStep.newActions).toEqual([]);
 	expect(nextStep.oldActiveActions).toEqual([lifeAction]);
 });
@@ -37,7 +37,7 @@ test("waiter job action", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
 		oldActiveActions: [],
 	};
@@ -46,7 +46,7 @@ test("waiter job action", () => {
 
 	expect(nextStep.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep.joy).toBe(95);
-	expect(nextStep.freeTime).toBe(-20);
+	expect(nextStep.freeTimeHours).toBe(-20);
 	expect(nextStep.newActions).toEqual([waiterJobAction]);
 	expect(nextStep.oldActiveActions).toEqual([waiterJobAction]);
 });
@@ -58,7 +58,7 @@ test("waiter job action with multiple ticks", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
 		oldActiveActions: [],
 	};
@@ -74,19 +74,19 @@ test("waiter job action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep1.joy).toBe(95);
-	expect(nextStep1.freeTime).toBe(-20);
+	expect(nextStep1.freeTimeHours).toBe(-20);
 	expect(nextStep1.newActions).toEqual([job(2)]);
 	expect(nextStep1.oldActiveActions).toEqual([job(1)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 2000);
 	expect(nextStep2.joy).toBe(90.25);
-	expect(nextStep2.freeTime).toBe(-20);
+	expect(nextStep2.freeTimeHours).toBe(-20);
 	expect(nextStep2.newActions).toEqual([]);
 	expect(nextStep2.oldActiveActions).toEqual([job(0)]);
 
 	expect(nextStep3.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 2000);
 	expect(nextStep3.joy).toBe(90.25);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
 	expect(nextStep3.oldActiveActions).toEqual([]);
 });
@@ -98,7 +98,7 @@ test("savings deposit action with multiple ticks", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
 		oldActiveActions: [],
 	};
@@ -115,13 +115,13 @@ test("savings deposit action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
-	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.freeTimeHours).toBe(0);
 	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
 	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.002)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep2.joy).toBe(100);
-	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.freeTimeHours).toBe(0);
 	expect(nextStep2.newActions).toEqual([]);
 	expect(nextStep2.oldActiveActions).toEqual([
 		invest(0, 1000 * 1.002 * 1.002),
@@ -131,7 +131,7 @@ test("savings deposit action with multiple ticks", () => {
 		INITIAL_BANK_ACCOUNT - 1000 + 1000 * Math.pow(1.002, 2)
 	);
 	expect(nextStep3.joy).toBe(100);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
 	expect(nextStep3.oldActiveActions).toEqual([]);
 });
@@ -143,7 +143,7 @@ test("multiple overlapping actions", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
 		oldActiveActions: [lifeAction],
 	};
@@ -167,7 +167,7 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep1.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep1.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep1.freeTime).toBe(100);
+	expect(nextStep1.freeTimeHours).toBe(100);
 	expect(nextStep1.newActions).toEqual([]);
 	expect(nextStep1.oldActiveActions).toEqual([lifeAction]);
 
@@ -177,7 +177,7 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep2.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep2.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep2.freeTime).toBe(80);
+	expect(nextStep2.freeTimeHours).toBe(80);
 	expect(nextStep2.newActions).toEqual([job(2)]);
 	expect(nextStep2.oldActiveActions).toEqual([lifeAction, job(1)]);
 
@@ -188,7 +188,7 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep3.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep3.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep3.freeTime).toBe(80);
+	expect(nextStep3.freeTimeHours).toBe(80);
 	expect(nextStep3.newActions).toEqual([invest(2, 1000)]);
 	expect(nextStep3.oldActiveActions).toEqual([
 		lifeAction,
@@ -202,7 +202,7 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep4.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep4.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep4.freeTime).toBe(100);
+	expect(nextStep4.freeTimeHours).toBe(100);
 	expect(nextStep4.newActions).toEqual([]);
 	expect(nextStep4.oldActiveActions).toEqual([
 		lifeAction,
@@ -216,7 +216,7 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep5.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep5.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep5.freeTime).toBe(100);
+	expect(nextStep5.freeTimeHours).toBe(100);
 	expect(nextStep5.newActions).toEqual([]);
 	expect(nextStep5.oldActiveActions).toEqual([lifeAction]);
 });
@@ -228,7 +228,7 @@ test("pension deposit action with multiple ticks", () => {
 		tick: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
 		oldActiveActions: [],
 	};
@@ -245,13 +245,13 @@ test("pension deposit action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
-	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.freeTimeHours).toBe(0);
 	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
 	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.02)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 2000);
 	expect(nextStep2.joy).toBe(100);
-	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.freeTimeHours).toBe(0);
 	expect(nextStep2.newActions).toEqual([]);
 	expect(nextStep2.oldActiveActions).toEqual([
 		invest(0, 1000 * 1.02 * 1.02 + 1000 * 1.02),
@@ -259,7 +259,7 @@ test("pension deposit action with multiple ticks", () => {
 
 	expect(nextStep3.bankAccount).toBeCloseTo(1000 * 1.02 * 1.02 + 1000 * 1.02);
 	expect(nextStep3.joy).toBe(100);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
 	expect(nextStep3.oldActiveActions).toEqual([]);
 });

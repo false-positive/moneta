@@ -12,11 +12,11 @@ test("simulate with actions", () => {
 			tick: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
-			freeTime: 100,
+			freeTimeHours: 100,
 			newActions: [],
 			oldActiveActions: [],
 		},
-		stepCount: 5,
+		maxStepCount: 5,
 		tickKind: "year",
 	};
 
