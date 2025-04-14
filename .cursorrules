@@ -1,0 +1,25 @@
+<project_description>
+
+# Moneta – learn to manage your finances through engaging interactive simulations
+
+Moneta is an interactive gamified web platform, which helps TEENS, YOUNG ADULTS and STUDENTS develop financial literacy through realistic simulations. Every QUEST (simulation scenario) places them in a unique point in life and challenges them to reach various financial goals by making financial decisions. Each decision they make affects their financial situation and changes the visualization of their potential future.
+
+The user is never alone in their quest - they are always guided by a constantly adapting to the environment AI-powered assistant. It gives them advice and informs them about the available actions, as well as their effects and consequences.
+
+</project_description>
+
+<project_structure>
+
+Moneta is a web application built with React 19, Next.js 15, Tailwind CSS v4 and the latest version of Shadcn UI, written in TypeScript. The AI assistant is written in Python, using Flask, in a separate service.
+
+The TypeScript Next.js codebase is entirely inside the `web/` directory. If working on it, NEVER touch files outside of `web/`! Maintaining a clean codebase is of utmost importance!
+
+The Python Flask codebase is entirely inside the `services/flask` directory. If working on it, NEVER touch files outside of `services/flask/`! Maintaining a clean codebase is of utmost importance!
+
+The simulation engine is written in TypeScript, part of the `web/` codebase. It is located in the `lib/engine/` subdirectory. Simulations happen on the frontend (client-side) in the browser. NEVER make changes to the simulation engine without CAREFULLY reading the rules docs for the engine and gaining a DEEP UNDERSTANDING of the data model and the simulation logic!
+
+The information about the quest is stored inside an XState Store using the minimal `@xstate/store` library. ALWAYS check the rules docs for using XState Store before you use it! Use the store to access the data of the current quest. Note that `@xstate/store` is different from the `xstate` library and no finite state machines are used in this project - XState Store is closer to Zustand than to XState! If you need to modify the store, ALWAYS trigger an existing event to do so - state changes are managed by the store in response to events.
+
+The TypeScript frontend uses `vitest` for unit testing the engine. Tests are located in a `__test__` subdirectory inside the `lib/engine/` directory. NEVER modify ANY test files, unless EXPLICITLY told to do so! You can refer to the existing tests to understand code usage. Keep in mind that data in the tests is hardcoded and your code MUST not be hardcoded.
+
+</project_structure>

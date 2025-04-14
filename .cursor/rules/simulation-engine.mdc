@@ -1,0 +1,300 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Financial Simulation Engine Documentation
+
+The simulation engine is located inside the `lib/engine/` subdirectory. The XState store is inside `lib/stores`. The store is the ONLY way to consume and modify data - it uses the lower level simulation methods to change the state on handling events and maintains invariants.
+
+## Essential Concepts
+
+### Core Data Structures
+
+- **Step**: A snapshot of the simulation at a specific point in time
+  - Contains metrics (bankAccount, joy, freeTimeHours)
+  - Tracks active actions (newActions, oldActiveActions)
+  - Has a tick value representing the time unit (week/month/year)
+
+- **Action**: A user-initiated activity that affects the simulation
+  - Has impacts on various metrics (bankAccount, investment, joy, freeTime)
+  - Has a duration (remainingTicks)
+  - Can be of different kinds (income, expense, investment, other)
+
+- **Quest**: A complete simulation instance
+  - Contains a sequence of steps
+  - Tracks the current step index
+  - Based on a QuestDescription that defines initial conditions
+
+### Accessing Data in React Components
+
+```typescript
+import { useStore } from "@xstate/store";
+import { questStore } from "lib/engine/stores/quest-store";
+
+function MyComponent() {
+  // Get the current quest state
+  const quest = useStore(questStore);
+  
+  // Get the current step
+  const currentStep = quest.steps[quest.currentStepIndex];
+  
+  // Access metrics
+  const bankBalance = currentStep.bankAccount;
+  const joyLevel = currentStep.joy;
+  const freeTime = currentStep.freeTimeHours;
+  
+  // Get active actions
+  const activeActions = currentStep.oldActiveActions;
+  
+  // Add a new action
+  const addAction = () => {
+    questStore.send({ type: "newActions", newActions: [myNewAction] });
+  };
+  
+  // Advance to next step
+  const nextStep = () => {
+    questStore.send({ type: "newStep" });
+  };
+  
+  // Go back to a previous step
+  const goToStep = (index) => {
+    questStore.send({ type: "currentStepIndexChange", newCurrentStepIndex: index });
+  };
+}
+```
+
+## Advanced Concepts
+
+### Metric Impacts
+
+Actions affect metrics through the `MetricImpact` type, which supports:
+
+- **Absolute changes**: Adding/subtracting fixed values
+  ```typescript
+  const impact = absoluteImpact(100); // Adds 100 to the metric
+  ```
+
+- **Percentage changes**: Multiplying by a factor
+  ```typescript
+  const impact = percentImpact(5); // Increases by 5%
+  ```
+
+- **Combined impacts**: Both absolute and percentage changes
+  ```typescript
+  const impact = impact({
+    repeatedAbsoluteDelta: 100,
+    repeatedPercent: constantPercent(5)
+  });
+  ```
+
+- **Dynamic impacts**: Based on historical data
+  ```typescript
+  const impact = impact({
+    repeatedPercent: historyPercent("etf") // Uses ETF price history
+  });
+  ```
+
+### Action Lifecycle
+
+1. **Creation**: Actions are created with a specific duration (remainingTicks)
+2. **Application**: When added to a step, actions immediately affect metrics
+3. **Persistence**: Actions remain active for their duration, affecting each step
+4. **Completion**: When remainingTicks reaches 0, the action is finished
+   - For investment actions, the capital is added to the bank account
+   - The action is removed from active actions
+
+### Simulation Flow
+
+1. **Initialization**: A QuestDescription defines the starting conditions
+2. **Step Computation**: Each step is computed based on the previous step and new actions
+3. **Action Processing**: 
+   - Finished actions are removed and their capital is added to the bank account
+   - Ongoing actions have their remainingTicks decremented and continue affecting metrics
+   - New actions are applied to the current step
+4. **Metric Calculation**: All metrics are recalculated based on active actions
+
+### Historical Data
+
+The engine includes historical price data for different investment types:
+- ETF prices
+- Gold prices
+- Bitcoin prices
+
+This data is used for dynamic percentage impacts, allowing investments to follow real-world market trends.
+
+## Common Pitfalls and Best Practices
+
+### DO's
+
+- **DO use the questStore for all state changes**
+  ```typescript
+  // Correct way to add actions to the current step
+  questStore.send({ type: "newActions", newActions: [myAction] });
+  ```
+
+- **DO check action durations carefully**
+  ```typescript
+  // Good practice: Set appropriate durations
+  const shortTermAction = { ...baseAction, remainingTicks: 3 };
+  const longTermAction = { ...baseAction, remainingTicks: 12 };
+  ```
+
+- **DO use the appropriate tick kind for your scenario**
+  ```typescript
+  // For monthly simulations
+  const questDescription = { ...baseDescription, tickKind: "month" };
+  // For yearly simulations
+  const questDescription = { ...baseDescription, tickKind: "year" };
+  ```
+
+### DON'Ts
+
+- **DON'T modify the quest state directly**
+  ```typescript
+  // WRONG: Directly modifying state
+  quest.steps.push(newStep);
+  
+  // CORRECT: Using the store API
+  questStore.send({ type: "newStep" });
+  ```
+
+- **DON'T assume actions will always complete**
+  ```typescript
+  // WRONG: Assuming an action will complete
+  const futureBankBalance = currentStep.bankAccount + action.capital;
+  
+  // CORRECT: Check if the action is finished
+  const futureBankBalance = isActionFinished(action) 
+    ? currentStep.bankAccount + action.capital 
+    : currentStep.bankAccount;
+  ```
+
+- **DON'T hardcode metric values**
+  ```typescript
+  // WRONG: Hardcoding metric values
+  const impact = impact({ repeatedAbsoluteDelta: 1000 });
+  
+  // CORRECT: Using constants or configuration
+  const impact = impact({ repeatedAbsoluteDelta: MONTHLY_SALARY });
+  ```
+
+- **DON'T forget to handle edge cases**
+  ```typescript
+  // WRONG: Not handling edge cases
+  const percent = getPercent(tick, tickKind, prices);
+  
+  // CORRECT: Handling edge cases
+  const percent = tick > 0 ? getPercent(tick, tickKind, prices) : 0;
+  ```
+
+## Advanced Usage
+
+### Creating Custom Actions
+
+```typescript
+import { Action, impact, constantPercent, absoluteImpact } from "lib/engine/actions";
+
+const myCustomAction: Action = {
+  name: "My Custom Action",
+  kind: "income",
+  shortDescription: "A custom action",
+  llmDescription: "A detailed description for the AI assistant",
+  remainingTicks: 12, // Duration in ticks
+  bankAccountImpact: impact({
+    repeatedAbsoluteDelta: 500,
+    repeatedPercent: constantPercent(1)
+  }),
+  investmentImpact: impact({
+    repeatedPercent: constantPercent(0.5),
+    initialPrice: 1000
+  }),
+  joyImpact: percentImpact(-5),
+  freeTimeImpact: absoluteImpact(-10),
+  capital: 0
+};
+```
+
+### Creating Custom Quests
+
+```typescript
+import { QuestDescription } from "lib/engine/quests";
+import { lifeAction } from "lib/engine/actions/standard-actions";
+
+const myCustomQuest: QuestDescription = {
+  personName: "Custom Person",
+  questLLMDescription: "A custom quest scenario",
+  maxStepCount: 12,
+  tickKind: "month",
+  initialStep: {
+    tick: 0,
+    bankAccount: 5000,
+    joy: 100,
+    freeTimeHours: 100,
+    newActions: [],
+    oldActiveActions: [lifeAction]
+  }
+};
+```
+
+### Simulating What-If Scenarios
+
+```typescript
+import { simulateWithActions, getNewActionsPerStep } from "lib/engine/quests";
+
+// Get current actions
+const currentActions = getNewActionsPerStep(quest);
+
+// Create a modified version with new actions
+const modifiedActions = [...currentActions];
+modifiedActions[quest.currentStepIndex] = [...modifiedActions[quest.currentStepIndex], newAction];
+
+// Simulate with the modified actions
+const simulatedSteps = simulateWithActions(quest.description, modifiedActions);
+
+// Compare results
+const originalFinalStep = quest.steps[quest.steps.length - 1];
+const simulatedFinalStep = simulatedSteps[simulatedSteps.length - 1];
+
+console.log(`Original balance: ${originalFinalStep.bankAccount}`);
+console.log(`Simulated balance: ${simulatedFinalStep.bankAccount}`);
+```
+
+### Tracking Action Durations
+
+```typescript
+import { getActionDurations } from "lib/engine/quests";
+
+// Get all action durations
+const actionDurations = getActionDurations(quest);
+
+// Find actions that are active at a specific tick
+const getActiveActionsAtTick = (tick) => {
+  return actionDurations.filter(
+    ({ startTick, endTick }) => tick >= startTick && tick <= endTick
+  );
+};
+
+// Find actions that start at a specific tick
+const getActionsStartingAtTick = (tick) => {
+  return actionDurations.filter(({ startTick }) => startTick === tick);
+};
+```
+
+# More Documentation
+
+This is not an exhaustive documentation on how to use the simulation module. ALWAYS check other documentation to gain a deeper understanding on the implementation:
+
+- Actions module: [actions-jsdocs.mdc](mdc:.cursor/rules/actions-jsdocs.mdc)
+- Quests module: [quests-jsdocs.mdc](mdc:.cursor/rules/quests-jsdocs.mdc)
+- XState Store docs: [xstate-store-docs.mdc](mdc:.cursor/rules/xstate-store-docs.mdc)
+
+- Actions implementation: [index.ts](mdc:state-management-temp/lib/engine/actions/index.ts)
+- Quests implementation: [index.ts](mdc:state-management-temp/lib/engine/quests/index.ts)
+
+
+
+
+
+
+
