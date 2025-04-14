@@ -1,4 +1,4 @@
-import { TickKind } from "./quests";
+import { TickKind } from "./actions";
 
 const etfPrices = [
 	39.04556656, 40.56109619, 40.72795486, 42.65797806, 42.19408035,
