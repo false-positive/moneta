@@ -27,8 +27,15 @@ export function simulateWithActions(
 	questDescription: QuestDescription,
 	newActionsPerStep: Action[][]
 ) {
-	const steps = [questDescription.initialStep];
-	for (const actions of newActionsPerStep) {
+	const firstStep = {
+		...questDescription.initialStep,
+		newActions: [
+			...questDescription.initialStep.newActions,
+			...newActionsPerStep[0],
+		],
+	};
+	const steps = [firstStep];
+	for (const actions of newActionsPerStep.slice(1)) {
 		steps.push(
 			computeNextStep(
 				steps[steps.length - 1],
@@ -44,4 +51,14 @@ export function getLatestStep(quest: Quest) {
 	const latestStep = quest.steps.at(-1);
 	invariant(latestStep, "No steps in quest");
 	return latestStep;
+}
+
+export function getActionDurations(quest: Quest) {
+	return quest.steps.flatMap((step) => {
+		return step.newActions.map((action) => ({
+			action,
+			startTick: step.tick,
+			endTick: step.tick + action.remainingTicks - 1,
+		}));
+	});
 }

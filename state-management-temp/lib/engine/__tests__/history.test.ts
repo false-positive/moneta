@@ -28,6 +28,7 @@ test("simulate with actions", () => {
 
 	const steps = simulateWithActions(questDescription, [
 		[],
+		[],
 		[invest(10, 10000)],
 		[],
 		[],
