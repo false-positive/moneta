@@ -3,17 +3,17 @@ name: Tests
 on:
   pull_request:
     paths:
-      - "state-management-temp/**"
+      - "web/**"
   push:
     paths:
-      - "state-management-temp/**"
+      - "web/**"
 
 jobs:
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: state-management-temp
+        working-directory: web
 
     steps:
       - uses: actions/checkout@v4
@@ -22,28 +22,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Run typecheck
-        run: pnpm typecheck
+        run: npm run typecheck
 
       - name: Run lint
-        run: pnpm lint
+        run: npm run lint
 
       - name: Run tests
-        run: pnpm test
+        run: npm run test
