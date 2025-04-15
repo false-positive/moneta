@@ -4,7 +4,9 @@ import {
 	impact,
 	absoluteImpact,
 	percentImpact,
-} from "./actions";
+	historyPercent,
+	constantPercent,
+} from ".";
 
 const noOpAction: Action = {
 	name: "No Op",
@@ -16,7 +18,7 @@ const noOpAction: Action = {
 	investmentImpact: noImpact,
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 1,
+	remainingSteps: 1,
 };
 
 export const lifeAction: Action = {
@@ -27,11 +29,11 @@ export const lifeAction: Action = {
 	llmDescription: "Pay for living expenses",
 	bankAccountImpact: impact({
 		repeatedAbsoluteDelta: -1000,
-		repeatedPercent: -2 / 12,
+		repeatedPercent: constantPercent(-2 / 12),
 	}), // levs per month + inflation per month
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(100), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const waiterJobAction: Action = {
@@ -43,7 +45,7 @@ export const waiterJobAction: Action = {
 	bankAccountImpact: absoluteImpact(1000), // levs per month
 	joyImpact: percentImpact(-5),
 	freeTimeImpact: absoluteImpact(-20), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const sweJobAction: Action = {
@@ -55,7 +57,7 @@ export const sweJobAction: Action = {
 	bankAccountImpact: absoluteImpact(5000), // levs per month
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const savingsDepositAction: Action = {
@@ -65,12 +67,12 @@ export const savingsDepositAction: Action = {
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
-		repeatedPercent: 0.2,
+		repeatedPercent: constantPercent(0.2),
 		initialPrice: 1000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
+	remainingSteps: 12, // months
 };
 
 export const pensionInvestmentAction: Action = {
@@ -80,12 +82,12 @@ export const pensionInvestmentAction: Action = {
 	shortDescription: "Pension fund contribution cost",
 	llmDescription: "Pension fund contribution cost",
 	investmentImpact: impact({
-		repeatedPercent: 2,
+		repeatedPercent: constantPercent(2),
 		repeatedPrice: 1000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
+	remainingSteps: 12, // months
 };
 
 export const etfInvestmentOnceAction: Action = {
@@ -95,12 +97,12 @@ export const etfInvestmentOnceAction: Action = {
 	shortDescription: "Buy an ETF fund",
 	llmDescription: "Buy an ETF fund",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		initialPrice: 10000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 };
 
 export const allActionsList = {

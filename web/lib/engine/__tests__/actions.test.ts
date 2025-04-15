@@ -5,18 +5,18 @@ import {
 	pensionInvestmentAction,
 	savingsDepositAction,
 	waiterJobAction,
-} from "../standard-actions";
+} from "../actions/standard-actions";
 
 test("life action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 2134,
+		freeTimeHours: 2134,
 		newActions: [],
-		oldActiveActions: [lifeAction],
+		continuingActions: [lifeAction],
 	};
 
 	const nextStep = computeNextStep(initialStep, [], "month");
@@ -25,47 +25,47 @@ test("life action", () => {
 		(INITIAL_BANK_ACCOUNT - 1000) * (1 - 2 / 100 / 12)
 	);
 	expect(nextStep.joy).toBe(90);
-	expect(nextStep.freeTime).toBe(100);
+	expect(nextStep.freeTimeHours).toBe(100);
 	expect(nextStep.newActions).toEqual([]);
-	expect(nextStep.oldActiveActions).toEqual([lifeAction]);
+	expect(nextStep.continuingActions).toEqual([lifeAction]);
 });
 
 test("waiter job action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
-		oldActiveActions: [],
+		continuingActions: [],
 	};
 
 	const nextStep = computeNextStep(initialStep, [waiterJobAction], "month");
 
 	expect(nextStep.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep.joy).toBe(95);
-	expect(nextStep.freeTime).toBe(-20);
+	expect(nextStep.freeTimeHours).toBe(-20);
 	expect(nextStep.newActions).toEqual([waiterJobAction]);
-	expect(nextStep.oldActiveActions).toEqual([waiterJobAction]);
+	expect(nextStep.continuingActions).toEqual([waiterJobAction]);
 });
 
-test("waiter job action with multiple ticks", () => {
+test("waiter job action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
-		oldActiveActions: [],
+		continuingActions: [],
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
 
 	const nextStep1 = computeNextStep(initialStep, [job(2)], "month");
@@ -74,38 +74,38 @@ test("waiter job action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 1000);
 	expect(nextStep1.joy).toBe(95);
-	expect(nextStep1.freeTime).toBe(-20);
+	expect(nextStep1.freeTimeHours).toBe(-20);
 	expect(nextStep1.newActions).toEqual([job(2)]);
-	expect(nextStep1.oldActiveActions).toEqual([job(1)]);
+	expect(nextStep1.continuingActions).toEqual([job(1)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 2000);
 	expect(nextStep2.joy).toBe(90.25);
-	expect(nextStep2.freeTime).toBe(-20);
+	expect(nextStep2.freeTimeHours).toBe(-20);
 	expect(nextStep2.newActions).toEqual([]);
-	expect(nextStep2.oldActiveActions).toEqual([job(0)]);
+	expect(nextStep2.continuingActions).toEqual([job(0)]);
 
 	expect(nextStep3.bankAccount).toBe(INITIAL_BANK_ACCOUNT + 2000);
 	expect(nextStep3.joy).toBe(90.25);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
-	expect(nextStep3.oldActiveActions).toEqual([]);
+	expect(nextStep3.continuingActions).toEqual([]);
 });
 
-test("savings deposit action with multiple ticks", () => {
+test("savings deposit action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
-		oldActiveActions: [],
+		continuingActions: [],
 	};
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -115,15 +115,15 @@ test("savings deposit action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
-	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.freeTimeHours).toBe(0);
 	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
-	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.002)]);
+	expect(nextStep1.continuingActions).toEqual([invest(1, 1000 * 1.002)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep2.joy).toBe(100);
-	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.freeTimeHours).toBe(0);
 	expect(nextStep2.newActions).toEqual([]);
-	expect(nextStep2.oldActiveActions).toEqual([
+	expect(nextStep2.continuingActions).toEqual([
 		invest(0, 1000 * 1.002 * 1.002),
 	]);
 
@@ -131,30 +131,30 @@ test("savings deposit action with multiple ticks", () => {
 		INITIAL_BANK_ACCOUNT - 1000 + 1000 * Math.pow(1.002, 2)
 	);
 	expect(nextStep3.joy).toBe(100);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
-	expect(nextStep3.oldActiveActions).toEqual([]);
+	expect(nextStep3.continuingActions).toEqual([]);
 });
 
 test("multiple overlapping actions", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
-		oldActiveActions: [lifeAction],
+		continuingActions: [lifeAction],
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -167,9 +167,9 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep1.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep1.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep1.freeTime).toBe(100);
+	expect(nextStep1.freeTimeHours).toBe(100);
 	expect(nextStep1.newActions).toEqual([]);
-	expect(nextStep1.oldActiveActions).toEqual([lifeAction]);
+	expect(nextStep1.continuingActions).toEqual([lifeAction]);
 
 	const nextStep2 = computeNextStep(nextStep1, [job(2)], "month");
 	expectedBankAccount = (expectedBankAccount - 1000) * inflation + 1000;
@@ -177,9 +177,9 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep2.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep2.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep2.freeTime).toBe(80);
+	expect(nextStep2.freeTimeHours).toBe(80);
 	expect(nextStep2.newActions).toEqual([job(2)]);
-	expect(nextStep2.oldActiveActions).toEqual([lifeAction, job(1)]);
+	expect(nextStep2.continuingActions).toEqual([lifeAction, job(1)]);
 
 	const nextStep3 = computeNextStep(nextStep2, [invest(2, 1000)], "month");
 	expectedBankAccount =
@@ -188,9 +188,9 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep3.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep3.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep3.freeTime).toBe(80);
+	expect(nextStep3.freeTimeHours).toBe(80);
 	expect(nextStep3.newActions).toEqual([invest(2, 1000)]);
-	expect(nextStep3.oldActiveActions).toEqual([
+	expect(nextStep3.continuingActions).toEqual([
 		lifeAction,
 		job(0),
 		invest(1, 1000 * 1.002),
@@ -202,9 +202,9 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep4.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep4.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep4.freeTime).toBe(100);
+	expect(nextStep4.freeTimeHours).toBe(100);
 	expect(nextStep4.newActions).toEqual([]);
-	expect(nextStep4.oldActiveActions).toEqual([
+	expect(nextStep4.continuingActions).toEqual([
 		lifeAction,
 		invest(0, 1000 * 1.002 * 1.002),
 	]);
@@ -216,26 +216,26 @@ test("multiple overlapping actions", () => {
 
 	expect(nextStep5.bankAccount).toBeCloseTo(expectedBankAccount);
 	expect(nextStep5.joy).toBeCloseTo(expectedJoy);
-	expect(nextStep5.freeTime).toBe(100);
+	expect(nextStep5.freeTimeHours).toBe(100);
 	expect(nextStep5.newActions).toEqual([]);
-	expect(nextStep5.oldActiveActions).toEqual([lifeAction]);
+	expect(nextStep5.continuingActions).toEqual([lifeAction]);
 });
 
-test("pension deposit action with multiple ticks", () => {
+test("pension deposit action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
-		freeTime: 100,
+		freeTimeHours: 100,
 		newActions: [],
-		oldActiveActions: [],
+		continuingActions: [],
 	};
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...pensionInvestmentAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -245,21 +245,21 @@ test("pension deposit action with multiple ticks", () => {
 
 	expect(nextStep1.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 1000);
 	expect(nextStep1.joy).toBe(100);
-	expect(nextStep1.freeTime).toBe(0);
+	expect(nextStep1.freeTimeHours).toBe(0);
 	expect(nextStep1.newActions).toEqual([invest(2, 0)]);
-	expect(nextStep1.oldActiveActions).toEqual([invest(1, 1000 * 1.02)]);
+	expect(nextStep1.continuingActions).toEqual([invest(1, 1000 * 1.02)]);
 
 	expect(nextStep2.bankAccount).toBe(INITIAL_BANK_ACCOUNT - 2000);
 	expect(nextStep2.joy).toBe(100);
-	expect(nextStep2.freeTime).toBe(0);
+	expect(nextStep2.freeTimeHours).toBe(0);
 	expect(nextStep2.newActions).toEqual([]);
-	expect(nextStep2.oldActiveActions).toEqual([
+	expect(nextStep2.continuingActions).toEqual([
 		invest(0, 1000 * 1.02 * 1.02 + 1000 * 1.02),
 	]);
 
 	expect(nextStep3.bankAccount).toBeCloseTo(1000 * 1.02 * 1.02 + 1000 * 1.02);
 	expect(nextStep3.joy).toBe(100);
-	expect(nextStep3.freeTime).toBe(0);
+	expect(nextStep3.freeTimeHours).toBe(0);
 	expect(nextStep3.newActions).toEqual([]);
-	expect(nextStep3.oldActiveActions).toEqual([]);
+	expect(nextStep3.continuingActions).toEqual([]);
 });

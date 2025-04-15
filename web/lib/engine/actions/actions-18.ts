@@ -4,7 +4,9 @@ import {
 	impact,
 	absoluteImpact,
 	percentImpact,
-} from "./actions";
+	historyPercent,
+	constantPercent,
+} from "../actions";
 
 const noOpAction: Action = {
 	name: "No Op",
@@ -16,7 +18,7 @@ const noOpAction: Action = {
 	investmentImpact: noImpact,
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 1,
+	remainingSteps: 1,
 };
 
 export const liveWithParentsAction: Action = {
@@ -27,11 +29,11 @@ export const liveWithParentsAction: Action = {
 	llmDescription: "Living expenses when living with your parents",
 	bankAccountImpact: impact({
 		repeatedAbsoluteDelta: -(200 * 12),
-		repeatedPercent: -2,
+		repeatedPercent: constantPercent(-2),
 	}), // levs and inflation per year
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(100), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const waiterPartTimeJobAction: Action = {
@@ -43,7 +45,7 @@ export const waiterPartTimeJobAction: Action = {
 	bankAccountImpact: absoluteImpact(700 * 12), // levs per year
 	joyImpact: absoluteImpact(-5),
 	freeTimeImpact: absoluteImpact(-20), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const waiterFullTimeJobAction: Action = {
@@ -55,7 +57,7 @@ export const waiterFullTimeJobAction: Action = {
 	bankAccountImpact: absoluteImpact(1400 * 12), // levs per year
 	joyImpact: absoluteImpact(-12),
 	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const juniorSweJobAction: Action = {
@@ -67,7 +69,7 @@ export const juniorSweJobAction: Action = {
 	bankAccountImpact: absoluteImpact(3000 * 12), // levs per year
 	joyImpact: absoluteImpact(-8),
 	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 // TODO Requirement to get from Junior to Senior swe
@@ -81,7 +83,7 @@ export const seniorSweJobAction: Action = {
 	bankAccountImpact: absoluteImpact(5000 * 12), // levs per year
 	joyImpact: absoluteImpact(-8),
 	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const savingsDepositAction: Action = {
@@ -91,12 +93,12 @@ export const savingsDepositAction: Action = {
 	shortDescription: "Deposit money into a savings account",
 	llmDescription: "Deposit money into a savings account",
 	investmentImpact: impact({
-		repeatedPercent: 0.2,
+		repeatedPercent: constantPercent(0.2),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 2, // years
+	remainingSteps: 2, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: true,
 };
@@ -108,13 +110,13 @@ export const pensionDepositAction: Action = {
 	shortDescription: "Deposit money into a pension account",
 	llmDescription: "Deposit money into a pension account",
 	investmentImpact: impact({
-		repeatedPercent: 2,
+		repeatedPercent: constantPercent(2),
 		initialPrice: 0,
 		repeatedPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: true,
 };
@@ -126,12 +128,12 @@ export const etfInvestmentOnceAction: Action = {
 	shortDescription: "Buy an ETF fund",
 	llmDescription: "Buy an ETF fund",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		initialPrice: 10000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 	canChangeInitialPrice: true,
 };
 
@@ -142,12 +144,12 @@ export const etfInvestmentRepeatedAction: Action = {
 	shortDescription: "Buy an ETF fund regularly",
 	llmDescription: "Buy an ETF fund regularly",
 	investmentImpact: impact({
-		percentFromHistory: "etf",
+		repeatedPercent: historyPercent("etf"),
 		repeatedPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: true,
 };
@@ -159,12 +161,12 @@ export const stocksInvestmentAction: Action = {
 	shortDescription: "Buy an individual stock",
 	llmDescription: "Buy an individual stock",
 	investmentImpact: impact({
-		repeatedPercent: 10,
+		repeatedPercent: constantPercent(10),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: true,
 };
@@ -176,12 +178,12 @@ export const cryptoInvestmentAction: Action = {
 	shortDescription: "Buy a crypto currency",
 	llmDescription: "Buy a crypto currency",
 	investmentImpact: impact({
-		percentFromHistory: "btc",
+		repeatedPercent: historyPercent("btc"),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 5, // years
+	remainingSteps: 5, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: true,
 };
@@ -193,12 +195,12 @@ export const goldInvestmentAction: Action = {
 	shortDescription: "Buy investment gold",
 	llmDescription: "Buy investment gold",
 	investmentImpact: impact({
-		percentFromHistory: "gold",
+		repeatedPercent: historyPercent("gold"),
 		initialPrice: 5000,
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 5, // years
+	remainingSteps: 5, // years
 	canChangeInitialPrice: true,
 	canChangeRepeatedPrice: false,
 };
@@ -212,7 +214,7 @@ export const skiTripAction: Action = {
 	investmentImpact: absoluteImpact(2000),
 	joyImpact: absoluteImpact(5),
 	freeTimeImpact: noImpact,
-	remainingTicks: 1, // year
+	remainingSteps: 1, // year
 };
 
 export const hobbyMotorbikeRidingAction: Action = {
@@ -224,7 +226,7 @@ export const hobbyMotorbikeRidingAction: Action = {
 	investmentImpact: absoluteImpact(20000),
 	joyImpact: absoluteImpact(20),
 	freeTimeImpact: noImpact,
-	remainingTicks: 1, // year
+	remainingSteps: 1, // year
 };
 
 export const partyingAction: Action = {
@@ -236,7 +238,7 @@ export const partyingAction: Action = {
 	investmentImpact: absoluteImpact(100),
 	joyImpact: absoluteImpact(15),
 	freeTimeImpact: noImpact,
-	remainingTicks: 24, // per year
+	remainingSteps: 24, // per year
 };
 
 export const havingAKidAction: Action = {
@@ -248,7 +250,7 @@ export const havingAKidAction: Action = {
 	investmentImpact: absoluteImpact(15000),
 	joyImpact: absoluteImpact(1),
 	freeTimeImpact: noImpact,
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const allActionsList = {

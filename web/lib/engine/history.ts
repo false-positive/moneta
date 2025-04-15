@@ -1,5 +1,4 @@
-import invariant from "tiny-invariant";
-import { TickKind } from "./cases/index";
+import { TimePointKind } from "./actions";
 
 const etfPrices = [
 	39.04556656, 40.56109619, 40.72795486, 42.65797806, 42.19408035,
@@ -116,47 +115,60 @@ const btcPrices = [
 	96449.05469, 93429.20313, 102405.0234, 84373.00781, 84167.19531,
 ];
 
-function getByMonth(tick: number, prices: number[]) {
-	return prices[tick];
+function getByMonth(timePoint: number, prices: number[]) {
+	return prices[timePoint];
 }
 
-function getByYear(tick: number, prices: number[]) {
-	return prices[tick * 12];
+function getByYear(timePoint: number, prices: number[]) {
+	return prices[timePoint * 12];
 }
 
-function getByWeek(tick: number, prices: number[]) {
-	const lowMonth = Math.floor(tick / 4);
+function getByWeek(timePoint: number, prices: number[]) {
+	const lowMonth = Math.floor(timePoint / 4);
 	const low = prices[lowMonth];
 	const high = prices[lowMonth + 1];
-	const weekInMonth = tick % 4;
+	const weekInMonth = timePoint % 4;
 
 	return low + ((high - low) * weekInMonth) / 4;
 }
 
-function getBeforeAfter(tick: number, prices: number[], tickKind: TickKind) {
+function getBeforeAfter(
+	timePoint: number,
+	prices: number[],
+	timePointKind: TimePointKind
+) {
 	let getter;
-	if (tickKind == "week") {
+	if (timePointKind == "week") {
 		getter = getByWeek;
-	} else if (tickKind == "month") {
+	} else if (timePointKind == "month") {
 		getter = getByMonth;
 	} else getter = getByYear;
 
 	return {
-		before: getter(tick - 1, prices),
-		after: getter(tick, prices),
+		before: getter(timePoint - 1, prices),
+		after: getter(timePoint, prices),
 	};
 }
 
-export function getPercent(tick: number, tickKind: TickKind, prices: number[]) {
-	const { before, after } = getBeforeAfter(tick, prices, tickKind);
+export function getPercent(
+	timePoint: number,
+	timePointKind: TimePointKind,
+	prices: number[]
+) {
+	const { before, after } = getBeforeAfter(timePoint, prices, timePointKind);
 
 	const percentChange = ((after - before) / before) * 100;
 	return percentChange;
 }
 
-export function getPrices(investment: string) {
-	if (investment == "etf") return etfPrices;
-	if (investment == "gold") return goldPrices;
-	if (investment == "btc") return btcPrices;
-	invariant(false, "No historical data for investment");
+const investmentPrices = {
+	etf: etfPrices,
+	gold: goldPrices,
+	btc: btcPrices,
+};
+
+export type InvestmentKind = keyof typeof investmentPrices;
+
+export function getPrices(investment: InvestmentKind) {
+	return investmentPrices[investment];
 }
