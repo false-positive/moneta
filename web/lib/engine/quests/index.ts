@@ -6,10 +6,9 @@ import { Action, computeNextStep, Step, TimePointKind } from "../actions";
  */
 export type QuestDescription = {
 	/**
-	 * The name of the person that the quest is about.
-	 * @deprecated No longer makes sense in the project.
+	 * The age of the person that the quest is about.
 	 */
-	personName: string;
+	personAge: number;
 	/**
 	 * A description of the quest for LLM context.
 	 */

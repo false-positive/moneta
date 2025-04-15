@@ -6,7 +6,7 @@ test("simulate with actions", () => {
 	const INITIAL_BANK_ACCOUNT = 10000;
 
 	const questDescription: QuestDescription = {
-		personName: "John",
+		personAge: 20,
 		questLLMDescription: "John is a waiter",
 		initialStep: {
 			timePoint: 0,

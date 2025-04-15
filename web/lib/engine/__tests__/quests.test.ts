@@ -26,7 +26,7 @@ test("get new actions per step", () => {
 	});
 
 	const questDescription: QuestDescription = {
-		personName: "John",
+		personAge: 20,
 		questLLMDescription: "John is a waiter",
 		initialStep: {
 			timePoint: 0,
@@ -111,7 +111,7 @@ test("simulate with actions", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const questDescription: QuestDescription = {
-		personName: "John",
+		personAge: 20,
 		questLLMDescription: "John is a waiter",
 		initialStep: {
 			timePoint: 0,
@@ -208,7 +208,7 @@ test("get action durations", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const questDescription: QuestDescription = {
-		personName: "John",
+		personAge: 20,
 		questLLMDescription: "John is a waiter",
 		initialStep: {
 			timePoint: 0,
@@ -293,13 +293,13 @@ test("get action durations", () => {
 	expect(actionDurations).toEqual([
 		{
 			action: job(1),
-			startStep: 2,
-			endStep: 2,
+			startTimePoint: 2,
+			endTimePoint: 2,
 		},
 		{
 			action: invest(2, 1000),
-			startStep: 3,
-			endStep: 4,
+			startTimePoint: 3,
+			endTimePoint: 4,
 		},
 	]);
 });
