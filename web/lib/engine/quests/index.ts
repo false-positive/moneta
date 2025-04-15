@@ -118,12 +118,6 @@ export function getLatestStep(quest: Quest) {
 	return latestStep;
 }
 
-/**
- * Get the step of the quest with the greatest time point value.
- *
- * @param quest - The quest to get the current step from.
- * @returns The step with the greatest time point value.
- */
 export function getCurrentStep(quest: Quest) {
 	const currentStep = quest.steps.at(quest.currentStepIndex);
 	invariant(
