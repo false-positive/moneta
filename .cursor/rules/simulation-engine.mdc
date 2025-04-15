@@ -13,7 +13,7 @@ The simulation engine is located inside the `lib/engine/` subdirectory. The XSta
 
 - **Step**: A snapshot of the simulation at a specific point in time
   - Contains metrics (bankAccount, joy, freeTimeHours)
-  - Tracks active actions (newActions, oldActiveActions)
+  - Tracks continuing actions (newActions, continuingActions)
   - Has a time point value representing the time unit (week/month/year)
 
 - **Action**: A user-initiated activity that affects the simulation
@@ -45,7 +45,7 @@ function MyComponent() {
   const freeTime = currentStep.freeTimeHours;
   
   // Get active actions
-  const activeActions = currentStep.oldActiveActions;
+  const activeActions = currentStep.continuingActions;
   
   // Add a new action
   const addAction = () => {
@@ -232,7 +232,7 @@ const myCustomQuest: QuestDescription = {
     joy: 100,
     freeTimeHours: 100,
     newActions: [],
-    oldActiveActions: [lifeAction]
+    continuingActions: [lifeAction]
   }
 };
 ```

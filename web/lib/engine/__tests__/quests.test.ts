@@ -34,7 +34,7 @@ test("get new actions per step", () => {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [lifeAction],
+			continuingActions: [lifeAction],
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
@@ -51,7 +51,7 @@ test("get new actions per step", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction],
+				continuingActions: [lifeAction],
 			},
 			{
 				timePoint: 2,
@@ -59,7 +59,7 @@ test("get new actions per step", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [job(1)],
-				oldActiveActions: [lifeAction],
+				continuingActions: [lifeAction],
 			},
 			{
 				timePoint: 3,
@@ -67,7 +67,7 @@ test("get new actions per step", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [invest(2, 1000)],
-				oldActiveActions: [lifeAction, job(1)],
+				continuingActions: [lifeAction, job(1)],
 			},
 			{
 				timePoint: 4,
@@ -75,7 +75,11 @@ test("get new actions per step", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction, job(0), invest(1, 1000 * 1.002)],
+				continuingActions: [
+					lifeAction,
+					job(0),
+					invest(1, 1000 * 1.002),
+				],
 			},
 			{
 				timePoint: 5,
@@ -83,7 +87,10 @@ test("get new actions per step", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction, invest(0, 1000 * 1.002 * 1.002)],
+				continuingActions: [
+					lifeAction,
+					invest(0, 1000 * 1.002 * 1.002),
+				],
 			},
 		],
 		currentStepIndex: 0,
@@ -112,7 +119,7 @@ test("simulate with actions", () => {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [lifeAction],
+			continuingActions: [lifeAction],
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
@@ -148,7 +155,7 @@ test("simulate with actions", () => {
 	expect(steps[1].joy).toBeCloseTo(expectedJoy);
 	expect(steps[1].freeTimeHours).toBe(100);
 	expect(steps[1].newActions).toEqual([]);
-	expect(steps[1].oldActiveActions).toEqual([lifeAction]);
+	expect(steps[1].continuingActions).toEqual([lifeAction]);
 
 	expectedBankAccount = (expectedBankAccount - 1000) * inflation + 1000;
 	expectedJoy = expectedJoy * 0.9 * 0.95;
@@ -157,7 +164,7 @@ test("simulate with actions", () => {
 	expect(steps[2].joy).toBeCloseTo(expectedJoy);
 	expect(steps[2].freeTimeHours).toBe(80);
 	expect(steps[2].newActions).toEqual([job(2)]);
-	expect(steps[2].oldActiveActions).toEqual([lifeAction, job(1)]);
+	expect(steps[2].continuingActions).toEqual([lifeAction, job(1)]);
 
 	expectedBankAccount =
 		(expectedBankAccount - 1000) * inflation + 1000 - 1000;
@@ -167,7 +174,7 @@ test("simulate with actions", () => {
 	expect(steps[3].joy).toBeCloseTo(expectedJoy);
 	expect(steps[3].freeTimeHours).toBe(80);
 	expect(steps[3].newActions).toEqual([invest(2, 1000)]);
-	expect(steps[3].oldActiveActions).toEqual([
+	expect(steps[3].continuingActions).toEqual([
 		lifeAction,
 		job(0),
 		invest(1, 1000 * 1.002),
@@ -180,7 +187,7 @@ test("simulate with actions", () => {
 	expect(steps[4].joy).toBeCloseTo(expectedJoy);
 	expect(steps[4].freeTimeHours).toBe(100);
 	expect(steps[4].newActions).toEqual([]);
-	expect(steps[4].oldActiveActions).toEqual([
+	expect(steps[4].continuingActions).toEqual([
 		lifeAction,
 		invest(0, 1000 * 1.002 * 1.002),
 	]);
@@ -193,7 +200,7 @@ test("simulate with actions", () => {
 	expect(steps[5].joy).toBeCloseTo(expectedJoy);
 	expect(steps[5].freeTimeHours).toBe(100);
 	expect(steps[5].newActions).toEqual([]);
-	expect(steps[5].oldActiveActions).toEqual([lifeAction]);
+	expect(steps[5].continuingActions).toEqual([lifeAction]);
 	expect(steps[5].timePoint).toBe(5);
 });
 
@@ -209,7 +216,7 @@ test("get action durations", () => {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [lifeAction],
+			continuingActions: [lifeAction],
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
@@ -237,7 +244,7 @@ test("get action durations", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction],
+				continuingActions: [lifeAction],
 			},
 			{
 				timePoint: 2,
@@ -245,7 +252,7 @@ test("get action durations", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [job(1)],
-				oldActiveActions: [lifeAction],
+				continuingActions: [lifeAction],
 			},
 			{
 				timePoint: 3,
@@ -253,7 +260,7 @@ test("get action durations", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [invest(2, 1000)],
-				oldActiveActions: [lifeAction, job(1)],
+				continuingActions: [lifeAction, job(1)],
 			},
 			{
 				timePoint: 4,
@@ -261,7 +268,11 @@ test("get action durations", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction, job(0), invest(1, 1000 * 1.002)],
+				continuingActions: [
+					lifeAction,
+					job(0),
+					invest(1, 1000 * 1.002),
+				],
 			},
 			{
 				timePoint: 5,
@@ -269,7 +280,10 @@ test("get action durations", () => {
 				joy: 100,
 				freeTimeHours: 100,
 				newActions: [],
-				oldActiveActions: [lifeAction, invest(0, 1000 * 1.002 * 1.002)],
+				continuingActions: [
+					lifeAction,
+					invest(0, 1000 * 1.002 * 1.002),
+				],
 			},
 		],
 		currentStepIndex: 0,

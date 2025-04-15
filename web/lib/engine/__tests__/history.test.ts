@@ -14,7 +14,7 @@ test("simulate with actions", () => {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [],
+			continuingActions: [],
 		},
 		maxStepCount: 5,
 		timePointKind: "year",
@@ -37,21 +37,21 @@ test("simulate with actions", () => {
 
 	expect(steps[1].bankAccount).toBeCloseTo(10000);
 	expect(steps[1].newActions).toEqual([]);
-	expect(steps[1].oldActiveActions).toEqual([]);
+	expect(steps[1].continuingActions).toEqual([]);
 
 	expect(steps[2].bankAccount).toBeCloseTo(0);
 	expect(steps[2].newActions).toEqual([invest(10, 10000)]);
-	expect(steps[2].oldActiveActions).toEqual([invest(9, 11442.537004494628)]);
+	expect(steps[2].continuingActions).toEqual([invest(9, 11442.537004494628)]);
 
 	expect(steps[3].bankAccount).toBeCloseTo(0);
 	expect(steps[3].newActions).toEqual([]);
-	expect(steps[3].oldActiveActions).toEqual([invest(8, 10878.491998196578)]);
+	expect(steps[3].continuingActions).toEqual([invest(8, 10878.491998196578)]);
 
 	expect(steps[4].bankAccount).toBeCloseTo(0);
 	expect(steps[4].newActions).toEqual([]);
-	expect(steps[4].oldActiveActions).toEqual([invest(7, 7126.628278066064)]);
+	expect(steps[4].continuingActions).toEqual([invest(7, 7126.628278066064)]);
 
 	expect(steps[5].bankAccount).toBeCloseTo(0);
 	expect(steps[5].newActions).toEqual([]);
-	expect(steps[5].oldActiveActions).toEqual([invest(6, 10076.214372026796)]);
+	expect(steps[5].continuingActions).toEqual([invest(6, 10076.214372026796)]);
 });

@@ -14,7 +14,7 @@ export const standardQuests: Record<string, QuestDescription> = {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [lifeAction],
+			continuingActions: [lifeAction],
 		},
 	},
 	marti: {
@@ -29,7 +29,7 @@ export const standardQuests: Record<string, QuestDescription> = {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [lifeAction],
+			continuingActions: [lifeAction],
 		},
 	},
 	maria: {
@@ -44,7 +44,7 @@ export const standardQuests: Record<string, QuestDescription> = {
 			joy: 100,
 			freeTimeHours: 100,
 			newActions: [],
-			oldActiveActions: [{ ...lifeAction }],
+			continuingActions: [{ ...lifeAction }],
 		},
 	},
 };

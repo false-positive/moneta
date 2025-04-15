@@ -49,14 +49,14 @@ export type Step = {
 	 *
 	 * Note: They are applied after all pre-existing actions.
 	 *
-	 * If any of these actions are still relevant after the current step, they will be added to the list of {@link oldActiveActions} with a decremented {@link remainingSteps}.
+	 * If any of these actions are still relevant after the current step, they will be added to the list of {@link continuingActions} with a decremented {@link remainingSteps}.
 	 */
 	newActions: Action[];
 	/**
 	 * A list of actions that were started in any previous step, but are still relevant in the current step (and potentially in future steps).
 	 * The result of these actions is already apparent in the current step.
 	 */
-	oldActiveActions: Action[];
+	continuingActions: Action[];
 };
 
 /**
@@ -299,7 +299,7 @@ function applyAction(
 			timePointKind
 		),
 
-		oldActiveActions: [...step.oldActiveActions, newAction],
+		continuingActions: [...step.continuingActions, newAction],
 	} satisfies Step;
 }
 
@@ -338,12 +338,12 @@ export function computeNextStep(
 	let nextStep: Step = {
 		...previousStep,
 		newActions,
-		oldActiveActions: [],
+		continuingActions: [],
 		freeTimeHours: 0,
 		timePoint: previousStep.timePoint + 1,
 	};
 
-	for (const action of previousStep.oldActiveActions) {
+	for (const action of previousStep.continuingActions) {
 		if (isActionFinished(action)) {
 			nextStep = finishAction(action, nextStep);
 		} else {
