@@ -6,10 +6,6 @@ import {
 	Wallet,
 	Clock,
 	Heart,
-	Info,
-	Building,
-	Briefcase,
-	TrendingUp,
 } from "lucide-react";
 import type { Step } from "@/lib/cases/actions";
 import { type ActionTiming } from "@/components/timeline";
@@ -18,17 +14,16 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { useEffect } from "react";
 
 export interface MetricsCardProps {
 	selectedTime: number;
-	timeframe: "years" | "months" | "weeks" | "days";
 	steps: Step[];
 	actionTimings: ActionTiming[];
 }
 
 export function MetricsCard({
 	selectedTime,
-	timeframe,
 	steps,
 	actionTimings,
 }: MetricsCardProps) {
@@ -42,6 +37,16 @@ export function MetricsCard({
 	if (!currentStep) {
 		return null;
 	}
+
+	// useEffect(() => {
+	// 	console.log("MetricsCard - currentStep", currentStep);
+	// 	console.log("MetricsCard - activeTimings", activeTimings);
+	// 	console.log("Current Step - newActions", currentStep.newActions);
+	// 	console.log(
+	// 		"Current Step - oldActiveActions",
+	// 		currentStep.oldActiveActions
+	// 	);
+	// }, [currentStep, activeTimings]);
 
 	const activeActions = activeTimings.map((timing) => timing.action);
 
@@ -92,18 +97,14 @@ export function MetricsCard({
 			return sum;
 		}, 0),
 
-		assets:
-			currentStep.bankAccount +
-			allActions.reduce((sum, action) => {
-				if (action.kind === "investment") {
-					return sum + action.capital;
-				}
-				return sum;
-			}, 0),
-
-		freeTimeHours: currentStep.freeTime,
+		assets: currentStep.bankAccount,
+		freeTime: currentStep.freeTime,
 		joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
 	};
+
+	useEffect(() => {
+		console.log("--------MetricsCard - metrics", metrics);
+	}, [metrics]);
 
 	return (
 		<div className="p-3">
@@ -157,7 +158,9 @@ export function MetricsCard({
 						</div>
 					</div>
 					<div className="text-sm font-bold text-amber-900 ml-1">
-						{metrics.freeTimeHours.toFixed(0)} h/w
+						{/* Add here some cool logic about free time calculations - BE has %, 
+						use hours per week/month/year -> or not, BE might return hours*/}
+						{metrics.freeTime} %
 					</div>
 					<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 						<div
@@ -165,7 +168,7 @@ export function MetricsCard({
 							style={{
 								width: `${Math.min(
 									100,
-									(metrics.freeTimeHours / 40) * 100
+									(metrics.freeTime / 40) * 100
 								)}%`,
 							}}
 						></div>

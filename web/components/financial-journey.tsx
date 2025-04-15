@@ -90,7 +90,6 @@ export function FinancialJourney({
 	currentYear,
 	onYearSelect,
 	highestUnlockedYear,
-	onUnlockNextYear,
 }: FinancialJourneyProps) {
 	const [selectedNode, setSelectedNode] = useState<number>(currentYear);
 	const [detailsOpen, setDetailsOpen] = useState(false);
@@ -160,7 +159,7 @@ export function FinancialJourney({
 
 	const getNodeStatus = useCallback(
 		(year: number) => {
-			return "unlocked"
+			return "unlocked";
 			if (year < selectedNode) return "completed";
 			if (year === selectedNode) return "current";
 			if (year <= highestUnlockedYear) return "unlocked";
@@ -212,8 +211,8 @@ export function FinancialJourney({
 				setSelectedNode(year);
 				setDetailsOpen(true);
 			}
-			onUnlockNextYear(year + 1)
-			router.push('/choices')
+			onUnlockNextYear(year + 1);
+			router.push("/choices");
 		},
 		[highestUnlockedYear]
 	);

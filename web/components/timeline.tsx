@@ -88,10 +88,6 @@ export function Timeline({
 		setEventDetailsOpen(true);
 	};
 
-	useEffect(() => {
-		console.log("[timeline] actionTimings", actionTimings);
-	}, [actionTimings]);
-
 	return (
 		<div className="w-full overflow-x-auto">
 			<div className="min-w-[800px] mb-1">
@@ -119,9 +115,6 @@ export function Timeline({
 											: "bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600"
 									}`}
 									onClick={() => handleUnitClick(unit)}
-									// onDoubleClick={() =>
-									// 	handleUnitDoubleClick(unit)
-									// }
 								>
 									{unit}
 								</div>
