@@ -189,6 +189,7 @@ export type Action = {
 	 */
 	name: string;
 	/**
+	 * A cosmetic value, used to classify actions in the UI. Does not affect the simulation.
 	 * @see {@link ActionKind}
 	 */
 	kind: ActionKind;
@@ -205,8 +206,8 @@ export type Action = {
 	 *
 	 * If this action is currently being added, the value will be the duration in steps that it will be relevant.
 	 * After it was applied, the number is decremented by 1 and represents how many more steps it will be relevant for.
-	 *
-	 * When the value reaches 0, the action is finished and the {@link capital} of the action (if any) is added to the bank account.
+	 * When `remainingSteps` reaches 0, the action is finished.
+	 * If {@link capital} is nonzero, its value is added to the bank account in the next step as the action finishes.
 	 */
 	remainingSteps: number;
 
