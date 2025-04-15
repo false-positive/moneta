@@ -9,7 +9,7 @@ test("simulate with actions", () => {
 		personName: "John",
 		questLLMDescription: "John is a waiter",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
 			freeTimeHours: 100,
@@ -17,12 +17,12 @@ test("simulate with actions", () => {
 			oldActiveActions: [],
 		},
 		maxStepCount: 5,
-		tickKind: "year",
+		timePointKind: "year",
 	};
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...etfInvestmentOnceAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 

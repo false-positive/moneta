@@ -25,7 +25,7 @@ export const questStore = createStore({
 			const nextStep = computeNextStep(
 				latestStep,
 				event.newActions ?? [],
-				quest.description.tickKind
+				quest.description.timePointKind
 			);
 
 			const newSteps = [...quest.steps, nextStep];

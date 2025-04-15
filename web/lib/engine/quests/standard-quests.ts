@@ -7,9 +7,9 @@ export const standardQuests: Record<string, QuestDescription> = {
 		questLLMDescription:
 			"Maria is 6 years old and has 100 BGN monthly allowance, which she spends on buying food, clothes and other stuff",
 		maxStepCount: 1,
-		tickKind: "month",
+		timePointKind: "month",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: 100,
 			joy: 100,
 			freeTimeHours: 100,
@@ -22,9 +22,9 @@ export const standardQuests: Record<string, QuestDescription> = {
 		questLLMDescription:
 			"Marti is 10 years old and has 20 BGN monthly allowance, which she spends on buying breakfast, lunch and snacks",
 		maxStepCount: 5,
-		tickKind: "year",
+		timePointKind: "year",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: 20,
 			joy: 100,
 			freeTimeHours: 100,
@@ -37,9 +37,9 @@ export const standardQuests: Record<string, QuestDescription> = {
 		questLLMDescription:
 			"Ivan is 18 years old and has 5000 BGN in his bank account, which he spends on buying food, clothes and other stuff",
 		maxStepCount: 5,
-		tickKind: "year",
+		timePointKind: "year",
 		initialStep: {
-			tick: 2020,
+			timePoint: 2020,
 			bankAccount: 5000,
 			joy: 100,
 			freeTimeHours: 100,

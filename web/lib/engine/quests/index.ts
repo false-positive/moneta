@@ -1,5 +1,5 @@
 import invariant from "tiny-invariant";
-import { Action, computeNextStep, Step, TickKind } from "../actions";
+import { Action, computeNextStep, Step, TimePointKind } from "../actions";
 
 /**
  * A description of a quest, predefined in the given levels.
@@ -26,14 +26,14 @@ export type QuestDescription = {
 	 * actions that are relevant before the user makes any decisions.
 	 *
 	 * The user can add actions to this step by making decisions immediately
-	 * after the quest starts and before they advance to the next tick. They
+	 * after the quest starts and before they advance to the next step. They
 	 * will be appended after any pre-defined new actions.
 	 */
 	initialStep: Step;
 	/**
-	 * The kind of tick to use for the quest.
+	 * The kind of time point to use for the quest.
 	 */
-	tickKind: TickKind;
+	timePointKind: TimePointKind;
 };
 
 /**
@@ -100,7 +100,7 @@ export function simulateWithActions(
 			computeNextStep(
 				steps[steps.length - 1],
 				actions,
-				questDescription.tickKind
+				questDescription.timePointKind
 			)
 		);
 	}
@@ -108,10 +108,10 @@ export function simulateWithActions(
 }
 
 /**
- * Get the step of the quest with the greatest tick value.
+ * Get the step of the quest with the greatest time point value.
  *
  * @param quest - The quest to get the latest step from.
- * @returns The step with the greatest tick value.
+ * @returns The step with the greatest time point value.
  */
 export function getLatestStep(quest: Quest) {
 	const latestStep = quest.steps.at(-1);
@@ -122,15 +122,15 @@ export function getLatestStep(quest: Quest) {
 /**
  * Get the durations of all actions in the quest.
  *
- * For each new action, it returns an object with the action, the tick on which it started and the tick on which it ended.
+ * For each new action, it returns an object with the action, the time point on which it started and the time point on which it ended.
  *
- * The `startTick` is the first tick, on which the action was added to the step (inclusive).
- * The `endTick` is the last tick, on which the action was relevant (inclusive).
+ * The `startTimePoint` is the first time point, on which the action was added to the step (inclusive).
+ * The `endTimePoint` is the last time point, on which the action was relevant (inclusive).
  *
  * Example:
  *
- * If the action is added to the step on tick 2025 and it lasts for 3 ticks,
- * the returned object will have `startTick` 2025 and `endTick` 2027.
+ * If the action is added to the step on time point 2025 and it lasts for 3 time points,
+ * the returned object will have `startTimePoint` 2025 and `endTimePoint` 2027.
  *
  * @param quest - The quest to get the action durations from.
  * @returns A list of action durations.
@@ -139,8 +139,8 @@ export function getActionDurations(quest: Quest) {
 	return quest.steps.flatMap((step) => {
 		return step.newActions.map((action) => ({
 			action,
-			startTick: step.tick,
-			endTick: step.tick + action.remainingTicks - 1,
+			startTimePoint: step.timePoint,
+			endTimePoint: step.timePoint + action.remainingSteps - 1,
 		}));
 	});
 }

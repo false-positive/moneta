@@ -11,7 +11,7 @@ test("life action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 2134,
@@ -34,7 +34,7 @@ test("waiter job action", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 100,
@@ -51,11 +51,11 @@ test("waiter job action", () => {
 	expect(nextStep.oldActiveActions).toEqual([waiterJobAction]);
 });
 
-test("waiter job action with multiple ticks", () => {
+test("waiter job action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 100_000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 100,
@@ -63,9 +63,9 @@ test("waiter job action with multiple ticks", () => {
 		oldActiveActions: [],
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
 
 	const nextStep1 = computeNextStep(initialStep, [job(2)], "month");
@@ -91,11 +91,11 @@ test("waiter job action with multiple ticks", () => {
 	expect(nextStep3.oldActiveActions).toEqual([]);
 });
 
-test("savings deposit action with multiple ticks", () => {
+test("savings deposit action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 100,
@@ -103,9 +103,9 @@ test("savings deposit action with multiple ticks", () => {
 		oldActiveActions: [],
 	};
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -140,7 +140,7 @@ test("multiple overlapping actions", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 100,
@@ -148,13 +148,13 @@ test("multiple overlapping actions", () => {
 		oldActiveActions: [lifeAction],
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -221,11 +221,11 @@ test("multiple overlapping actions", () => {
 	expect(nextStep5.oldActiveActions).toEqual([lifeAction]);
 });
 
-test("pension deposit action with multiple ticks", () => {
+test("pension deposit action with multiple steps", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
 	const initialStep: Step = {
-		tick: 0,
+		timePoint: 0,
 		bankAccount: INITIAL_BANK_ACCOUNT,
 		joy: 100,
 		freeTimeHours: 100,
@@ -233,9 +233,9 @@ test("pension deposit action with multiple ticks", () => {
 		oldActiveActions: [],
 	};
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...pensionInvestmentAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 

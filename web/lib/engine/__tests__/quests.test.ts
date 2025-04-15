@@ -15,13 +15,13 @@ import {
 test("get new actions per step", () => {
 	const INITIAL_BANK_ACCOUNT = 2000;
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -29,7 +29,7 @@ test("get new actions per step", () => {
 		personName: "John",
 		questLLMDescription: "John is a waiter",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
 			freeTimeHours: 100,
@@ -37,7 +37,7 @@ test("get new actions per step", () => {
 			oldActiveActions: [lifeAction],
 		},
 		maxStepCount: 5,
-		tickKind: "week",
+		timePointKind: "week",
 	};
 
 	const quest: Quest = {
@@ -46,7 +46,7 @@ test("get new actions per step", () => {
 			// FIXME: Use proper values for metrics here
 			questDescription.initialStep,
 			{
-				tick: 1,
+				timePoint: 1,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -54,7 +54,7 @@ test("get new actions per step", () => {
 				oldActiveActions: [lifeAction],
 			},
 			{
-				tick: 2,
+				timePoint: 2,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -62,7 +62,7 @@ test("get new actions per step", () => {
 				oldActiveActions: [lifeAction],
 			},
 			{
-				tick: 3,
+				timePoint: 3,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -70,7 +70,7 @@ test("get new actions per step", () => {
 				oldActiveActions: [lifeAction, job(1)],
 			},
 			{
-				tick: 4,
+				timePoint: 4,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -78,7 +78,7 @@ test("get new actions per step", () => {
 				oldActiveActions: [lifeAction, job(0), invest(1, 1000 * 1.002)],
 			},
 			{
-				tick: 5,
+				timePoint: 5,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -107,7 +107,7 @@ test("simulate with actions", () => {
 		personName: "John",
 		questLLMDescription: "John is a waiter",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
 			freeTimeHours: 100,
@@ -115,16 +115,16 @@ test("simulate with actions", () => {
 			oldActiveActions: [lifeAction],
 		},
 		maxStepCount: 5,
-		tickKind: "week",
+		timePointKind: "week",
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -194,7 +194,7 @@ test("simulate with actions", () => {
 	expect(steps[5].freeTimeHours).toBe(100);
 	expect(steps[5].newActions).toEqual([]);
 	expect(steps[5].oldActiveActions).toEqual([lifeAction]);
-	expect(steps[5].tick).toBe(5);
+	expect(steps[5].timePoint).toBe(5);
 });
 
 test("get action durations", () => {
@@ -204,7 +204,7 @@ test("get action durations", () => {
 		personName: "John",
 		questLLMDescription: "John is a waiter",
 		initialStep: {
-			tick: 0,
+			timePoint: 0,
 			bankAccount: INITIAL_BANK_ACCOUNT,
 			joy: 100,
 			freeTimeHours: 100,
@@ -212,17 +212,17 @@ test("get action durations", () => {
 			oldActiveActions: [lifeAction],
 		},
 		maxStepCount: 5,
-		tickKind: "week",
+		timePointKind: "week",
 	};
 
-	const job = (ticks: number) => ({
+	const job = (steps: number) => ({
 		...waiterJobAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 	});
 
-	const invest = (ticks: number, capital: number) => ({
+	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
-		remainingTicks: ticks,
+		remainingSteps: steps,
 		capital,
 	});
 
@@ -232,7 +232,7 @@ test("get action durations", () => {
 			// FIXME: Use proper values for metrics here
 			questDescription.initialStep,
 			{
-				tick: 1,
+				timePoint: 1,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -240,7 +240,7 @@ test("get action durations", () => {
 				oldActiveActions: [lifeAction],
 			},
 			{
-				tick: 2,
+				timePoint: 2,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -248,7 +248,7 @@ test("get action durations", () => {
 				oldActiveActions: [lifeAction],
 			},
 			{
-				tick: 3,
+				timePoint: 3,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -256,7 +256,7 @@ test("get action durations", () => {
 				oldActiveActions: [lifeAction, job(1)],
 			},
 			{
-				tick: 4,
+				timePoint: 4,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -264,7 +264,7 @@ test("get action durations", () => {
 				oldActiveActions: [lifeAction, job(0), invest(1, 1000 * 1.002)],
 			},
 			{
-				tick: 5,
+				timePoint: 5,
 				bankAccount: INITIAL_BANK_ACCOUNT,
 				joy: 100,
 				freeTimeHours: 100,
@@ -279,13 +279,13 @@ test("get action durations", () => {
 	expect(actionDurations).toEqual([
 		{
 			action: job(1),
-			startTick: 2,
-			endTick: 2,
+			startStep: 2,
+			endStep: 2,
 		},
 		{
 			action: invest(2, 1000),
-			startTick: 3,
-			endTick: 4,
+			startStep: 3,
+			endStep: 4,
 		},
 	]);
 });

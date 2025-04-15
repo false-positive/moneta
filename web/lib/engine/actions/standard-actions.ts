@@ -18,7 +18,7 @@ const noOpAction: Action = {
 	investmentImpact: noImpact,
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 1,
+	remainingSteps: 1,
 };
 
 export const lifeAction: Action = {
@@ -33,7 +33,7 @@ export const lifeAction: Action = {
 	}), // levs per month + inflation per month
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(100), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const waiterJobAction: Action = {
@@ -45,7 +45,7 @@ export const waiterJobAction: Action = {
 	bankAccountImpact: absoluteImpact(1000), // levs per month
 	joyImpact: percentImpact(-5),
 	freeTimeImpact: absoluteImpact(-20), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const sweJobAction: Action = {
@@ -57,7 +57,7 @@ export const sweJobAction: Action = {
 	bankAccountImpact: absoluteImpact(5000), // levs per month
 	joyImpact: percentImpact(-10),
 	freeTimeImpact: absoluteImpact(-40), // hours per week
-	remainingTicks: Infinity,
+	remainingSteps: Infinity,
 };
 
 export const savingsDepositAction: Action = {
@@ -72,7 +72,7 @@ export const savingsDepositAction: Action = {
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
+	remainingSteps: 12, // months
 };
 
 export const pensionInvestmentAction: Action = {
@@ -87,7 +87,7 @@ export const pensionInvestmentAction: Action = {
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 12, // months
+	remainingSteps: 12, // months
 };
 
 export const etfInvestmentOnceAction: Action = {
@@ -102,7 +102,7 @@ export const etfInvestmentOnceAction: Action = {
 	}),
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
-	remainingTicks: 10, // years
+	remainingSteps: 10, // years
 };
 
 export const allActionsList = {
