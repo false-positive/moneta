@@ -119,6 +119,21 @@ export function getLatestStep(quest: Quest) {
 }
 
 /**
+ * Get the step of the quest with the greatest time point value.
+ *
+ * @param quest - The quest to get the current step from.
+ * @returns The step with the greatest time point value.
+ */
+export function getCurrentStep(quest: Quest) {
+	const currentStep = quest.steps.at(quest.currentStepIndex);
+	invariant(
+		currentStep,
+		"No steps in quest or currentStepIndex out of bounds"
+	);
+	return currentStep;
+}
+
+/**
  * Get the durations of all actions in the quest.
  *
  * For each new action, it returns an object with the action, the time point on which it started and the time point on which it ended.
