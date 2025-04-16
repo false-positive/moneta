@@ -35,12 +35,19 @@ export const questStore = createStore({
 				currentStepIndex: quest.currentStepIndex + 1,
 			};
 		},
+		/**
+		 * Advance to a brand new step by performing actions that take place in the previous step.
+		 */
 		newStep: (quest, event: { newActions?: Action[] }) => {
 			const latestStep = getLatestStep(quest);
 
+			latestStep.newActions = latestStep.newActions.concat(
+				event.newActions || []
+			);
+
 			const nextStep = computeNextStep(
 				latestStep,
-				event.newActions ?? [],
+				[],
 				quest.description.timePointKind
 			);
 
