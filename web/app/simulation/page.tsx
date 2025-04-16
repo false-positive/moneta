@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useSelector } from "@xstate/store/react";
+import { questStore } from "@/lib/engine/stores/quest-store";
+import { getActionDurations, getLatestStep } from "@/lib/engine/quests";
 import { FinancialJourney } from "@/components/financial-journey";
 import { MetricsCard } from "@/components/metrics-card";
 import { TransactionList } from "@/components/transaction-list";
 import { SpendingGraph } from "@/components/spending-graph";
-import { Timeline, type ActionTiming } from "@/components/timeline";
-import type { Step, Action } from "@/lib/cases/actions";
-import { CaseDescription, simulateWithActions } from "@/lib/cases/index";
+import { Timeline } from "@/components/timeline";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Trophy,
@@ -22,7 +23,6 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import SuperJSON from "superjson";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -43,75 +43,48 @@ const weekUnits = Array.from({ length: 52 }, (_, i) => `Week ${i + 1}`);
 const dayUnits = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
 export default function Simulation() {
-	const [currentStep, setCurrentStep] = useState(2020);
 	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
 	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
 	const [isFinancialDataOpen, setIsFinancialDataOpen] = useState(true);
-	const [steps, setSteps] = useState<Step[]>([]);
-	const [actionTimings, setActionTimings] = useState<ActionTiming[]>([]);
-	const timeframe = "years";
 
-	useEffect(() => {
-		const currentYearStep = steps.find((step) => step.tick === currentStep);
-		if (currentYearStep) {
-			console.log("[simulation] Current Year Information:", {
-				year: currentStep,
-				bankAccount: currentYearStep.bankAccount,
-				joy: currentYearStep.joy,
-				freeTime: currentYearStep.freeTime,
-				newActions: currentYearStep.newActions,
-				activeActions: currentYearStep.oldActiveActions,
-				allActions: [
-					...currentYearStep.oldActiveActions,
-					...currentYearStep.newActions,
-				],
-			});
+	// Get current simulation state from XState store
+	const context = useSelector(questStore, (s) => s.context);
 
-			const activeTimings = actionTimings.filter(
-				(timing) =>
-					timing.startTick <= currentStep &&
-					timing.endTick >= currentStep
-			);
+	const { currentStep, timeframe, steps } = useMemo(() => {
+		const currentStep = getLatestStep(context);
+		const data = {
+			currentStep,
+			timeframe: context.description.timePointKind, // "year" | "month" | "week" | "day"
+			steps: context.steps, // All simulation steps
+		};
+		return data;
+	}, [context]); // Recompute when context changes
 
-			console.log(
-				"[simulation] Active action timings for year",
-				currentStep,
-				":",
-				activeTimings
-			);
-		} else {
-			console.log("No data for year:", currentStep);
-		}
-	}, [currentStep, actionTimings]);
+	// Calculate action timings (when actions start/end)
+	const actionTimings = useMemo(() => {
+		const timings = getActionDurations(context);
+		return timings;
+	}, [context.steps]); // Recompute when steps change
 
-	useEffect(() => {
-		const storedSteps = SuperJSON.parse(
-			localStorage.getItem("steps") || "[]"
-		) as Step[];
-		const storedActionTimings = SuperJSON.parse(
-			localStorage.getItem("actionTimings") || "[]"
-		) as ActionTiming[];
+	// Handle selection of a specific time point in the journey
+	const handleStepSelect = (timePoint: number) => {
+		const newIndex = steps.findIndex(
+			(step) => step.timePoint === timePoint
+		);
 
-		setSteps(storedSteps);
-		setActionTimings(storedActionTimings);
-
-		const firstStep = storedSteps[0]?.tick || 2020;
-		setCurrentStep(firstStep);
-	}, []);
-
-	const handleStepSelect = (year: number) => {
-		setCurrentStep(year);
-		if (timeframe === "years") {
-			setCurrentStep(year);
-		}
+		questStore.send({
+			type: "currentStepIndexChange",
+			newCurrentStepIndex: newIndex,
+		});
 	};
 
+	// Select appropriate time units based on timeframe
 	const currentUnits =
-		timeframe === "years"
+		timeframe === "year"
 			? yearUnits
-			: timeframe === "months"
+			: timeframe === "month"
 			? monthUnits
-			: timeframe === "weeks"
+			: timeframe === "week"
 			? weekUnits
 			: dayUnits;
 
@@ -133,18 +106,16 @@ export default function Simulation() {
 							<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
 								<h2 className="text-white font-bold flex items-center gap-2">
 									<Route className="h-4 w-4" />
-									Your Financial Journey
+									Decisions roadmap
 								</h2>
 							</div>
 							<div className="p-2">
-								{/* <FinancialJourney
+								<FinancialJourney
 									steps={steps}
 									timeUnits={currentUnits}
-									actionTimings={actionTimings}
-									currentYear={currentStep}
-									onYearSelect={handleStepSelect}
-									highestUnlockedYear={highestUnlockedStep}
-								/> */}
+									currentTimePoint={currentStep.timePoint}
+									onTimePointSelect={handleStepSelect}
+								/>
 							</div>
 						</div>
 
@@ -167,18 +138,7 @@ export default function Simulation() {
 								</CollapsibleTrigger>
 							</div>
 							<CollapsibleContent>
-								<div className="p-4">
-									<Timeline
-										timeUnits={currentUnits}
-										steps={steps}
-										selectedUnit={currentStep}
-										unitType={timeframe}
-										onUnitClick={(unit) => {
-											handleStepSelect(unit as any);
-										}}
-										actionTimings={actionTimings}
-									/>
-								</div>
+								<div className="p-4"></div>
 							</CollapsibleContent>
 						</Collapsible>
 					</div>
@@ -203,17 +163,18 @@ export default function Simulation() {
 								</CollapsibleTrigger>
 							</div>
 							<CollapsibleContent>
-								<div className="p-2">
+								<div className="p-4">
 									<MetricsCard
-										selectedTime={currentStep}
-										steps={steps.map((step) => ({
-											...step,
-											oldActiveActions: [
-												...step.oldActiveActions,
-												...step.newActions,
-											],
-										}))}
-										actionTimings={actionTimings}
+										selectedTime={currentStep.timePoint}
+										steps={steps}
+										actionTimings={actionTimings.map(
+											(timing) => ({
+												action: timing.action,
+												startTick:
+													timing.startTimePoint,
+												endTick: timing.endTimePoint,
+											})
+										)}
 									/>
 								</div>
 							</CollapsibleContent>
@@ -264,48 +225,48 @@ export default function Simulation() {
 										value="transactions"
 										className="p-2"
 									>
-										<TransactionList
+										{/* <TransactionList
 											selectedTimeframe={timeframe}
-											selectedUnit={currentStep}
+											selectedTime={currentStep.timePoint}
 											actions={
 												steps.find(
 													(step) =>
-														step?.tick ===
-														currentStep
+														step.timePoint ===
+														currentStep.timePoint
 												)
 													? [
 															...(steps.find(
 																(step) =>
-																	step?.tick ===
-																	currentStep
+																	step.timePoint ===
+																	currentStep.timePoint
 															)?.newActions ||
 																[]),
 															...(steps.find(
 																(step) =>
-																	step?.tick ===
-																	currentStep
+																	step.timePoint ===
+																	currentStep.timePoint
 															)
-																?.oldActiveActions ||
+																?.continuingActions ||
 																[]),
 													  ]
 													: []
 											}
 											actionTimings={actionTimings}
-											currentYear={currentStep}
-										/>
+											currentYear={currentStep.timePoint}
+										/> */}
 									</TabsContent>
 
 									<TabsContent
 										value="analysis"
 										className="p-2"
 									>
-										<SpendingGraph
+										{/* <SpendingGraph
 											timeUnits={currentUnits}
-											selectedUnit={currentStep}
+											selectedUnit={currentStep.timePoint}
 											actionTimings={actionTimings}
 											timeframe={timeframe}
-											currentYear={currentStep}
-										/>
+											currentYear={currentStep.timePoint}
+										/> */}
 									</TabsContent>
 								</Tabs>
 							</CollapsibleContent>

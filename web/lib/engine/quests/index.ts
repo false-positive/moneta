@@ -152,3 +152,5 @@ export function getActionDurations(quest: Quest) {
 		}));
 	});
 }
+
+export type { Step };

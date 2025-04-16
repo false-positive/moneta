@@ -1,4 +1,3 @@
-import { CaseCards } from "@/components/case-cards";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Trophy, BarChart3, Target } from "lucide-react";
@@ -78,7 +77,6 @@ export default function Home() {
 								by teaching them how its done!
 							</p>
 						</div>
-						<CaseCards />
 					</div>
 				</div>
 			</main>

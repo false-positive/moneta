@@ -8,7 +8,7 @@ import {
 } from "../quests";
 import { standardQuests } from "../quests/standard-quests";
 
-const initialQuestDescription = standardQuests["ivan"];
+const initialQuestDescription = standardQuests["maria"];
 
 const initialQuest: Quest = {
 	description: initialQuestDescription,
@@ -19,6 +19,22 @@ const initialQuest: Quest = {
 export const questStore = createStore({
 	context: initialQuest,
 	on: {
+		newActions: (quest, event: { newActions: Action[] }) => {
+			const newActionsPerStep = getNewActionsPerStep(quest);
+
+			newActionsPerStep[quest.currentStepIndex] = [
+				...(newActionsPerStep[quest.currentStepIndex] || []),
+				...event.newActions,
+			];
+			return {
+				...quest,
+				steps: simulateWithActions(
+					quest.description,
+					newActionsPerStep
+				),
+				currentStepIndex: quest.currentStepIndex + 1,
+			};
+		},
 		newStep: (quest, event: { newActions?: Action[] }) => {
 			const latestStep = getLatestStep(quest);
 
@@ -48,20 +64,6 @@ export const questStore = createStore({
 			return {
 				...quest,
 				currentStepIndex: event.newCurrentStepIndex,
-			};
-		},
-		newActions: (quest, event: { newActions: Action[] }) => {
-			const newActionsPerStep = getNewActionsPerStep(quest);
-			newActionsPerStep[quest.currentStepIndex] = [
-				...newActionsPerStep[quest.currentStepIndex],
-				...event.newActions,
-			];
-			return {
-				...quest,
-				steps: simulateWithActions(
-					quest.description,
-					newActionsPerStep
-				),
 			};
 		},
 	},

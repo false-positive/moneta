@@ -7,14 +7,14 @@ import {
 	Clock,
 	Heart,
 } from "lucide-react";
-import type { Step } from "@/lib/cases/actions";
+import type { Step } from "@/lib/engine/actions";
 import { type ActionTiming } from "@/components/timeline";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useEffect } from "react";
+import { useMemo } from "react";
 
 export interface MetricsCardProps {
 	selectedTime: number;
@@ -27,84 +27,80 @@ export function MetricsCard({
 	steps,
 	actionTimings,
 }: MetricsCardProps) {
-	const currentStep = steps.find((step) => step.tick === selectedTime);
+	const currentStep = useMemo(
+		() => steps.find((step) => step.timePoint === selectedTime),
+		[steps, selectedTime]
+	);
 
-	const activeTimings = actionTimings.filter(
-		(timing) =>
-			timing.startTick <= selectedTime && timing.endTick >= selectedTime
+	const activeTimings = useMemo(
+		() =>
+			actionTimings.filter(
+				(timing) =>
+					timing.startTick <= selectedTime &&
+					timing.endTick >= selectedTime
+			),
+		[actionTimings, selectedTime]
 	);
 
 	if (!currentStep) {
 		return null;
 	}
 
-	// useEffect(() => {
-	// 	console.log("MetricsCard - currentStep", currentStep);
-	// 	console.log("MetricsCard - activeTimings", activeTimings);
-	// 	console.log("Current Step - newActions", currentStep.newActions);
-	// 	console.log(
-	// 		"Current Step - oldActiveActions",
-	// 		currentStep.oldActiveActions
-	// 	);
-	// }, [currentStep, activeTimings]);
-
 	const activeActions = activeTimings.map((timing) => timing.action);
 
-	const allActions = [
-		...currentStep.newActions,
-		...currentStep.oldActiveActions,
-		...activeActions.filter((timingAction) => {
-			const isInOldActiveActions = currentStep.oldActiveActions.some(
-				(action) => action.name === timingAction.name
-			);
-			const isInNewActions = currentStep.newActions.some(
-				(action) => action.name === timingAction.name
-			);
-			return !isInOldActiveActions && !isInNewActions;
-		}),
-	];
-
-	const metrics = {
-		// income and expenses depends on time - calculation logic will be the same
-		// difference shall be showed with just the name - monthly, yearly....
-		income: allActions.reduce((sum, action) => {
-			if (
-				action.kind === "income" &&
-				action.bankAccountImpact.hasImpact
-			) {
-				return sum + action.bankAccountImpact.repeatedAbsoluteDelta;
-			}
-			return sum;
-		}, 0),
-
-		expenses: allActions.reduce((sum, action) => {
-			if (
-				action.kind === "expense" &&
-				action.bankAccountImpact.hasImpact
-			) {
-				return (
-					sum +
-					Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta)
+	const allActions = useMemo(
+		() => [
+			...currentStep.newActions,
+			...currentStep.continuingActions,
+			...activeActions.filter((timingAction) => {
+				const isInContinuingActions =
+					currentStep.continuingActions.some(
+						(action) => action.name === timingAction.name
+					);
+				const isInNewActions = currentStep.newActions.some(
+					(action) => action.name === timingAction.name
 				);
-			}
-			return sum;
-		}, 0),
+				return !isInContinuingActions && !isInNewActions;
+			}),
+		],
+		[currentStep, activeActions]
+	);
 
-		investmentCapital: allActions.reduce((sum, action) => {
-			if (action.kind === "investment") {
-				return sum + action.capital;
-			}
-			return sum;
-		}, 0),
-
-		assets: currentStep.bankAccount,
-		freeTime: currentStep.freeTime,
-		joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
-	};
-
-	useEffect(() => {
-		console.log("--------MetricsCard - metrics", metrics);
-	}, [metrics]);
+	const metrics = useMemo(
+		() => ({
+			income: allActions.reduce((sum, action) => {
+				if (
+					action.kind === "income" &&
+					action.bankAccountImpact.hasImpact
+				) {
+					return sum + action.bankAccountImpact.repeatedAbsoluteDelta;
+				}
+				return sum;
+			}, 0),
+			expenses: allActions.reduce((sum, action) => {
+				if (
+					action.kind === "expense" &&
+					action.bankAccountImpact.hasImpact
+				) {
+					return (
+						sum +
+						Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta)
+					);
+				}
+				return sum;
+			}, 0),
+			investmentCapital: allActions.reduce((sum, action) => {
+				if (action.kind === "investment") {
+					return sum + action.capital;
+				}
+				return sum;
+			}, 0),
+			assets: currentStep.bankAccount,
+			freeTime: currentStep.freeTimeHours,
+			joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
+		}),
+		[allActions, currentStep]
+	);
 
 	return (
 		<div className="p-3">
@@ -141,8 +137,31 @@ export function MetricsCard({
 						</div>
 					</PopoverTrigger>
 					<PopoverContent className="w-72 p-0 bg-white shadow-xl border-0">
-						{" "}
-						{/* This needs to be fixed */}
+						<div className="p-4">
+							<h3 className="font-semibold mb-2">
+								Assets Breakdown
+							</h3>
+							<div className="space-y-2">
+								<div className="flex justify-between">
+									<span>Bank Account:</span>
+									<span>
+										$
+										{Math.round(
+											metrics.assets
+										).toLocaleString()}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span>Investments:</span>
+									<span>
+										$
+										{Math.round(
+											metrics.investmentCapital
+										).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						</div>
 					</PopoverContent>
 				</Popover>
 
@@ -158,18 +177,13 @@ export function MetricsCard({
 						</div>
 					</div>
 					<div className="text-sm font-bold text-amber-900 ml-1">
-						{/* Add here some cool logic about free time calculations - BE has %, 
-						use hours per week/month/year -> or not, BE might return hours*/}
 						{metrics.freeTime} %
 					</div>
 					<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 						<div
 							className="h-full bg-amber-600 rounded-full"
 							style={{
-								width: `${Math.min(
-									100,
-									(metrics.freeTime / 40) * 100
-								)}%`,
+								width: `${Math.min(100, metrics.freeTime)}%`,
 							}}
 						></div>
 					</div>
