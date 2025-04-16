@@ -101,10 +101,11 @@ export default function SkillTree() {
 					return [...prevActions, unlockedNode.actionObject.name];
 				});
 
-				questStore.send({
-					type: "newActions",
-					newActions: [updatedAction],
-				});
+				// Remove this line as we'll send actions only on confirm
+				// questStore.send({
+				//     type: "newActions",
+				//     newActions: [updatedAction],
+				// });
 			} else {
 				console.warn("⚠️ Node not found:", nodeId);
 			}
@@ -131,8 +132,12 @@ export default function SkillTree() {
 			(node) => node.actionObject
 		);
 
+		console.log("Unlocked actions:", unlockedActions);
+
+		// To Do - Bozho will fix the type here
+		// Send all actions at once when confirmed
 		questStore.send({
-			type: "newActions",
+			type: "newStep",
 			newActions: unlockedActions,
 		});
 

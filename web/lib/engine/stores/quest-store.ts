@@ -75,3 +75,7 @@ export const questStore = createStore({
 		},
 	},
 });
+
+questStore.subscribe((snapshot) => {
+	console.log("[Quest Store], snapshot.status", snapshot.context);
+});

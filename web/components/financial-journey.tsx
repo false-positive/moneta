@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LockKeyholeOpen } from "lucide-react";
 import type { Step } from "@/lib/engine/quests";
 import { useRouter } from "next/navigation";
+import { useSelector } from "@xstate/store/react";
+import { questStore } from "@/lib/engine/stores/quest-store";
 
 interface FinancialJourneyProps {
 	steps: Step[];
@@ -59,6 +61,7 @@ function JourneyNode({
 				</div>
 
 				{showPopup && (
+					// TO Do - add shadcn tooltip
 					<AnimatePresence>
 						<motion.div
 							initial={{ opacity: 0, y: -30 }}
@@ -161,37 +164,30 @@ export function FinancialJourney({
 		}
 	}, [pathPoints, minWidth]);
 
-	const getNodeStatus = useCallback(
-		(timePoint: number) => {
-			const latestUnlockedTimePoint = Math.max(
-				...steps.map((step) => step.timePoint)
-			);
-
-			return timePoint <= latestUnlockedTimePoint ? "unlocked" : "locked";
-		},
-		[steps]
+	const initialTimePoint = useSelector(
+		questStore,
+		(state) => state.context.description.initialStep.timePoint
 	);
 
-	const getNodeAppearance = useCallback(
-		(timePoint: number) => {
-			const status = getNodeStatus(timePoint);
+	const stepsLength = useSelector(
+		questStore,
+		(state) => state.context.steps.length
+	);
 
-			if (status === "unlocked") {
-				return {
-					status,
-					color: "bg-indigo-500 border-indigo-600",
-					icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
-				};
-			}
-
+	const getNodeAppearance = useCallback((timePoint: number) => {
+		console.log("initialTimePoint", initialTimePoint);
+		console.log("stepsLength", stepsLength);
+		if (timePoint <= initialTimePoint + stepsLength - 1)
 			return {
-				status,
-				color: "bg-gray-300 border-gray-400",
-				icon: <Lock className="h-4 w-4 text-gray-500" />,
+				color: "bg-indigo-500 border-indigo-600",
+				icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
 			};
-		},
-		[getNodeStatus]
-	);
+
+		return {
+			color: "bg-gray-300 border-gray-400",
+			icon: <Lock className="h-4 w-4 text-gray-500" />,
+		};
+	}, []);
 
 	return (
 		<div className="relative w-full h-70 overflow-auto bg-gradient-to-b from-indigo-50 to-white rounded-lg">
@@ -245,8 +241,7 @@ export function FinancialJourney({
 
 				{timePoints.map((timePoint, index) => {
 					const point = pathPoints[index];
-					const { status, color, icon } =
-						getNodeAppearance(timePoint);
+					const { color, icon } = getNodeAppearance(timePoint);
 
 					return (
 						<JourneyNode

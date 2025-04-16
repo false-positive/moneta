@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/engine/stores/quest-store";
 import { getActionDurations, getLatestStep } from "@/lib/engine/quests";
@@ -87,6 +87,10 @@ export default function Simulation() {
 			: timeframe === "week"
 			? weekUnits
 			: dayUnits;
+
+	useEffect(() => {
+		console.log("Current step:", currentStep);
+	}, [currentStep]);
 
 	return (
 		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white flex justify-center">
