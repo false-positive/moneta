@@ -136,8 +136,9 @@ export default function SkillTree() {
 
 		// To Do - Bozho will fix the type here
 		// Send all actions at once when confirmed
+		// NOTE: Bozho fixed the type here :D
 		questStore.send({
-			type: "newStep",
+			type: "newActionsAppend",
 			newActions: unlockedActions,
 		});
 

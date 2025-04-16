@@ -19,39 +19,14 @@ const initialQuest: Quest = {
 export const questStore = createStore({
 	context: initialQuest,
 	on: {
-		newActions: (quest, event: { newActions: Action[] }) => {
-			const newActionsPerStep = getNewActionsPerStep(quest);
+		newActionsAppend: (quest, event: { newActions: Action[] }) => {
+			// FIXME: maybe refactor check into a quest function
+			const newSteps =
+				quest.currentStepIndex === quest.steps.length - 1 &&
+				quest.steps.length < quest.description.maxStepCount
+					? appendAtEndAndAdvance(quest, event.newActions)
+					: appendAtCurrentStepIndex(quest, event.newActions);
 
-			newActionsPerStep[quest.currentStepIndex] = [
-				...(newActionsPerStep[quest.currentStepIndex] || []),
-				...event.newActions,
-			];
-			return {
-				...quest,
-				steps: simulateWithActions(
-					quest.description,
-					newActionsPerStep
-				),
-				currentStepIndex: quest.currentStepIndex + 1,
-			};
-		},
-		/**
-		 * Advance to a brand new step by performing actions that take place in the previous step.
-		 */
-		newStep: (quest, event: { newActions?: Action[] }) => {
-			const latestStep = getLatestStep(quest);
-
-			latestStep.newActions = latestStep.newActions.concat(
-				event.newActions || []
-			);
-
-			const nextStep = computeNextStep(
-				latestStep,
-				[],
-				quest.description.timePointKind
-			);
-
-			const newSteps = [...quest.steps, nextStep];
 			return {
 				...quest,
 				steps: newSteps,
@@ -79,3 +54,28 @@ export const questStore = createStore({
 questStore.subscribe((snapshot) => {
 	console.log("[Quest Store], snapshot.status", snapshot.context);
 });
+
+function appendAtEndAndAdvance(quest: Quest, newActions: Action[]) {
+	const latestStep = getLatestStep(quest);
+
+	latestStep.newActions = latestStep.newActions.concat(newActions);
+
+	const nextStep = computeNextStep(
+		latestStep,
+		[],
+		quest.description.timePointKind
+	);
+
+	return [...quest.steps, nextStep];
+}
+
+function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
+	const newActionsPerStep = getNewActionsPerStep(quest);
+
+	newActionsPerStep[quest.currentStepIndex] = [
+		...(newActionsPerStep[quest.currentStepIndex] || []),
+		...newActions,
+	];
+
+	return simulateWithActions(quest.description, newActionsPerStep);
+}
