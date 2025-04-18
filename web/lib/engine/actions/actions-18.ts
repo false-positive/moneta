@@ -209,11 +209,11 @@ export const skiTripAction: Action = {
 	...noOpAction,
 	name: "Ski Trip",
 	kind: "expense",
-	shortDescription: "Buy investment gold",
-	llmDescription: "Buy investment gold",
-	investmentImpact: absoluteImpact(2000),
-	joyImpact: absoluteImpact(5),
-	freeTimeImpact: noImpact,
+	shortDescription: "Go skiing",
+	llmDescription: "Go skiing",
+	bankAccountImpact: absoluteImpact(-2000),
+	joyImpact: absoluteImpact(50),
+	freeTimeImpact: absoluteImpact(-40), // hours per week
 	remainingSteps: 1, // year
 };
 
