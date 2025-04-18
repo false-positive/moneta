@@ -36,8 +36,8 @@ export function MetricsCard({
 		() =>
 			actionTimings.filter(
 				(timing) =>
-					timing.startTick <= selectedTime &&
-					timing.endTick >= selectedTime
+					timing.startTimePoint <= selectedTime &&
+					timing.endTimePoint >= selectedTime
 			),
 		[actionTimings, selectedTime]
 	);
@@ -46,61 +46,56 @@ export function MetricsCard({
 		return null;
 	}
 
+	// Get actions that are active at this specific time point
 	const activeActions = activeTimings.map((timing) => timing.action);
 
-	const allActions = useMemo(
-		() => [
-			...currentStep.newActions,
-			...currentStep.continuingActions,
-			...activeActions.filter((timingAction) => {
-				const isInContinuingActions =
-					currentStep.continuingActions.some(
-						(action) => action.name === timingAction.name
-					);
-				const isInNewActions = currentStep.newActions.some(
-					(action) => action.name === timingAction.name
-				);
-				return !isInContinuingActions && !isInNewActions;
-			}),
-		],
-		[currentStep, activeActions]
-	);
-
-	const metrics = useMemo(
-		() => ({
-			income: allActions.reduce((sum, action) => {
-				if (
-					action.kind === "income" &&
-					action.bankAccountImpact.hasImpact
-				) {
-					return sum + action.bankAccountImpact.repeatedAbsoluteDelta;
-				}
-				return sum;
-			}, 0),
-			expenses: allActions.reduce((sum, action) => {
-				if (
-					action.kind === "expense" &&
-					action.bankAccountImpact.hasImpact
-				) {
-					return (
-						sum +
-						Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta)
-					);
-				}
-				return sum;
-			}, 0),
-			investmentCapital: allActions.reduce((sum, action) => {
-				if (action.kind === "investment") {
-					return sum + action.capital;
-				}
-				return sum;
-			}, 0),
-			assets: currentStep.bankAccount,
-			freeTime: currentStep.freeTimeHours,
-			joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
+	const allActions = [
+		...currentStep.newActions,
+		...currentStep.continuingActions,
+		...activeActions.filter((timingAction) => {
+			const isInContinuingActions = currentStep.continuingActions.some(
+				(action) => action.name === timingAction.name
+			);
+			const isInNewActions = currentStep.newActions.some(
+				(action) => action.name === timingAction.name
+			);
+			return !isInContinuingActions && !isInNewActions;
 		}),
-		[allActions, currentStep]
-	);
+	];
+
+	// Calculate metrics for this specific step
+	const metrics = {
+		income: allActions.reduce((sum, action) => {
+			if (
+				action.kind === "income" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				return sum + action.bankAccountImpact.repeatedAbsoluteDelta;
+			}
+			return sum;
+		}, 0),
+		expenses: allActions.reduce((sum, action) => {
+			if (
+				action.kind === "expense" &&
+				action.bankAccountImpact.hasImpact
+			) {
+				return (
+					sum +
+					Math.abs(action.bankAccountImpact.repeatedAbsoluteDelta)
+				);
+			}
+			return sum;
+		}, 0),
+		investmentCapital: allActions.reduce((sum, action) => {
+			if (action.kind === "investment") {
+				return sum + action.capital;
+			}
+			return sum;
+		}, 0),
+		assets: currentStep.bankAccount,
+		freeTime: currentStep.freeTimeHours,
+		joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
+	};
 
 	return (
 		<div className="p-3">

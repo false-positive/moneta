@@ -36,7 +36,7 @@ export default function SkillTree() {
 	);
 	const [showChat, setShowChat] = useState(false);
 
-	const [ticks, setTicks] = useState<number>(0);
+	const [endPoints, setEndPoints] = useState<number>(0);
 	const [initialPrice, setInitialPrice] = useState<number>(0);
 	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
 
@@ -91,7 +91,7 @@ export default function SkillTree() {
 						initialPrice: initialPrice,
 						repeatedPrice: repeatedPrice,
 					},
-					remainingSteps: ticks,
+					remainingSteps: endPoints,
 				};
 
 				unlockedNode.actionObject = updatedAction;
@@ -134,9 +134,6 @@ export default function SkillTree() {
 
 		console.log("Unlocked actions:", unlockedActions);
 
-		// To Do - Bozho will fix the type here
-		// Send all actions at once when confirmed
-		// NOTE: Bozho fixed the type here :D
 		questStore.send({
 			type: "newActionsAppend",
 			newActions: unlockedActions,
@@ -250,7 +247,7 @@ export default function SkillTree() {
 			.on("click", (event, d) => {
 				setInitialPrice(0);
 				setRepeatedPrice(0);
-				setTicks(d.actionObject.remainingSteps);
+				setEndPoints(d.actionObject.remainingSteps);
 				setSelectedNode(d);
 			});
 
@@ -396,9 +393,9 @@ export default function SkillTree() {
 													<Input
 														id="ticks"
 														type="number"
-														value={ticks}
+														value={endPoints}
 														onChange={(e) =>
-															setTicks(
+															setEndPoints(
 																Number(
 																	e.target
 																		.value

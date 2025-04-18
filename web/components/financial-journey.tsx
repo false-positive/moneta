@@ -71,9 +71,6 @@ function JourneyNode({
 							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer z-20"
 							onClick={(e) => {
 								e.stopPropagation();
-								console.log(
-									"🎯 Navigating to choices from popup"
-								);
 								router.push("/choices");
 							}}
 							onMouseEnter={() => setShowPopup(true)} // Keep popup visible when hovering over it
@@ -175,8 +172,6 @@ export function FinancialJourney({
 	);
 
 	const getNodeAppearance = useCallback((timePoint: number) => {
-		console.log("initialTimePoint", initialTimePoint);
-		console.log("stepsLength", stepsLength);
 		if (timePoint <= initialTimePoint + stepsLength - 1)
 			return {
 				color: "bg-indigo-500 border-indigo-600",

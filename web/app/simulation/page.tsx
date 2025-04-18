@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/engine/stores/quest-store";
-import { getActionDurations, getLatestStep } from "@/lib/engine/quests";
+import { getActionDurations, Step } from "@/lib/engine/quests";
 import { FinancialJourney } from "@/components/financial-journey";
 import { MetricsCard } from "@/components/metrics-card";
 import { TransactionList } from "@/components/transaction-list";
@@ -23,6 +23,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { TimePointKind } from "@/lib/engine/actions";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -50,8 +51,16 @@ export default function Simulation() {
 	// Get current simulation state from XState store
 	const context = useSelector(questStore, (s) => s.context);
 
-	const { currentStep, timeframe, steps } = useMemo(() => {
-		const currentStep = getLatestStep(context);
+	const {
+		currentStep,
+		timeframe,
+		steps: allSteps,
+	}: {
+		currentStep: Step;
+		timeframe: TimePointKind;
+		steps: Step[];
+	} = useMemo(() => {
+		const currentStep = context.steps[context.currentStepIndex];
 		const data = {
 			currentStep,
 			timeframe: context.description.timePointKind, // "year" | "month" | "week" | "day"
@@ -63,19 +72,22 @@ export default function Simulation() {
 	// Calculate action timings (when actions start/end)
 	const actionTimings = useMemo(() => {
 		const timings = getActionDurations(context);
+
 		return timings;
 	}, [context.steps]); // Recompute when steps change
 
 	// Handle selection of a specific time point in the journey
 	const handleStepSelect = (timePoint: number) => {
-		const newIndex = steps.findIndex(
+		const newIndex = allSteps.findIndex(
 			(step) => step.timePoint === timePoint
 		);
 
-		questStore.send({
-			type: "currentStepIndexChange",
-			newCurrentStepIndex: newIndex,
-		});
+		if (newIndex !== -1) {
+			questStore.send({
+				type: "currentStepIndexChange",
+				newCurrentStepIndex: newIndex,
+			});
+		}
 	};
 
 	// Select appropriate time units based on timeframe
@@ -115,7 +127,7 @@ export default function Simulation() {
 							</div>
 							<div className="p-2">
 								<FinancialJourney
-									steps={steps}
+									steps={allSteps}
 									timeUnits={currentUnits}
 									currentTimePoint={currentStep.timePoint}
 									onTimePointSelect={handleStepSelect}
@@ -142,7 +154,25 @@ export default function Simulation() {
 								</CollapsibleTrigger>
 							</div>
 							<CollapsibleContent>
-								<div className="p-4"></div>
+								<div className="p-4">
+									<Timeline
+										timeUnits={currentUnits}
+										selectedUnit={currentStep.timePoint}
+										nowMarker={currentStep.timePoint}
+										onUnitClick={(unit) =>
+											handleStepSelect(Number(unit))
+										}
+										actionTimings={actionTimings.map(
+											(timing) => ({
+												action: timing.action,
+												startTimePoint:
+													timing.startTimePoint,
+												endTimePoint:
+													timing.endTimePoint,
+											})
+										)}
+									/>
+								</div>
 							</CollapsibleContent>
 						</Collapsible>
 					</div>
@@ -170,13 +200,14 @@ export default function Simulation() {
 								<div className="p-4">
 									<MetricsCard
 										selectedTime={currentStep.timePoint}
-										steps={steps}
+										steps={allSteps}
 										actionTimings={actionTimings.map(
 											(timing) => ({
 												action: timing.action,
-												startTick:
+												startTimePoint:
 													timing.startTimePoint,
-												endTick: timing.endTimePoint,
+												endTimePoint:
+													timing.endTimePoint,
 											})
 										)}
 									/>

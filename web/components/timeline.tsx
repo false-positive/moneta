@@ -10,30 +10,24 @@ import {
 	DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { type Action, type Step } from "@/lib/cases/actions";
+import { type Action } from "@/lib/engine/actions";
 
 export interface ActionTiming {
 	action: Action;
-	startTick: number;
-	endTick: number;
+	startTimePoint: number;
+	endTimePoint: number;
 }
 
 interface TimelineProps {
 	timeUnits: (string | number)[];
-	steps: Step[];
 	selectedUnit: string | number;
 	nowMarker?: string | number;
-	unitType: "years" | "months" | "weeks" | "days";
 	onUnitClick: (unit: string | number) => void;
 	actionTimings: ActionTiming[];
 }
 
-const getActionColors = (
-	joyImpact: any,
-	kind: string,
-	isSelected: boolean = false
-) => {
-	const joyValue = joyImpact.hasImpact ? joyImpact.repeatedPercent : 0;
+const getActionColors = (joyImpact: any, isSelected: boolean = false) => {
+	const joyValue = joyImpact.repeatedAbsoluteDelta;
 
 	if (joyValue > 0) {
 		return {
@@ -52,41 +46,33 @@ const getActionColors = (
 
 export function Timeline({
 	timeUnits,
-	steps,
 	selectedUnit,
 	nowMarker,
-	unitType,
 	onUnitClick,
 	actionTimings,
 }: TimelineProps) {
-	const [confirmationOpen, setConfirmationOpen] = useState(false);
-	const [unitToConfirm, setUnitToConfirm] = useState<string | number | null>(
-		null
-	);
 	const [eventDetailsOpen, setEventDetailsOpen] = useState(false);
 	const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
 	const handleUnitClick = (unit: string | number) => {
-		console.log("[timeline] handleUnitClick", unit);
-		onUnitClick(unit);
+		onUnitClick(Number(unit));
 	};
 
-	const handleUnitDoubleClick = (unit: string | number) => {
-		setUnitToConfirm(unit);
-		setConfirmationOpen(true);
-	};
+	const lastTimePoint = timeUnits[timeUnits.length - 1];
+	const normalizedActionTimings = actionTimings.map((timing) => ({
+		...timing,
+		endTimePoint:
+			timing.endTimePoint === Infinity
+				? typeof lastTimePoint === "string"
+					? parseInt(lastTimePoint)
+					: lastTimePoint
+				: timing.endTimePoint,
+	}));
 
-	const handleConfirm = () => {
-		if (unitToConfirm !== null) {
-			console.log(`Unit ${unitToConfirm} confirmed for selection`);
-		}
-		setConfirmationOpen(false);
-	};
-
-	const handleActionClick = (action: Action) => {
-		setSelectedAction(action);
-		setEventDetailsOpen(true);
-	};
+	useEffect(() => {
+		console.log("Action Timings:", normalizedActionTimings);
+		console.log("Time Units:", timeUnits);
+	}, []);
 
 	return (
 		<div className="w-full overflow-x-auto">
@@ -122,14 +108,12 @@ export function Timeline({
 						))}
 					</div>
 
-					{nowMarker && timeUnits.includes(nowMarker) && (
+					{nowMarker && (
 						<div
 							className="absolute top-[-10px]"
 							style={{
 								left: `${
-									(timeUnits.indexOf(nowMarker) /
-										timeUnits.length) *
-									(timeUnits.length * 80)
+									timeUnits.indexOf(nowMarker) * 80 + 40
 								}px`,
 							}}
 						>
@@ -142,25 +126,30 @@ export function Timeline({
 					className="space-y-2"
 					style={{ width: `${timeUnits.length * 80}px` }}
 				>
-					{actionTimings
+					{normalizedActionTimings
 						.filter((timing) => timing.action.name !== "Life")
 						.map((timing, index) => {
-							const startUnit = timing.startTick;
-							const endUnit = timing.endTick;
+							const startTimePoint = timing.startTimePoint;
+							const endTimePoint = timing.endTimePoint;
 
-							const startIndex = timeUnits.indexOf(startUnit);
-							const endIndex = timeUnits.indexOf(endUnit);
+							const startIndex = timeUnits.findIndex(
+								(unit) => Number(unit) === startTimePoint
+							);
+							const endIndex = timeUnits.findIndex(
+								(unit) => Number(unit) === endTimePoint
+							);
 
-							const left = startIndex * 80;
-							const width = (endIndex - startIndex + 0.3) * 80;
+							// Calculate position and width based on actual timepoints with right offset
+							const timeSpan = endTimePoint - startTimePoint + 1;
+							const left = startIndex * 80 + 40; // Added 40px offset (half a unit)
+							const width = timeSpan * 80;
 
 							const joyImpact = timing.action.joyImpact;
 
 							const colors = getActionColors(
 								joyImpact,
-								timing.action.kind,
-								selectedUnit === startUnit ||
-									selectedUnit === endUnit
+								selectedUnit === startTimePoint ||
+									selectedUnit === endTimePoint
 							);
 
 							return (
@@ -174,22 +163,25 @@ export function Timeline({
 												width: `${width}px`,
 												opacity:
 													Number(selectedUnit) >=
-														startUnit &&
+														startTimePoint &&
 													Number(selectedUnit) <=
-														endUnit
+														endTimePoint
 														? 1
 														: 0.7,
 												transform:
 													Number(selectedUnit) >=
-														startUnit &&
+														startTimePoint &&
 													Number(selectedUnit) <=
-														endUnit
+														endTimePoint
 														? "scale(1.05)"
 														: "scale(1)",
 											}}
-											onClick={() =>
-												handleActionClick(timing.action)
-											}
+											onClick={() => {
+												setSelectedAction(
+													timing.action
+												);
+												setEventDetailsOpen(true);
+											}}
 										>
 											<span className="text-center whitespace-nowrap overflow-hidden text-ellipsis px-2 text-[10px]">
 												{timing.action.name}
@@ -201,35 +193,6 @@ export function Timeline({
 						})}
 				</div>
 			</div>
-
-			<Dialog open={confirmationOpen} onOpenChange={setConfirmationOpen}>
-				<DialogContent className="bg-white border-0 shadow-md">
-					<DialogHeader>
-						<DialogTitle className="text-sm font-bold text-indigo-700">
-							Confirm Selection
-						</DialogTitle>
-						<DialogDescription className="text-xs text-gray-600">
-							Are you sure you want to select {unitToConfirm} (
-							{unitType}) for planning?
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter className="flex gap-2 mt-2">
-						<Button
-							variant="outline"
-							onClick={() => setConfirmationOpen(false)}
-							className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs py-1 h-8"
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleConfirm}
-							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs py-1 h-8"
-						>
-							Confirm
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 
 			<Dialog open={eventDetailsOpen} onOpenChange={setEventDetailsOpen}>
 				<DialogContent className="bg-white border-0 shadow-md">
@@ -252,7 +215,7 @@ export function Timeline({
 					<DialogFooter>
 						<Button
 							onClick={() => setEventDetailsOpen(false)}
-							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs py-1 h-8"
+							variant="secondary"
 						>
 							Close
 						</Button>
