@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useSelector } from "@xstate/store/react";
+import { questStore } from "@/lib/engine/stores/quest-store";
+import { getLatestStep } from "@/lib/engine/quests";
 
 import {
 	allActionsList,
 	initialNodes,
 	type Node,
-} from "@/lib/cases/skill-tree";
+} from "@/lib/engine/skill-tree";
 import {
 	Sparkles,
 	Zap,
@@ -22,13 +25,10 @@ import {
 	TrendingUp,
 	DollarSign,
 } from "lucide-react";
-import { computeNextStep, type Step } from "@/lib/cases/actions";
-import SuperJSON from "superjson";
 import { useRouter } from "next/navigation";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
-	const stepsRef = useRef<Step[]>([]);
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
 	const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 	const [newlyUnlockedActions, setNewlyUnlockedActions] = useState<string[]>(
@@ -36,33 +36,37 @@ export default function SkillTree() {
 	);
 	const [showChat, setShowChat] = useState(false);
 
-	// Example local states for two number inputs
-	const [ticks, setTicks] = useState<number>(0);
+	const [endPoints, setEndPoints] = useState<number>(0);
 	const [initialPrice, setInitialPrice] = useState<number>(0);
 	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
 
 	const router = useRouter();
 
-	useEffect(() => {
-		const storedSteps = localStorage.getItem("steps");
-		const parsedSteps: Step[] = SuperJSON.parse(storedSteps || "[]");
+	// Get state from quest store
+	const context = useSelector(questStore, (s) => s.context);
 
-		if (parsedSteps && parsedSteps.length > 0) {
-			stepsRef.current = parsedSteps;
-		} else {
-			window.location.href = "/";
+	const { currentStep } = useMemo(() => {
+		const currentStep = getLatestStep(context);
+		return {
+			currentStep,
+			steps: context.steps,
+		};
+	}, [context]);
+
+	// Reset newlyUnlockedActions when component mounts or when currentStep changes
+	useEffect(() => {
+		setNewlyUnlockedActions([]);
+
+		if (!currentStep) {
+			router.push("/");
+			return;
 		}
 
-		console.log(">>>", stepsRef.current);
-
-		const currentStep = stepsRef.current[stepsRef.current.length - 1];
 		const activeActions = [
-			...currentStep.oldActiveActions,
+			...currentStep.continuingActions,
 			...currentStep.newActions,
 		];
 		const unlockedActionNames = activeActions.map((action) => action.name);
-
-		console.log(">>>", { unlockedActionNames });
 
 		const updatedNodes = nodes.map((node) => {
 			if (unlockedActionNames.includes(node.actionObject.name)) {
@@ -71,38 +75,42 @@ export default function SkillTree() {
 			return node;
 		});
 
-		console.log(">>>", { updatedNodes });
-
 		setNodes(updatedNodes);
-	}, []);
+	}, [currentStep]);
 
-	// Unlock skill
 	const unlockSkill = (nodeId: string) => {
 		setNodes((prev) => {
 			const updatedNodes = prev.map((node) =>
 				node.id === nodeId ? { ...node, unlocked: true } : node
 			);
 
-			// Update selectedNode if needed
-			if (selectedNode && selectedNode.id === nodeId) {
-				setSelectedNode(
-					updatedNodes.find((node) => node.id === nodeId) || null
-				);
-			}
-
-			// Add to newly unlocked actions
 			const unlockedNode = updatedNodes.find((n) => n.id === nodeId);
 			if (unlockedNode) {
-				unlockedNode.actionObject.investmentImpact.initialPrice =
-					initialPrice;
-				unlockedNode.actionObject.investmentImpact.repeatedPrice =
-					repeatedPrice;
-				unlockedNode.actionObject.remainingTicks = ticks;
+				// Update the action object with the configured values
+				const updatedAction = {
+					...unlockedNode.actionObject,
+					investmentImpact: {
+						...unlockedNode.actionObject.investmentImpact,
+						initialPrice: initialPrice,
+						repeatedPrice: repeatedPrice,
+					},
+					remainingSteps: endPoints,
+				};
 
-				setNewlyUnlockedActions((prevActions) => [
-					...prevActions,
-					unlockedNode.actionObject.name,
-				]);
+				unlockedNode.actionObject = updatedAction;
+
+				// Add to newly unlocked actions
+				setNewlyUnlockedActions((prevActions) => {
+					return [...prevActions, unlockedNode.actionObject.name];
+				});
+
+				// Remove this line as we'll send actions only on confirm
+				// questStore.send({
+				//     type: "newActions",
+				//     newActions: [updatedAction],
+				// });
+			} else {
+				console.warn("⚠️ Node not found:", nodeId);
 			}
 
 			return updatedNodes;
@@ -127,17 +135,14 @@ export default function SkillTree() {
 			(node) => node.actionObject
 		);
 
-		const nextStep = computeNextStep(
-			stepsRef.current[stepsRef.current.length - 1],
-			unlockedActions,
-			"year"
-		);
+		console.log("Unlocked actions:", unlockedActions);
 
-		stepsRef.current.push(nextStep);
-		localStorage.setItem("steps", SuperJSON.stringify(stepsRef.current));
+		questStore.send({
+			type: "newActionsAppend",
+			newActions: unlockedActions,
+		});
 
-		// window.location.reload();
-		router.push('/simulation')
+		router.push("/simulation");
 	};
 
 	// Function for chat/hint
@@ -245,7 +250,7 @@ export default function SkillTree() {
 			.on("click", (event, d) => {
 				setInitialPrice(0);
 				setRepeatedPrice(0);
-				setTicks(d.actionObject.remainingTicks);
+				setEndPoints(d.actionObject.remainingSteps);
 				setSelectedNode(d);
 			});
 
@@ -253,7 +258,7 @@ export default function SkillTree() {
 		nodeSelection
 			.append("path")
 			.attr("d", (d) => {
-				const size = getNodeSize(d);
+				const size = getNodeSize();
 				return `M 0,-${size} L ${size},0 L 0,${size} L -${size},0 Z`;
 			})
 			.attr("fill", (d) => (d.unlocked ? getCategoryColor(d) : "#fff"))
@@ -289,7 +294,7 @@ export default function SkillTree() {
 		svg.call(zoom as any);
 
 		svg.call(
-			zoom.transform,
+			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
 	}, [nodes]);
@@ -301,7 +306,8 @@ export default function SkillTree() {
 					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div className="text-white text-lg flex items-center gap-2 font-semibold">
 							<Sparkles className="h-5 w-5" />
-							Financial Journey - Year {stepsRef.current.length}
+							{/* To Do : add here timeframe, unhardcode */}
+							Financial Journey - Year {context.steps.length}
 						</div>
 					</div>
 					<div className="h-full p-3">
@@ -314,11 +320,10 @@ export default function SkillTree() {
 
 			<div className="w-full md:w-80 relative">
 				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-					<div
-						className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+					<div className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div>
 							<div className="text-white text-lg flex items-center gap-2 font-semibold">
-								<Zap className="h-5 w-5"/>
+								<Zap className="h-5 w-5" />
 								Skill Details
 							</div>
 						</div>
@@ -329,7 +334,7 @@ export default function SkillTree() {
                   hover:bg-white/30 hover:scale-110 group"
 								onClick={() => sendHint()}
 							>
-								<Lightbulb className="h-5 w-5 text-white group-hover:animate-pulse"/>
+								<Lightbulb className="h-5 w-5 text-white group-hover:animate-pulse" />
 							</button>
 						</div>
 					</div>
@@ -340,16 +345,16 @@ export default function SkillTree() {
 									<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
 										{selectedNode.actionObject.kind ===
 											"investment" && (
-												<Coins className="h-5 w-5 text-amber-500"/>
-											)}
+											<Coins className="h-5 w-5 text-amber-500" />
+										)}
 										{selectedNode.actionObject.kind ===
 											"income" && (
-												<TrendingUp className="h-5 w-5 text-emerald-500"/>
-											)}
+											<TrendingUp className="h-5 w-5 text-emerald-500" />
+										)}
 										{selectedNode.actionObject.kind ===
 											"expense" && (
-												<DollarSign className="h-5 w-5 text-rose-500"/>
-											)}
+											<DollarSign className="h-5 w-5 text-rose-500" />
+										)}
 										{selectedNode.actionObject.name}
 									</h3>
 									<p className="text-sm text-indigo-600 mt-1">
@@ -358,11 +363,10 @@ export default function SkillTree() {
 												.shortDescription
 										}
 									</p>
-									<div
-										className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
+									<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
 										{selectedNode.actionObject.kind
-												.charAt(0)
-												.toUpperCase() +
+											.charAt(0)
+											.toUpperCase() +
 											selectedNode.actionObject.kind.slice(
 												1
 											)}
@@ -371,13 +375,17 @@ export default function SkillTree() {
 
 								{/* ----------- Conditional Number Inputs ----------- */}
 								{/** Example: show the number fields only if this action requires them */}
-								{!selectedNode.unlocked && (selectedNode.actionObject.canChangeInitialPrice || selectedNode.actionObject.canChangeRepeatedPrice) && (
-									<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-										<h4 className="font-medium text-gray-700">
-											Configuration
-										</h4>
-										{selectedNode.actionObject.kind ===
-											"investment" && (
+								{!selectedNode.unlocked &&
+									(selectedNode.actionObject
+										.canChangeInitialPrice ||
+										selectedNode.actionObject
+											.canChangeRepeatedPrice) && (
+										<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+											<h4 className="font-medium text-gray-700">
+												Configuration
+											</h4>
+											{selectedNode.actionObject.kind ===
+												"investment" && (
 												<div>
 													<Label
 														htmlFor="ticks"
@@ -388,11 +396,12 @@ export default function SkillTree() {
 													<Input
 														id="ticks"
 														type="number"
-														value={ticks}
+														value={endPoints}
 														onChange={(e) =>
-															setTicks(
+															setEndPoints(
 																Number(
-																	e.target.value
+																	e.target
+																		.value
 																)
 															)
 														}
@@ -400,56 +409,58 @@ export default function SkillTree() {
 													/>
 												</div>
 											)}
-										{selectedNode.actionObject
-											.canChangeInitialPrice && (
-											<div>
-												<Label
-													htmlFor="initialPrice"
-													className="text-sm text-gray-600"
-												>
-													Initial Price
-												</Label>
-												<Input
-													id="initialPrice"
-													type="number"
-													value={initialPrice}
-													onChange={(e) =>
-														setInitialPrice(
-															Number(
-																e.target.value
+											{selectedNode.actionObject
+												.canChangeInitialPrice && (
+												<div>
+													<Label
+														htmlFor="initialPrice"
+														className="text-sm text-gray-600"
+													>
+														Initial Price
+													</Label>
+													<Input
+														id="initialPrice"
+														type="number"
+														value={initialPrice}
+														onChange={(e) =>
+															setInitialPrice(
+																Number(
+																	e.target
+																		.value
+																)
 															)
-														)
-													}
-													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-												/>
-											</div>
-										)}
-										{selectedNode.actionObject
-											.canChangeRepeatedPrice && (
-											<div>
-												<Label
-													htmlFor="repeatedPrice"
-													className="text-sm text-gray-600"
-												>
-													Repeated Price
-												</Label>
-												<Input
-													id="repeatedPrice"
-													type="number"
-													value={repeatedPrice}
-													onChange={(e) =>
-														setRepeatedPrice(
-															Number(
-																e.target.value
+														}
+														className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+													/>
+												</div>
+											)}
+											{selectedNode.actionObject
+												.canChangeRepeatedPrice && (
+												<div>
+													<Label
+														htmlFor="repeatedPrice"
+														className="text-sm text-gray-600"
+													>
+														Repeated Price
+													</Label>
+													<Input
+														id="repeatedPrice"
+														type="number"
+														value={repeatedPrice}
+														onChange={(e) =>
+															setRepeatedPrice(
+																Number(
+																	e.target
+																		.value
+																)
 															)
-														)
-													}
-													className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-												/>
-											</div>
-										)}
-									</div>
-								)}
+														}
+														className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+													/>
+												</div>
+											)}
+										</div>
+									)}
 								{/* ----------- /Conditional Number Inputs ----------- */}
 
 								<div className="space-y-2">
@@ -464,18 +475,17 @@ export default function SkillTree() {
 											"investment"
 												? "Invest"
 												: selectedNode.actionObject
-													.kind === "income"
-													? "Work"
-													: "Accept Expense"}
-											<ArrowRight className="ml-2 h-4 w-4"/>
+														.kind === "income"
+												? "Work"
+												: "Accept Expense"}
+											<ArrowRight className="ml-2 h-4 w-4" />
 										</Button>
 									)}
 								</div>
 							</div>
 						) : (
-							<div
-								className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-								<Zap className="h-10 w-10 text-indigo-400 mb-2"/>
+							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+								<Zap className="h-10 w-10 text-indigo-400 mb-2" />
 								<p className="text-indigo-600 font-medium">
 									Click on a skill node to view details
 								</p>
@@ -489,20 +499,27 @@ export default function SkillTree() {
 				</div>
 
 				<div
-					className={`fixed inset-0 z-50 flex items-center justify-center ${showChat ? "pointer-events-auto" : "pointer-events-none opacity-0"}`}>
+					className={`fixed inset-0 z-50 flex items-center justify-center ${
+						showChat
+							? "pointer-events-auto"
+							: "pointer-events-none opacity-0"
+					}`}
+				>
 					<div
 						className="absolute inset-0 bg-black opacity-50"
 						onClick={() => setShowChat(false)}
 					></div>
 					<div
 						className={`w-1/2 relative bg-white dark:bg-slate-900 rounded-md shadow-md transition-all duration-500 ease-in-out transform origin-top overflow-hidden ${
-							showChat ? "opacity-100 scale-y-100 h-96" : "opacity-100 scale-y-0 h-0"
+							showChat
+								? "opacity-100 scale-y-100 h-96"
+								: "opacity-100 scale-y-0 h-0"
 						}`}
 					>
 						<div className="flex flex-col h-full border-0 shadow-md overflow-hidden rounded-md">
 							<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 								<div className="text-white text-lg flex items-center gap-2 font-semibold">
-									<Lightbulb className="h-5 w-5"/>
+									<Lightbulb className="h-5 w-5" />
 									Advisor Chat
 								</div>
 								<div className="text-indigo-100 text-sm">
@@ -510,8 +527,7 @@ export default function SkillTree() {
 								</div>
 							</div>
 							<div className="flex flex-col flex-1 space-y-2 overflow-hidden p-3">
-								<div
-									className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
+								<div className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
 									{messages.length > 0 ? (
 										messages.map((msg, idx) => (
 											<div
@@ -528,11 +544,12 @@ export default function SkillTree() {
 									) : (
 										<div className="flex flex-col items-center justify-center h-full text-center p-4">
 											<p className="text-gray-500 text-sm">
-												Ask a question about the selected skill
+												Ask a question about the
+												selected skill
 											</p>
 										</div>
 									)}
-									<div ref={chatEndRef}/>
+									<div ref={chatEndRef} />
 								</div>
 								<form
 									className="flex items-center gap-2 pt-2"
@@ -542,7 +559,7 @@ export default function SkillTree() {
 										const input = chatInput.trim();
 										setMessages((prev) => [
 											...prev,
-											{role: "user", content: input},
+											{ role: "user", content: input },
 										]);
 										setChatInput("");
 										sendHint(input);
@@ -553,9 +570,14 @@ export default function SkillTree() {
 										className="flex-1 resize-none focus:ring-indigo-500 focus:border-indigo-500"
 										rows={2}
 										value={chatInput}
-										onChange={(e) => setChatInput(e.target.value)}
+										onChange={(e) =>
+											setChatInput(e.target.value)
+										}
 										onKeyDown={(e) => {
-											if (e.key === "Enter" && !e.shiftKey) {
+											if (
+												e.key === "Enter" &&
+												!e.shiftKey
+											) {
 												e.preventDefault();
 												e.currentTarget.form?.requestSubmit();
 											}
@@ -565,7 +587,7 @@ export default function SkillTree() {
 										type="submit"
 										className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 									>
-										<Send className="h-4 w-4"/>
+										<Send className="h-4 w-4" />
 									</Button>
 								</form>
 							</div>
@@ -579,7 +601,7 @@ export default function SkillTree() {
 						className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
 					>
 						Submit Your Choice
-						<ArrowRight className="ml-3 h-6 w-6"/>
+						<ArrowRight className="ml-3 h-6 w-6" />
 					</Button>
 				</div>
 			</div>

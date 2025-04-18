@@ -6,62 +6,65 @@ import {
 	Wallet,
 	Clock,
 	Heart,
-	Info,
-	Building,
-	Briefcase,
-	TrendingUp,
 } from "lucide-react";
-import type { Step } from "@/lib/cases/actions";
+import type { Step } from "@/lib/engine/actions";
 import { type ActionTiming } from "@/components/timeline";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { useMemo } from "react";
 
 export interface MetricsCardProps {
 	selectedTime: number;
-	timeframe: "years" | "months" | "weeks" | "days";
 	steps: Step[];
 	actionTimings: ActionTiming[];
 }
 
 export function MetricsCard({
 	selectedTime,
-	timeframe,
 	steps,
 	actionTimings,
 }: MetricsCardProps) {
-	const currentStep = steps.find((step) => step.tick === selectedTime);
+	const currentStep = useMemo(
+		() => steps.find((step) => step.timePoint === selectedTime),
+		[steps, selectedTime]
+	);
 
-	const activeTimings = actionTimings.filter(
-		(timing) =>
-			timing.startTick <= selectedTime && timing.endTick >= selectedTime
+	const activeTimings = useMemo(
+		() =>
+			actionTimings.filter(
+				(timing) =>
+					timing.startTimePoint <= selectedTime &&
+					timing.endTimePoint >= selectedTime
+			),
+		[actionTimings, selectedTime]
 	);
 
 	if (!currentStep) {
 		return null;
 	}
 
+	// Get actions that are active at this specific time point
 	const activeActions = activeTimings.map((timing) => timing.action);
 
 	const allActions = [
 		...currentStep.newActions,
-		...currentStep.oldActiveActions,
+		...currentStep.continuingActions,
 		...activeActions.filter((timingAction) => {
-			const isInOldActiveActions = currentStep.oldActiveActions.some(
+			const isInContinuingActions = currentStep.continuingActions.some(
 				(action) => action.name === timingAction.name
 			);
 			const isInNewActions = currentStep.newActions.some(
 				(action) => action.name === timingAction.name
 			);
-			return !isInOldActiveActions && !isInNewActions;
+			return !isInContinuingActions && !isInNewActions;
 		}),
 	];
 
+	// Calculate metrics for this specific step
 	const metrics = {
-		// income and expenses depends on time - calculation logic will be the same
-		// difference shall be showed with just the name - monthly, yearly....
 		income: allActions.reduce((sum, action) => {
 			if (
 				action.kind === "income" &&
@@ -71,7 +74,6 @@ export function MetricsCard({
 			}
 			return sum;
 		}, 0),
-
 		expenses: allActions.reduce((sum, action) => {
 			if (
 				action.kind === "expense" &&
@@ -84,24 +86,14 @@ export function MetricsCard({
 			}
 			return sum;
 		}, 0),
-
 		investmentCapital: allActions.reduce((sum, action) => {
 			if (action.kind === "investment") {
 				return sum + action.capital;
 			}
 			return sum;
 		}, 0),
-
-		assets:
-			currentStep.bankAccount +
-			allActions.reduce((sum, action) => {
-				if (action.kind === "investment") {
-					return sum + action.capital;
-				}
-				return sum;
-			}, 0),
-
-		freeTimeHours: currentStep.freeTime,
+		assets: currentStep.bankAccount,
+		freeTime: currentStep.freeTimeHours,
 		joyIndex: Math.max(0, Math.min(100, Math.round(currentStep.joy))),
 	};
 
@@ -140,8 +132,31 @@ export function MetricsCard({
 						</div>
 					</PopoverTrigger>
 					<PopoverContent className="w-72 p-0 bg-white shadow-xl border-0">
-						{" "}
-						{/* This needs to be fixed */}
+						<div className="p-4">
+							<h3 className="font-semibold mb-2">
+								Assets Breakdown
+							</h3>
+							<div className="space-y-2">
+								<div className="flex justify-between">
+									<span>Bank Account:</span>
+									<span>
+										$
+										{Math.round(
+											metrics.assets
+										).toLocaleString()}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span>Investments:</span>
+									<span>
+										$
+										{Math.round(
+											metrics.investmentCapital
+										).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						</div>
 					</PopoverContent>
 				</Popover>
 
@@ -157,16 +172,13 @@ export function MetricsCard({
 						</div>
 					</div>
 					<div className="text-sm font-bold text-amber-900 ml-1">
-						{metrics.freeTimeHours.toFixed(0)} h/w
+						{metrics.freeTime} %
 					</div>
 					<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 						<div
 							className="h-full bg-amber-600 rounded-full"
 							style={{
-								width: `${Math.min(
-									100,
-									(metrics.freeTimeHours / 40) * 100
-								)}%`,
+								width: `${Math.min(100, metrics.freeTime)}%`,
 							}}
 						></div>
 					</div>
