@@ -7,6 +7,7 @@ import { Primitive } from "@radix-ui/react-primitive";
 import { composeEventHandlers } from "@radix-ui/primitive";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
+import { PopoverTrigger, Popover, PopoverContent } from "./ui/popover";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -18,23 +19,30 @@ export function TutorialSpot({
 }: PropsWithChildren<{ marker: TutorialSpotMarker }>) {
 	return (
 		<TutorialSpotContext.Provider value={{ marker }}>
-			{children}
+			<TutorialPopoverRoot>{children}</TutorialPopoverRoot>
 		</TutorialSpotContext.Provider>
 	);
+}
+
+function TutorialPopoverRoot(props: React.ComponentProps<typeof Slot>) {
+	const isCurrent = useIsCurrent();
+	return <Popover open={isCurrent}>{props.children}</Popover>;
 }
 
 export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 	const isCurrent = useIsCurrent();
 
 	return (
-		<Slot
-			// TODO: these styles are for testing and intentionally obnoxious
-			className={cn(
-				isCurrent &&
-					"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
-			)}
-			{...props}
-		/>
+		<PopoverTrigger asChild>
+			<Slot
+				// TODO: these styles are for testing and intentionally obnoxious
+				className={cn(
+					isCurrent &&
+						"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
+				)}
+				{...props}
+			/>
+		</PopoverTrigger>
 	);
 }
 
@@ -58,6 +66,22 @@ export const TutorialTrigger = forwardRef<
 });
 
 TutorialTrigger.displayName = "TutorialTrigger";
+
+export function TutorialPopover(
+	props: React.ComponentProps<typeof PopoverContent>
+) {
+	const currentContent = useSelector(
+		tutorialStore,
+		(state) =>
+			state.context.steps.at(state.context.currentStepIndex)?.description
+	);
+
+	return (
+		<PopoverContent {...props}>
+			<div>{currentContent}</div>
+		</PopoverContent>
+	);
+}
 
 function useIsCurrent() {
 	const tutorialSpot = use(TutorialSpotContext);

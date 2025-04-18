@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { type Action } from "@/lib/engine/actions";
-import { TutorialHighlight, TutorialSpot, TutorialTrigger } from "./tutorial";
+import {
+	TutorialHighlight,
+	TutorialPopover,
+	TutorialSpot,
+	TutorialTrigger,
+} from "./tutorial";
 
 export interface ActionTiming {
 	action: Action;
@@ -115,6 +120,7 @@ export function Timeline({
 											>
 												{unit}
 											</TutorialTrigger>
+											<TutorialPopover />
 										</TutorialSpot>
 									</div>
 								))}
@@ -256,6 +262,7 @@ export function Timeline({
 					</Dialog>
 				</div>
 			</TutorialHighlight>
+			<TutorialPopover />
 		</TutorialSpot>
 	);
 }
