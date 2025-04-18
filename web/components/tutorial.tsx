@@ -16,26 +16,25 @@ export function TutorialSpot({
 	marker,
 	children,
 }: PropsWithChildren<{ marker: TutorialSpotMarker }>) {
-	const currentMarker = useSelector(
-		tutorialStore,
-		(state) =>
-			state.context.steps.at(state.context.currentStepIndex)?.marker
-	);
-
-	const isCurrent = currentMarker && markerMatches(currentMarker, marker);
-
 	return (
 		<TutorialSpotContext.Provider value={{ marker }}>
-			<Slot
-				// TODO: these styles are for testing and intentionally obnoxious
-				className={cn(
-					isCurrent &&
-						"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
-				)}
-			>
-				{children}
-			</Slot>
+			{children}
 		</TutorialSpotContext.Provider>
+	);
+}
+
+export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
+	const isCurrent = useIsCurrent();
+
+	return (
+		<Slot
+			// TODO: these styles are for testing and intentionally obnoxious
+			className={cn(
+				isCurrent &&
+					"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
+			)}
+			{...props}
+		/>
 	);
 }
 
@@ -43,6 +42,24 @@ export const TutorialTrigger = forwardRef<
 	HTMLButtonElement,
 	React.ComponentProps<typeof Primitive.button>
 >((props, ref) => {
+	const isCurrent = useIsCurrent();
+
+	const onClick = isCurrent
+		? composeEventHandlers(props.onClick, () => {
+				tutorialStore.send({ type: "nextStep" });
+		  })
+		: props.onClick;
+
+	return (
+		<TutorialHighlight>
+			<Primitive.button {...props} ref={ref} onClick={onClick} />
+		</TutorialHighlight>
+	);
+});
+
+TutorialTrigger.displayName = "TutorialTrigger";
+
+function useIsCurrent() {
 	const tutorialSpot = use(TutorialSpotContext);
 	invariant(
 		tutorialSpot,
@@ -55,14 +72,5 @@ export const TutorialTrigger = forwardRef<
 			state.context.steps.at(state.context.currentStepIndex)?.marker
 	);
 
-	const onClick =
-		currentMarker && markerMatches(tutorialSpot.marker, currentMarker)
-			? composeEventHandlers(props.onClick, () => {
-					tutorialStore.send({ type: "nextStep" });
-			  })
-			: props.onClick;
-
-	return <Primitive.button {...props} ref={ref} onClick={onClick} />;
-});
-
-TutorialTrigger.displayName = "TutorialTrigger";
+	return currentMarker && markerMatches(currentMarker, tutorialSpot.marker);
+}
