@@ -260,35 +260,22 @@ export default function Simulation() {
 										value="transactions"
 										className="p-2"
 									>
-										{/* <TransactionList
-											selectedTimeframe={timeframe}
-											selectedTime={currentStep.timePoint}
-											actions={
-												steps.find(
-													(step) =>
-														step.timePoint ===
-														currentStep.timePoint
-												)
-													? [
-															...(steps.find(
-																(step) =>
-																	step.timePoint ===
-																	currentStep.timePoint
-															)?.newActions ||
-																[]),
-															...(steps.find(
-																(step) =>
-																	step.timePoint ===
-																	currentStep.timePoint
-															)
-																?.continuingActions ||
-																[]),
-													  ]
-													: []
+										<TransactionList
+											actionTimings={getActionDurations({
+												description:
+													context.description,
+												steps: allSteps,
+												currentStepIndex:
+													allSteps.findIndex(
+														(step) =>
+															step.timePoint ===
+															currentStep.timePoint
+													),
+											})}
+											currentTimePoint={
+												currentStep.timePoint
 											}
-											actionTimings={actionTimings}
-											currentYear={currentStep.timePoint}
-										/> */}
+										/>
 									</TabsContent>
 
 									<TabsContent

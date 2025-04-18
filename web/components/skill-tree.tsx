@@ -53,7 +53,10 @@ export default function SkillTree() {
 		};
 	}, [context]);
 
+	// Reset newlyUnlockedActions when component mounts or when currentStep changes
 	useEffect(() => {
+		setNewlyUnlockedActions([]);
+
 		if (!currentStep) {
 			router.push("/");
 			return;
