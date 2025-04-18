@@ -282,13 +282,12 @@ export default function Simulation() {
 										value="analysis"
 										className="p-2"
 									>
-										{/* <SpendingGraph
+										<SpendingGraph
 											timeUnits={currentUnits}
 											selectedUnit={currentStep.timePoint}
 											actionTimings={actionTimings}
 											timeframe={timeframe}
-											currentYear={currentStep.timePoint}
-										/> */}
+										/>
 									</TabsContent>
 								</Tabs>
 							</CollapsibleContent>
