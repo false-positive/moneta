@@ -26,6 +26,7 @@ import {
 	DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { TutorialSpot, TutorialTrigger } from "./tutorial";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -596,13 +597,17 @@ export default function SkillTree() {
 				</div>
 
 				<div className="absolute bottom-4 right-4">
-					<Button
-						onClick={handleSubmit}
-						className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
-					>
-						Submit Your Choice
-						<ArrowRight className="ml-3 h-6 w-6" />
-					</Button>
+					<TutorialSpot marker={{ kind: "submit-choice-button" }}>
+						<TutorialTrigger asChild>
+							<Button
+								onClick={handleSubmit}
+								className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
+							>
+								Submit Your Choice
+								<ArrowRight className="ml-3 h-6 w-6" />
+							</Button>
+						</TutorialTrigger>
+					</TutorialSpot>
 				</div>
 			</div>
 		</div>
