@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/engine/stores/quest-store";
+import { questStore } from "@/lib/stores/quest-store";
 import { getLatestStep } from "@/lib/engine/quests";
 
 import {

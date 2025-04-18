@@ -6,7 +6,7 @@ import { Lock, LockKeyholeOpen } from "lucide-react";
 import type { Step } from "@/lib/engine/actions";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/engine/stores/quest-store";
+import { questStore } from "@/lib/stores/quest-store";
 
 interface FinancialJourneyProps {
 	steps: Step[];
