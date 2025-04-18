@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LockKeyholeOpen } from "lucide-react";
-import type { Step } from "@/lib/engine/quests";
+import type { Step } from "@/lib/engine/actions";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/engine/stores/quest-store";
