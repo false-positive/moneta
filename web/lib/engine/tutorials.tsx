@@ -27,20 +27,20 @@ export const tutorialSteps: TutorialStep[] = [
 	},
 ];
 
-export function markerMatches<T extends TutorialSpotMarker>(
-	lhs: TutorialSpotMarker,
-	rhs: T
-): lhs is T {
+export function markerMatches<LHS extends TutorialSpotMarker>(
+	lhs: LHS,
+	rhs: TutorialSpotMarker
+): rhs is LHS {
 	if (lhs.kind !== rhs.kind) {
 		return false;
 	}
 
-	const aHasInstance = "instance" in lhs;
-	const bHasInstance = "instance" in rhs;
+	const lhsHasInstance = "instance" in lhs;
+	const rhsHasInstance = "instance" in rhs;
 
-	if (aHasInstance && bHasInstance) {
+	if (lhsHasInstance && rhsHasInstance) {
 		return isEqual(lhs.instance, rhs.instance);
 	}
 
-	return !aHasInstance && !bHasInstance;
+	return !lhsHasInstance && !rhsHasInstance;
 }
