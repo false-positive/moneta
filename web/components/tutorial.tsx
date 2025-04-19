@@ -5,13 +5,7 @@ import { composeEventHandlers } from "@radix-ui/primitive";
 import { Primitive } from "@radix-ui/react-primitive";
 import { Slot } from "@radix-ui/react-slot";
 import { useSelector } from "@xstate/store/react";
-import {
-	createContext,
-	PropsWithChildren,
-	use,
-	useEffect,
-	useRef,
-} from "react";
+import { createContext, PropsWithChildren, use, useRef } from "react";
 import invariant from "tiny-invariant";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -92,12 +86,9 @@ export function TutorialPopover({
 	// It used to re-render with the new content, which is intended for the next step.
 	// This is to fix #42
 	const currentContentRef = useRef(currentContent);
-
-	useEffect(() => {
-		if (isCurrent) {
-			currentContentRef.current = currentContent;
-		}
-	}, [isCurrent, currentContent]);
+	if (isCurrent) {
+		currentContentRef.current = currentContent;
+	}
 
 	return (
 		<PopoverContent {...popoverContentProps}>
