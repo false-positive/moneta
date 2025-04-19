@@ -21,6 +21,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { createContext, PropsWithChildren, use } from "react";
 import invariant from "tiny-invariant";
 import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
+import { Check } from "lucide-react";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -84,6 +85,8 @@ export function TutorialTrigger(
 interface TutorialPopoverProps
 	extends React.ComponentProps<typeof PopoverContent> {
 	isAdvanceable?: boolean;
+	side?: "top" | "right" | "bottom" | "left";
+	pulse?: boolean;
 }
 
 export function TutorialPopoverContent({
@@ -96,17 +99,46 @@ export function TutorialPopoverContent({
 	// XXX: is this okay? we need to verify with radix-ui and its internal `<Presence />` component
 	if (!step) return null;
 
-	// Iva TODO: https://www.radix-ui.com/primitives/docs/components/popover#api-reference
 	return (
-		<PopoverContent {...popoverContentProps}>
-			<div>{step.description}</div>
-			{isAdvanceable && (
-				<Button
-					variant="outline"
-					onClick={() => tutorialStore.send({ type: "nextStep" })}
-				>
-					GOT ITTTT!!
-				</Button>
+		<PopoverContent
+			{...popoverContentProps}
+			className="w-[320px] bg-white border-2 border-indigo-100 shadow-xl rounded-xl p-5"
+			side={step.popoverSide || "top"}
+			sideOffset={20}
+			align="center"
+		>
+			<div className="space-y-4">
+				<div className="text-sm text-zinc-600 leading-relaxed text-center">
+					{step.description}
+				</div>
+				{isAdvanceable && (
+					<Button
+						variant="ghost"
+						size="sm"
+						className={cn(
+							"w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
+							"hover:text-indigo-700 hover:scale-[1.02] active:scale-[0.98]",
+							"transition-all duration-200 font-medium tracking-wide"
+						)}
+						onClick={() => tutorialStore.send({ type: "nextStep" })}
+					>
+						<Check className="h-4 w-4" />
+						Got it!
+					</Button>
+				)}
+			</div>
+			{step.pulse && (
+				<style jsx global>{`
+					@keyframes pulse {
+						0%,
+						100% {
+							transform: scale(1);
+						}
+						50% {
+							transform: scale(1.02);
+						}
+					}
+				`}</style>
 			)}
 		</PopoverContent>
 	);
