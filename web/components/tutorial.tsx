@@ -21,7 +21,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { createContext, PropsWithChildren, use } from "react";
 import invariant from "tiny-invariant";
 import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -152,28 +152,55 @@ export function TutorialPopoverContent({
 	);
 }
 
-export function TutorialDialogContent(
-	props: React.ComponentProps<typeof DialogContent>
-) {
+export function TutorialDialogContent() {
 	const { step } = useStableCurrentTutorialStep();
 
 	if (!step) return null;
 
-	// Iva TODO
 	return (
-		<DialogContent className="sm:max-w-[425px]">
-			<DialogHeader>
-				<DialogTitle>{step.title}</DialogTitle>
-				<DialogDescription>{step.description}</DialogDescription>
-			</DialogHeader>
+		<DialogContent className="sm:max-w-[90vw] h-[90vh] bg-transparent border-none shadow-none animate-fadeIn rounded-xl before:absolute before:inset-[-100px] before:-z-10 before:[background:radial-gradient(circle_at_center,white_0%,transparent_70%)] before:rounded-full">
+			<div className="flex flex-col items-center justify-center h-full space-y-6 py-8">
+				{step.title && (
+					<h2 className="text-4xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn">
+						{step.title}
+					</h2>
+				)}
 
-			<DialogFooter>
+				<p className="text-2xl text-[#6c5ce7] text-center max-w-[500px] leading-relaxed animate-fadeIn animation-delay-100">
+					{step.description}
+				</p>
+
 				<Button
 					onClick={() => tutorialStore.send({ type: "nextStep" })}
+					className="mt-4 bg-transparent text-[#6c5ce7] border-2 border-[#6c5ce7] px-6 py-2 rounded-md animate-[pulse_2s_ease-in-out_infinite] cursor-pointer hover:bg-transparent hover:text-[#6c5ce7] hover:border-[#6c5ce7]"
 				>
-					yep, got it
+					Continue
+					<ArrowRight className="ml-2 h-4 w-4" />
 				</Button>
-			</DialogFooter>
+			</div>
+
+			<style jsx global>{`
+				@keyframes fadeIn {
+					from {
+						opacity: 0;
+					}
+					to {
+						opacity: 1;
+					}
+				}
+
+				.animate-fadeIn {
+					animation: fadeIn 0.5s ease-out forwards;
+				}
+
+				.animation-delay-100 {
+					animation-delay: 0.1s;
+				}
+
+				.animation-delay-200 {
+					animation-delay: 0.2s;
+				}
+			`}</style>
 		</DialogContent>
 	);
 }
