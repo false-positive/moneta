@@ -27,7 +27,7 @@ export const tutorialStore = createStore({
  * This is a stable reference to the current step, so it will not change when the tutorial advances to the next step,
  * but it will change if the marker changes or the current step matches the marker and it also changes.
  */
-export function useStableMatchingCurrentStep<
+export function useStableMatchingCurrentTutorialStep<
 	MarkerType extends TutorialSpotMarker
 >(marker: MarkerType) {
 	const currentStep = useSelector(tutorialStore, (state) =>

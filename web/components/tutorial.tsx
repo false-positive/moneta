@@ -1,7 +1,7 @@
 import { TutorialSpotMarker } from "@/lib/engine/tutorials";
 import {
 	tutorialStore,
-	useStableMatchingCurrentStep,
+	useStableMatchingCurrentTutorialStep as useStableMatchingCurrentTutorialStep,
 } from "@/lib/stores/tutorial-store";
 import { cn } from "@/lib/utils";
 import { composeEventHandlers } from "@radix-ui/primitive";
@@ -28,12 +28,12 @@ export function TutorialSpot({
 }
 
 function TutorialPopoverRoot(props: React.ComponentProps<typeof Slot>) {
-	const { isCurrent } = useStableCurrentStep();
+	const { isCurrent } = useStableCurrentTutorialStep();
 	return <Popover open={isCurrent}>{props.children}</Popover>;
 }
 
 export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
-	const { isCurrent } = useStableCurrentStep();
+	const { isCurrent } = useStableCurrentTutorialStep();
 
 	return (
 		<PopoverTrigger asChild>
@@ -52,7 +52,7 @@ export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 export function TutorialTrigger(
 	props: React.ComponentProps<typeof Primitive.button>
 ) {
-	const { isCurrent } = useStableCurrentStep();
+	const { isCurrent } = useStableCurrentTutorialStep();
 
 	const onClick = isCurrent
 		? composeEventHandlers(props.onClick, () => {
@@ -76,7 +76,7 @@ export function TutorialPopover({
 	isAdvanceable,
 	...popoverContentProps
 }: TutorialPopoverProps) {
-	const { step } = useStableCurrentStep();
+	const { step } = useStableCurrentTutorialStep();
 
 	// we never reached this step, so don't render anything
 	// XXX: is this okay? we need to verify with radix-ui and its internal `<Presence />` component
@@ -97,12 +97,12 @@ export function TutorialPopover({
 	);
 }
 
-function useStableCurrentStep() {
+function useStableCurrentTutorialStep() {
 	const tutorialSpot = use(TutorialSpotContext);
 	invariant(
 		tutorialSpot,
 		"TutorialTrigger must be used within a TutorialSpot"
 	);
 
-	return useStableMatchingCurrentStep(tutorialSpot.marker);
+	return useStableMatchingCurrentTutorialStep(tutorialSpot.marker);
 }
