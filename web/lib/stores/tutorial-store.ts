@@ -1,12 +1,11 @@
 import { createStore } from "@xstate/store";
+import { useSelector } from "@xstate/store/react";
+import { useRef } from "react";
 import {
-	markerMatches,
 	stepMatchesMarker,
 	TutorialSpotMarker,
 	tutorialSteps,
 } from "../engine/tutorials";
-import { useSelector } from "@xstate/store/react";
-import { useRef } from "react";
 
 export const tutorialStore = createStore({
 	context: {
