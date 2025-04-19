@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import isEqual from "lodash/isEqual";
 
 export type TutorialSpotMarker =
+	| { kind: "welcome-dialog" }
 	| { kind: "submit-choice-button" }
 	| { kind: "timeline" }
 	| { kind: "timeline-unit"; instance: { unit: string | number } };
@@ -10,21 +11,30 @@ export type TutorialStep<
 	MarkerType extends TutorialSpotMarker = TutorialSpotMarker
 > = {
 	marker: MarkerType;
+	title: ReactNode;
 	description: ReactNode;
 };
 
 export const tutorialSteps: TutorialStep[] = [
 	{
+		marker: { kind: "welcome-dialog" },
+		title: "this is a tutorial!!",
+		description: "it can do tutorial things",
+	},
+	{
 		marker: { kind: "submit-choice-button" },
+		title: <></>,
 		description:
 			"yo bro u can click this button to submit your choice (that's what it does)",
 	},
 	{
 		marker: { kind: "timeline" },
+		title: <></>,
 		description: "and now you see the timeline",
 	},
 	{
 		marker: { kind: "timeline-unit", instance: { unit: 2020 } },
+		title: <></>,
 		description: "this is the year 2020!!",
 	},
 ];

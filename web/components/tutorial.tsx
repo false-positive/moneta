@@ -1,7 +1,18 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { TutorialSpotMarker } from "@/lib/engine/tutorials";
 import {
 	tutorialStore,
-	useStableMatchingCurrentTutorialStep as useStableMatchingCurrentTutorialStep,
+	useStableMatchingCurrentTutorialStep,
 } from "@/lib/stores/tutorial-store";
 import { cn } from "@/lib/utils";
 import { composeEventHandlers } from "@radix-ui/primitive";
@@ -9,7 +20,6 @@ import { Primitive } from "@radix-ui/react-primitive";
 import { Slot } from "@radix-ui/react-slot";
 import { createContext, PropsWithChildren, use } from "react";
 import invariant from "tiny-invariant";
-import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const TutorialSpotContext = createContext<{
@@ -29,7 +39,11 @@ export function TutorialSpot({
 
 function TutorialPopoverRoot(props: React.ComponentProps<typeof Slot>) {
 	const { isCurrent } = useStableCurrentTutorialStep();
-	return <Popover open={isCurrent}>{props.children}</Popover>;
+	return (
+		<Popover open={isCurrent}>
+			<Dialog open={isCurrent}>{props.children}</Dialog>
+		</Popover>
+	);
 }
 
 export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
@@ -94,6 +108,31 @@ export function TutorialPopover({
 				</Button>
 			)}
 		</PopoverContent>
+	);
+}
+
+export function TutorialDialog(
+	props: React.ComponentProps<typeof DialogContent>
+) {
+	const { step } = useStableCurrentTutorialStep();
+
+	if (!step) return null;
+
+	return (
+		<DialogContent className="sm:max-w-[425px]">
+			<DialogHeader>
+				<DialogTitle>{step.title}</DialogTitle>
+				<DialogDescription>{step.description}</DialogDescription>
+			</DialogHeader>
+
+			<DialogFooter>
+				<Button
+					onClick={() => tutorialStore.send({ type: "nextStep" })}
+				>
+					yep, got it
+				</Button>
+			</DialogFooter>
+		</DialogContent>
 	);
 }
 
