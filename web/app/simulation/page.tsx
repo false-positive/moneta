@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/engine/stores/quest-store";
-import { getActionDurations, Step } from "@/lib/engine/quests";
+import { questStore } from "@/lib/stores/quest-store";
+import { getActionDurations } from "@/lib/engine/quests";
+import { type Step } from "@/lib/engine/actions";
 import { FinancialJourney } from "@/components/financial-journey";
 import { MetricsCard } from "@/components/metrics-card";
 import { TransactionList } from "@/components/transaction-list";

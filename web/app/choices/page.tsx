@@ -1,4 +1,5 @@
 import SkillTree from "@/components/skill-tree";
+import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
 
 export default function TestPage() {
 	return (
@@ -9,6 +10,9 @@ export default function TestPage() {
 			<div className="h-[800px]">
 				<SkillTree />
 			</div>
+			<TutorialSpot marker={{ kind: "welcome-dialog" }}>
+				<TutorialDialogContent />
+			</TutorialSpot>
 		</div>
 	);
 }

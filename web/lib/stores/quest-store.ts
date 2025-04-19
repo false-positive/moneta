@@ -1,12 +1,12 @@
 import { createStore } from "@xstate/store";
-import { Action, computeNextStep } from "../actions";
+import { Action, computeNextStep } from "@/lib/engine/actions";
 import {
 	Quest,
 	getLatestStep,
 	getNewActionsPerStep,
 	simulateWithActions,
-} from "../quests";
-import { standardQuests } from "../quests/standard-quests";
+} from "@/lib/engine/quests";
+import { standardQuests } from "@/lib/engine/quests/standard-quests";
 
 const initialQuestDescription = standardQuests["maria"];
 

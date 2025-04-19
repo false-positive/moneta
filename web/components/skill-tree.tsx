@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/engine/stores/quest-store";
+import { questStore } from "@/lib/stores/quest-store";
 import { getLatestStep } from "@/lib/engine/quests";
 
 import {
@@ -26,6 +26,11 @@ import {
 	DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+	TutorialSpot,
+	TutorialTrigger,
+	TutorialPopoverContent,
+} from "./tutorial";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -596,13 +601,18 @@ export default function SkillTree() {
 				</div>
 
 				<div className="absolute bottom-4 right-4">
-					<Button
-						onClick={handleSubmit}
-						className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
-					>
-						Submit Your Choice
-						<ArrowRight className="ml-3 h-6 w-6" />
-					</Button>
+					<TutorialSpot marker={{ kind: "submit-choice-button" }}>
+						<TutorialTrigger asChild>
+							<Button
+								onClick={handleSubmit}
+								className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
+							>
+								Submit Your Choice
+								<ArrowRight className="ml-3 h-6 w-6" />
+							</Button>
+						</TutorialTrigger>
+						<TutorialPopoverContent />
+					</TutorialSpot>
 				</div>
 			</div>
 		</div>

@@ -30,7 +30,7 @@ The simulation engine is located inside the `lib/engine/` subdirectory. The XSta
 
 ```typescript
 import { useStore } from "@xstate/store";
-import { questStore } from "lib/engine/stores/quest-store";
+import { questStore } from "lib/stores/quest-store";
 
 function MyComponent() {
   // Get the current quest state
