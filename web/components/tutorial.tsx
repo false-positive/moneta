@@ -73,7 +73,10 @@ interface TutorialPopoverProps
 	isAdvanceable?: boolean;
 }
 
-export function TutorialPopover(props: TutorialPopoverProps) {
+export function TutorialPopover({
+	isAdvanceable,
+	...popoverContentProps
+}: TutorialPopoverProps) {
 	const currentContent = useSelector(
 		tutorialStore,
 		(state) =>
@@ -81,9 +84,9 @@ export function TutorialPopover(props: TutorialPopoverProps) {
 	);
 
 	return (
-		<PopoverContent {...props}>
+		<PopoverContent {...popoverContentProps}>
 			<div>{currentContent}</div>
-			{props.isAdvanceable && (
+			{isAdvanceable && (
 				<Button
 					variant="outline"
 					onClick={() => tutorialStore.send({ type: "nextStep" })}
