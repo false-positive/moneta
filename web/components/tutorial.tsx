@@ -20,7 +20,7 @@ import { Primitive } from "@radix-ui/react-primitive";
 import { Slot } from "@radix-ui/react-slot";
 import { createContext, PropsWithChildren, use } from "react";
 import invariant from "tiny-invariant";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverAnchor, PopoverContent } from "./ui/popover";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -50,16 +50,16 @@ export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 	const { isCurrent } = useStableCurrentTutorialStep();
 
 	return (
-		<PopoverTrigger asChild>
+		<PopoverAnchor asChild>
 			<Slot
-				// TODO: these styles are for testing and intentionally obnoxious
+				// Iva TODO: these styles are for testing and intentionally obnoxious
 				className={cn(
 					isCurrent &&
 						"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
 				)}
 				{...props}
 			/>
-		</PopoverTrigger>
+		</PopoverAnchor>
 	);
 }
 
@@ -86,7 +86,7 @@ interface TutorialPopoverProps
 	isAdvanceable?: boolean;
 }
 
-export function TutorialPopover({
+export function TutorialPopoverContent({
 	isAdvanceable,
 	...popoverContentProps
 }: TutorialPopoverProps) {
@@ -96,6 +96,7 @@ export function TutorialPopover({
 	// XXX: is this okay? we need to verify with radix-ui and its internal `<Presence />` component
 	if (!step) return null;
 
+	// Iva TODO: https://www.radix-ui.com/primitives/docs/components/popover#api-reference
 	return (
 		<PopoverContent {...popoverContentProps}>
 			<div>{step.description}</div>
@@ -111,13 +112,14 @@ export function TutorialPopover({
 	);
 }
 
-export function TutorialDialog(
+export function TutorialDialogContent(
 	props: React.ComponentProps<typeof DialogContent>
 ) {
 	const { step } = useStableCurrentTutorialStep();
 
 	if (!step) return null;
 
+	// Iva TODO
 	return (
 		<DialogContent className="sm:max-w-[425px]">
 			<DialogHeader>

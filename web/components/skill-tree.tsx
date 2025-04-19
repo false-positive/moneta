@@ -26,7 +26,11 @@ import {
 	DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { TutorialSpot, TutorialTrigger, TutorialPopover } from "./tutorial";
+import {
+	TutorialSpot,
+	TutorialTrigger,
+	TutorialPopoverContent,
+} from "./tutorial";
 
 export default function SkillTree() {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -607,7 +611,7 @@ export default function SkillTree() {
 								<ArrowRight className="ml-3 h-6 w-6" />
 							</Button>
 						</TutorialTrigger>
-						<TutorialPopover />
+						<TutorialPopoverContent />
 					</TutorialSpot>
 				</div>
 			</div>

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { type Action } from "@/lib/engine/actions";
 import {
 	TutorialHighlight,
-	TutorialPopover,
+	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
 } from "./tutorial";
@@ -120,7 +120,7 @@ export function Timeline({
 											>
 												{unit}
 											</TutorialTrigger>
-											<TutorialPopover />
+											<TutorialPopoverContent />
 										</TutorialSpot>
 									</div>
 								))}
@@ -262,7 +262,7 @@ export function Timeline({
 					</Dialog>
 				</div>
 			</TutorialHighlight>
-			<TutorialPopover isAdvanceable />
+			<TutorialPopoverContent isAdvanceable />
 		</TutorialSpot>
 	);
 }
