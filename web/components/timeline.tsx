@@ -262,7 +262,7 @@ export function Timeline({
 					</Dialog>
 				</div>
 			</TutorialHighlight>
-			<TutorialPopover />
+			<TutorialPopover isAdvanceable />
 		</TutorialSpot>
 	);
 }

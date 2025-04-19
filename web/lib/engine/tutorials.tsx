@@ -22,8 +22,8 @@ export const tutorialSteps: TutorialStep[] = [
 		description: "and now you see the timeline",
 	},
 	{
-		marker: { kind: "timeline-unit", instance: { unit: 2021 } },
-		description: "this is the year 2021!!",
+		marker: { kind: "timeline-unit", instance: { unit: 2020 } },
+		description: "this is the year 2020!!",
 	},
 ];
 

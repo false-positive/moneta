@@ -8,6 +8,7 @@ import { composeEventHandlers } from "@radix-ui/primitive";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 import { PopoverTrigger, Popover, PopoverContent } from "./ui/popover";
+import { Button } from "./ui/button";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -67,9 +68,12 @@ export const TutorialTrigger = forwardRef<
 
 TutorialTrigger.displayName = "TutorialTrigger";
 
-export function TutorialPopover(
-	props: React.ComponentProps<typeof PopoverContent>
-) {
+interface TutorialPopoverProps
+	extends React.ComponentProps<typeof PopoverContent> {
+	isAdvanceable?: boolean;
+}
+
+export function TutorialPopover(props: TutorialPopoverProps) {
 	const currentContent = useSelector(
 		tutorialStore,
 		(state) =>
@@ -79,6 +83,14 @@ export function TutorialPopover(
 	return (
 		<PopoverContent {...props}>
 			<div>{currentContent}</div>
+			{props.isAdvanceable && (
+				<Button
+					variant="outline"
+					onClick={() => tutorialStore.send({ type: "nextStep" })}
+				>
+					GOT ITTTT!!
+				</Button>
+			)}
 		</PopoverContent>
 	);
 }
