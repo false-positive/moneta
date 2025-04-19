@@ -1,12 +1,16 @@
-name: Tests
+name: Tests # XXX: This only tests the web app, so maybe we should rename?
 
 on:
   pull_request:
     paths:
       - "web/**"
-  # push:
-  #   paths:
-  #     - "web/**"
+    branches:
+      - master
+  push:
+    paths:
+      - "web/**"
+    branches:
+      - master
 
 jobs:
   test:
