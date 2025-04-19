@@ -53,10 +53,18 @@ export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 	return (
 		<PopoverAnchor asChild>
 			<Slot
-				// Iva TODO: these styles are for testing and intentionally obnoxious
 				className={cn(
-					isCurrent &&
-						"!outline-8 !outline-indigo-500 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_25px_rgba(99,102,241,0.7)] ring-8 ring-indigo-500/50 transition-all duration-300 hover:scale-110 relative before:absolute before:inset-0 before:animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] before:bg-indigo-500/30 before:rounded-[inherit]"
+					isCurrent && [
+						"!outline-4 !outline-indigo-500 rounded-xl",
+						"animate-[pulse_2s_ease-in-out_infinite]",
+						"shadow-[0_0_15px_rgba(99,102,241,0.5)]",
+						"ring-4 ring-indigo-500/30",
+						"transition-all duration-300 hover:scale-105",
+						"relative",
+						"before:absolute before:inset-0",
+						"before:bg-indigo-500/20",
+						"before:rounded-xl",
+					]
 				)}
 				{...props}
 			/>
