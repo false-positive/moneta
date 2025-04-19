@@ -6,8 +6,10 @@ export type TutorialSpotMarker =
 	| { kind: "timeline" }
 	| { kind: "timeline-unit"; instance: { unit: string | number } };
 
-export type TutorialStep = {
-	marker: TutorialSpotMarker;
+export type TutorialStep<
+	MarkerType extends TutorialSpotMarker = TutorialSpotMarker
+> = {
+	marker: MarkerType;
 	description: ReactNode;
 };
 
@@ -43,4 +45,11 @@ export function markerMatches<LHS extends TutorialSpotMarker>(
 	}
 
 	return !lhsHasInstance && !rhsHasInstance;
+}
+
+export function stepMatchesMarker<MarkerType extends TutorialSpotMarker>(
+	step: TutorialStep,
+	marker: MarkerType
+): step is TutorialStep<MarkerType> {
+	return markerMatches(marker, step.marker);
 }
