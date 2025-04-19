@@ -1,14 +1,20 @@
 import { markerMatches, TutorialSpotMarker } from "@/lib/engine/tutorials";
 import { tutorialStore } from "@/lib/stores/tutorial-store";
-import { useSelector } from "@xstate/store/react";
-import { PropsWithChildren, createContext, forwardRef, use } from "react";
-import invariant from "tiny-invariant";
-import { Primitive } from "@radix-ui/react-primitive";
-import { composeEventHandlers } from "@radix-ui/primitive";
-import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
-import { PopoverTrigger, Popover, PopoverContent } from "./ui/popover";
+import { composeEventHandlers } from "@radix-ui/primitive";
+import { Primitive } from "@radix-ui/react-primitive";
+import { Slot } from "@radix-ui/react-slot";
+import { useSelector } from "@xstate/store/react";
+import {
+	createContext,
+	PropsWithChildren,
+	use,
+	useEffect,
+	useRef,
+} from "react";
+import invariant from "tiny-invariant";
 import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const TutorialSpotContext = createContext<{
 	marker: TutorialSpotMarker;
@@ -47,10 +53,9 @@ export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 	);
 }
 
-export const TutorialTrigger = forwardRef<
-	HTMLButtonElement,
-	React.ComponentProps<typeof Primitive.button>
->((props, ref) => {
+export function TutorialTrigger(
+	props: React.ComponentProps<typeof Primitive.button>
+) {
 	const isCurrent = useIsCurrent();
 
 	const onClick = isCurrent
@@ -61,12 +66,10 @@ export const TutorialTrigger = forwardRef<
 
 	return (
 		<TutorialHighlight>
-			<Primitive.button {...props} ref={ref} onClick={onClick} />
+			<Primitive.button {...props} onClick={onClick} />
 		</TutorialHighlight>
 	);
-});
-
-TutorialTrigger.displayName = "TutorialTrigger";
+}
 
 interface TutorialPopoverProps
 	extends React.ComponentProps<typeof PopoverContent> {
@@ -77,15 +80,28 @@ export function TutorialPopover({
 	isAdvanceable,
 	...popoverContentProps
 }: TutorialPopoverProps) {
+	const isCurrent = useIsCurrent();
 	const currentContent = useSelector(
 		tutorialStore,
 		(state) =>
 			state.context.steps.at(state.context.currentStepIndex)?.description
 	);
 
+	// Store the current content in a ref, so we keep showing the old value if the tutorial advanced to the next step
+	// This fixes a bug where we move on to the next step, but the popover is still mounted because the exit animation is still playing
+	// It used to re-render with the new content, which is intended for the next step.
+	// This is to fix #42
+	const currentContentRef = useRef(currentContent);
+
+	useEffect(() => {
+		if (isCurrent) {
+			currentContentRef.current = currentContent;
+		}
+	}, [isCurrent, currentContent]);
+
 	return (
 		<PopoverContent {...popoverContentProps}>
-			<div>{currentContent}</div>
+			<div>{currentContentRef.current}</div>
 			{isAdvanceable && (
 				<Button
 					variant="outline"
