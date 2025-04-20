@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
-import { getLatestStep } from "@/lib/engine/quests";
+import { getLatestStep, isQuestCompleted } from "@/lib/engine/quests";
 
 import {
 	allActionsList,
@@ -48,15 +48,15 @@ export default function SkillTree() {
 	const router = useRouter();
 
 	// Get state from quest store
-	const context = useSelector(questStore, (s) => s.context);
+	const quest = useSelector(questStore, (s) => s.context);
 
 	const { currentStep } = useMemo(() => {
-		const currentStep = getLatestStep(context);
+		const currentStep = getLatestStep(quest);
 		return {
 			currentStep,
-			steps: context.steps,
+			steps: quest.steps,
 		};
-	}, [context]);
+	}, [quest]);
 
 	// Reset newlyUnlockedActions when component mounts or when currentStep changes
 	useEffect(() => {
@@ -147,7 +147,11 @@ export default function SkillTree() {
 			newActions: unlockedActions,
 		});
 
-		router.push("/simulation");
+		if (isQuestCompleted(quest)) {
+			router.push("/simulation");
+		} else {
+			router.push("/quest-end");
+		}
 	};
 
 	// Function for chat/hint
@@ -312,7 +316,7 @@ export default function SkillTree() {
 						<div className="text-white text-lg flex items-center gap-2 font-semibold">
 							<Sparkles className="h-5 w-5" />
 							{/* To Do : add here timeframe, unhardcode */}
-							Financial Journey - Year {context.steps.length}
+							Financial Journey - Year {quest.steps.length}
 						</div>
 					</div>
 					<div className="h-full p-3">
