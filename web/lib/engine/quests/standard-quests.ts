@@ -16,6 +16,10 @@ export const standardQuests: Record<string, QuestDescription> = {
 			newActions: [],
 			continuingActions: [lifeAction],
 		},
+		goal: {
+			description: "Maria wants to save 1000 BGN",
+			isCompleted: (idk: unknown) => true,
+		},
 	},
 	marti: {
 		personAge: 10,
@@ -31,6 +35,10 @@ export const standardQuests: Record<string, QuestDescription> = {
 			newActions: [],
 			continuingActions: [lifeAction],
 		},
+		goal: {
+			description: "Marti wants to save 1000 BGN",
+			isCompleted: (idk: unknown) => true,
+		},
 	},
 	maria: {
 		personAge: 18,
@@ -45,6 +53,10 @@ export const standardQuests: Record<string, QuestDescription> = {
 			freeTimeHours: 100,
 			newActions: [],
 			continuingActions: [{ ...lifeAction }],
+		},
+		goal: {
+			description: "Ivan wants to save 100000 BGN",
+			isCompleted: (idk: unknown) => true,
 		},
 	},
 };

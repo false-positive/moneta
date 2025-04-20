@@ -214,11 +214,7 @@ export const tutorialSteps: TutorialStep[] = [
 				From now on, you can explore, experiment, and build your own
 				financial path.
 				<br />
-				The tutorial will be finish automatically ones you reach your
-				goal.
-				<br />
-				Or you can always exit by using the exit button in the down
-				right corner.
+				The tutorial will finish automatically ones you reach your goal.
 			</>
 		),
 		popoverSide: "bottom",

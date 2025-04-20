@@ -132,8 +132,6 @@ export default function Simulation() {
 
 	const handleEndTutorial = () => {
 		console.log("Tutorial ended by user");
-		setShowExitConfirmation(false);
-		// TODO: Implement actual tutorial end logic
 	};
 
 	return (
@@ -404,52 +402,6 @@ export default function Simulation() {
 					</div>
 				</div>
 			</div>
-			{isTutorialActive && (
-				<>
-					<Button
-						variant="outline"
-						size="sm"
-						className="fixed bottom-4 right-4 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
-						onClick={() => setShowExitConfirmation(true)}
-					>
-						<X className="h-4 w-4 mr-2" />
-						End Tutorial
-					</Button>
-
-					<Dialog
-						open={showExitConfirmation}
-						onOpenChange={setShowExitConfirmation}
-					>
-						<DialogContent>
-							<DialogHeader className="text-center">
-								<DialogTitle>End Tutorial?</DialogTitle>
-								<DialogDescription>
-									Are you sure you want to end the tutorial?
-									You can always restart it later from the
-									help menu.
-								</DialogDescription>
-							</DialogHeader>
-							<DialogFooter className="flex gap-2">
-								<Button
-									variant="ghost"
-									onClick={() =>
-										setShowExitConfirmation(false)
-									}
-								>
-									Cancel
-								</Button>
-								<Button
-									variant="outline"
-									className="bg-white/80 border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
-									onClick={handleEndTutorial}
-								>
-									End Tutorial
-								</Button>
-							</DialogFooter>
-						</DialogContent>
-					</Dialog>
-				</>
-			)}
 		</main>
 	);
 }
