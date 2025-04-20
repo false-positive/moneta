@@ -3,9 +3,18 @@ import isEqual from "lodash/isEqual";
 
 export type TutorialSpotMarker =
 	| { kind: "welcome-dialog" }
+	| { kind: "goal-dialog" }
 	| { kind: "submit-choice-button" }
 	| { kind: "timeline" }
-	| { kind: "timeline-unit"; instance: { unit: string | number } };
+	| { kind: "timeline-unit"; instance: { unit: string | number } }
+	| { kind: "post-action-button" }
+	| { kind: "metrics-card" }
+	| { kind: "decision-roadmap" }
+	| { kind: "journey-node"; instance: { timePoint: number } }
+	| { kind: "financial-data" }
+	| { kind: "steps-done-dialog" }
+	| { kind: "graphs" }
+	| { kind: "graph-container" };
 
 export type TutorialStep<
 	MarkerType extends TutorialSpotMarker = TutorialSpotMarker
@@ -16,36 +25,203 @@ export type TutorialStep<
 	popoverSide?: "top" | "right" | "bottom" | "left";
 	pulse?: boolean;
 };
-
 export const tutorialSteps: TutorialStep[] = [
 	{
 		marker: { kind: "welcome-dialog" },
-		title: "this is a tutorial!!",
-		description: "it can do tutorial things",
-		popoverSide: "right",
-		pulse: false,
+		title: "Welcome to the Financial Journey!",
+		description: (
+			<>
+				This is an interactive simulation where you’ll shape your
+				financial future through decisions over time.
+				<br />
+				We’ll guide you step by step — let’s begin!
+			</>
+		),
+		popoverSide: "bottom",
+	},
+	// {
+	// 	marker: {
+	// 		kind: "journey-node",
+	// 		instance: { timePoint: 2020 },
+	// 	},
+	// 	title: "Start Your Journey",
+	// 	description: (
+	// 		<>
+	// 			Click this node to begin in the year <strong>2020</strong>.<br />
+	// 			Each year unlocks new decisions and consequences!
+	// 		</>
+	// 	),
+	// 	popoverSide: "bottom",
+	// 	pulse: true,
+	// },
+	{
+		marker: { kind: "post-action-button" },
+		title: "Lock In Your Move",
+		description: (
+			<>
+				After choosing your actions for the year, click here to{" "}
+				<strong>confirm</strong> them.
+				<br />
+				This will lock in your decisions.
+			</>
+		),
+		popoverSide: "bottom",
 	},
 	{
 		marker: { kind: "submit-choice-button" },
-		title: <></>,
-		description:
-			"yo bro u can click this button to submit your choice (that's what it does)",
-		popoverSide: "top",
-		pulse: false,
+		title: "Choose Your Actions",
+		description: (
+			<>
+				Click here when you are done making choices for now.
+				<br />
+				Each choice will influence your finances, so pick carefully
+				based on your goals and available options.
+			</>
+		),
+		popoverSide: "bottom",
+		pulse: true,
+	},
+	{
+		marker: { kind: "decision-roadmap" },
+		title: "Your Financial Map",
+		description: (
+			<>
+				This is your decisions <strong>Roadmap</strong> — a visual
+				overview of the steps you've made in time.
+				<br />
+				Use the roadmap to jump between different years in your
+				simulation. From here, you can select any point of time and make
+				new choices or amend old ones!
+			</>
+		),
+		popoverSide: "left",
+	},
+	// {
+	// 	marker: {
+	// 		kind: "journey-node",
+	// 		instance: { timePoint: 2021 },
+	// 	},
+	// 	title: "Next Year Awaits",
+	// 	description: (
+	// 		<>
+	// 			Advance to <strong>2021</strong> by clicking here.<br />
+	// 			See how your previous moves shape new options!
+	// 		</>
+	// 	),
+	// 	popoverSide: "bottom",
+	// 	pulse: true,
+	// },
+	{
+		marker: { kind: "post-action-button" },
+		title: "Lock In Your Move",
+		description: (
+			<>
+				You can modify the duration and other metrics of your choices.
+				<br />
+				Click here when you are done.
+			</>
+		),
+		popoverSide: "bottom",
+	},
+	{
+		marker: { kind: "submit-choice-button" },
+		title: "Make More Choices",
+		description: (
+			<>
+				Continue building your strategy and moving forward in your
+				journey.
+			</>
+		),
+		popoverSide: "bottom",
 	},
 	{
 		marker: { kind: "timeline" },
-		title: <></>,
-		description: "and now you see the timeline",
-		popoverSide: "bottom",
-		pulse: false,
+		title: "Navigate Time",
+		description: (
+			<>
+				This is the timeline component - it displayes all your decisions
+				in time, their durations and impact.
+				<br />
+				Click on a year to select it as <strong>current</strong>.
+			</>
+		),
+		popoverSide: "top",
 	},
 	{
-		marker: { kind: "timeline-unit", instance: { unit: 2020 } },
-		title: <></>,
-		description: "this is the year 2020!!",
+		marker: { kind: "metrics-card" },
+		title: "Track Key Metrics",
+		description: (
+			<>
+				This panel shows important metrics about your life in the
+				simulation such as your <strong>assets</strong>,{" "}
+				<strong>level of joy</strong>, and <strong>free time</strong>.
+				<br />
+				Here you can also find your income and expenses for the current
+				time period. <br />
+				Use it to monitor how each decision affects your overall
+				progress.
+			</>
+		),
+		popoverSide: "left",
+	},
+	{
+		marker: { kind: "financial-data" },
+		title: "Detailed View",
+		description: (
+			<>
+				Here you’ll find a breakdown of all financial transactions and
+				results.
+				<br />
+				This is useful for analyzing the impact of each decision in more
+				detail.
+			</>
+		),
+		popoverSide: "left",
+	},
+	{
+		marker: { kind: "graphs" },
+		title: "Detailed View",
+		description: (
+			<>
+				Here you can find graphics that show your financial progress.
+				<br />
+				This is useful for analyzing the impact of each decision in more
+				detail.
+			</>
+		),
+		popoverSide: "left",
+	},
+	{
+		marker: { kind: "graph-container" },
+		title: "Detailed View",
+		description: (
+			<>
+				Here you can find graphics that show your financial progress.
+				<br />
+				This is useful for analyzing the impact of each decision in more
+				detail.
+			</>
+		),
+		popoverSide: "left",
+	},
+	{
+		marker: { kind: "steps-done-dialog" },
+		title: "That's it!",
+		description: (
+			<>
+				You've got the basics!
+				<br />
+				From now on, you can explore, experiment, and build your own
+				financial path.
+				<br />
+				The tutorial will be finish automatically ones you reach your
+				goal.
+				<br />
+				Or you can always exit by using the exit button in the down
+				right corner.
+			</>
+		),
 		popoverSide: "bottom",
-		pulse: false,
 	},
 ];
 

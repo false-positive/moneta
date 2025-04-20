@@ -25,6 +25,13 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { TimePointKind } from "@/lib/engine/actions";
+import {
+	TutorialDialogContent,
+	TutorialHighlight,
+	TutorialPopoverContent,
+	TutorialSpot,
+	TutorialTrigger,
+} from "@/components/tutorial";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -119,180 +126,257 @@ export default function Simulation() {
 
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<div className="lg:col-span-2">
-						<div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
-							<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
-								<h2 className="text-white font-bold flex items-center gap-2">
-									<Route className="h-4 w-4" />
-									Decisions roadmap
-								</h2>
-							</div>
-							<div className="p-2">
-								<FinancialJourney
-									steps={allSteps}
-									timeUnits={currentUnits}
-									currentTimePoint={currentStep.timePoint}
-									onTimePointSelect={handleStepSelect}
-								/>
-							</div>
-						</div>
-
-						<Collapsible
-							open={isTimelineOpen}
-							onOpenChange={setIsTimelineOpen}
-							className="bg-white rounded-xl shadow-md overflow-hidden mb-6"
-						>
-							<div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-2 px-4">
-								<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
-									<h2 className="font-bold flex items-center gap-2">
-										<Clock className="h-4 w-4" />
-										Timeline
-									</h2>
-									{isTimelineOpen ? (
-										<ChevronUp className="h-4 w-4" />
-									) : (
-										<ChevronDown className="h-4 w-4" />
-									)}
-								</CollapsibleTrigger>
-							</div>
-							<CollapsibleContent>
-								<div className="p-4">
-									<Timeline
-										timeUnits={currentUnits}
-										selectedUnit={currentStep.timePoint}
-										nowMarker={currentStep.timePoint}
-										onUnitClick={(unit) =>
-											handleStepSelect(Number(unit))
-										}
-										actionTimings={actionTimings.map(
-											(timing) => ({
-												action: timing.action,
-												startTimePoint:
-													timing.startTimePoint,
-												endTimePoint:
-													timing.endTimePoint,
-											})
-										)}
-									/>
+						<TutorialSpot marker={{ kind: "decision-roadmap" }}>
+							<TutorialHighlight>
+								<div className="timeline-container">
+									<div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+										<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-2 px-4">
+											<h2 className="text-white font-bold flex items-center gap-2">
+												<Route className="h-4 w-4" />
+												Decisions roadmap
+											</h2>
+										</div>
+										<div className="p-2">
+											<FinancialJourney
+												timeUnits={currentUnits}
+												onTimePointSelect={
+													handleStepSelect
+												}
+											/>
+										</div>
+									</div>
 								</div>
-							</CollapsibleContent>
-						</Collapsible>
+							</TutorialHighlight>
+							<TutorialPopoverContent isAdvanceable />
+						</TutorialSpot>
+
+						<TutorialSpot marker={{ kind: "timeline" }}>
+							<TutorialHighlight>
+								<div className="timeline-container">
+									<Collapsible
+										open={isTimelineOpen}
+										onOpenChange={setIsTimelineOpen}
+										className="bg-white rounded-xl shadow-md overflow-hidden mb-6"
+									>
+										<div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-2 px-4">
+											<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
+												<h2 className="font-bold flex items-center gap-2">
+													<Clock className="h-4 w-4" />
+													Timeline
+												</h2>
+												{isTimelineOpen ? (
+													<ChevronUp className="h-4 w-4" />
+												) : (
+													<ChevronDown className="h-4 w-4" />
+												)}
+											</CollapsibleTrigger>
+										</div>
+										<CollapsibleContent>
+											<div className="p-4">
+												<Timeline
+													timeUnits={currentUnits}
+													selectedUnit={
+														currentStep.timePoint
+													}
+													nowMarker={
+														currentStep.timePoint
+													}
+													onUnitClick={(unit) =>
+														handleStepSelect(
+															Number(unit)
+														)
+													}
+													actionTimings={actionTimings.map(
+														(timing) => ({
+															action: timing.action,
+															startTimePoint:
+																timing.startTimePoint,
+															endTimePoint:
+																timing.endTimePoint,
+														})
+													)}
+												/>
+											</div>
+										</CollapsibleContent>
+									</Collapsible>
+								</div>
+							</TutorialHighlight>
+							<TutorialPopoverContent isAdvanceable />
+						</TutorialSpot>
 					</div>
 
 					<div className="space-y-6">
-						<Collapsible
-							open={isYearStatsOpen}
-							onOpenChange={setIsYearStatsOpen}
-							className="bg-white rounded-xl shadow-md overflow-hidden"
-						>
-							<div className="bg-gradient-to-r from-purple-600 to-pink-600 py-2 px-4">
-								<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
-									<h2 className="font-bold flex items-center gap-2">
-										<Trophy className="h-4 w-4" />
-										Stats
-									</h2>
-									{isYearStatsOpen ? (
-										<ChevronUp className="h-4 w-4" />
-									) : (
-										<ChevronDown className="h-4 w-4" />
-									)}
-								</CollapsibleTrigger>
-							</div>
-							<CollapsibleContent>
-								<div className="p-4">
-									<MetricsCard
-										selectedTime={currentStep.timePoint}
-										steps={allSteps}
-										actionTimings={actionTimings.map(
-											(timing) => ({
-												action: timing.action,
-												startTimePoint:
-													timing.startTimePoint,
-												endTimePoint:
-													timing.endTimePoint,
-											})
-										)}
-									/>
+						<TutorialSpot marker={{ kind: "metrics-card" }}>
+							<TutorialHighlight>
+								<div className="timeline-container">
+									<Collapsible
+										open={isYearStatsOpen}
+										onOpenChange={setIsYearStatsOpen}
+										className="bg-white rounded-xl shadow-md overflow-hidden"
+									>
+										<div className="bg-gradient-to-r from-purple-600 to-pink-600 py-2 px-4">
+											<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
+												<h2 className="font-bold flex items-center gap-2">
+													<Trophy className="h-4 w-4" />
+													Stats
+												</h2>
+												{isYearStatsOpen ? (
+													<ChevronUp className="h-4 w-4" />
+												) : (
+													<ChevronDown className="h-4 w-4" />
+												)}
+											</CollapsibleTrigger>
+										</div>
+										<CollapsibleContent>
+											<div className="p-4">
+												<MetricsCard
+													selectedTime={
+														currentStep.timePoint
+													}
+													steps={allSteps}
+													actionTimings={actionTimings.map(
+														(timing) => ({
+															action: timing.action,
+															startTimePoint:
+																timing.startTimePoint,
+															endTimePoint:
+																timing.endTimePoint,
+														})
+													)}
+												/>
+											</div>
+										</CollapsibleContent>
+									</Collapsible>
 								</div>
-							</CollapsibleContent>
-						</Collapsible>
+							</TutorialHighlight>
+							<TutorialPopoverContent isAdvanceable />
+						</TutorialSpot>
 
-						<Collapsible
-							open={isFinancialDataOpen}
-							onOpenChange={setIsFinancialDataOpen}
-							className="bg-white rounded-xl shadow-md overflow-hidden"
-						>
-							<div className="bg-gradient-to-r from-emerald-600 to-teal-600 py-2 px-4">
-								<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
-									<h2 className="font-bold flex items-center gap-2">
-										<BarChart3 className="h-4 w-4" />
-										Financial Data
-									</h2>
-									{isFinancialDataOpen ? (
-										<ChevronUp className="h-4 w-4" />
-									) : (
-										<ChevronDown className="h-4 w-4" />
-									)}
-								</CollapsibleTrigger>
-							</div>
-
-							<CollapsibleContent>
-								<Tabs
-									defaultValue="transactions"
-									className="w-full"
-								>
-									<div className="px-4 pt-3 pb-1 flex justify-end">
-										<TabsList className="bg-emerald-100 p-0.5 h-7">
-											<TabsTrigger
-												value="transactions"
-												className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
-											>
-												Transactions
-											</TabsTrigger>
-											<TabsTrigger
-												value="analysis"
-												className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
-											>
-												Analysis
-											</TabsTrigger>
-										</TabsList>
-									</div>
-
-									<TabsContent
-										value="transactions"
-										className="p-2"
+						<TutorialSpot marker={{ kind: "financial-data" }}>
+							<TutorialHighlight>
+								<div className="timeline-container">
+									<Collapsible
+										open={isFinancialDataOpen}
+										onOpenChange={setIsFinancialDataOpen}
+										className="bg-white rounded-xl shadow-md overflow-hidden"
 									>
-										<TransactionList
-											actionTimings={getActionDurations({
-												description:
-													context.description,
-												steps: allSteps,
-												currentStepIndex:
-													allSteps.findIndex(
-														(step) =>
-															step.timePoint ===
+										<div className="bg-gradient-to-r from-emerald-600 to-teal-600 py-2 px-4">
+											<CollapsibleTrigger className="w-full flex justify-between items-center text-white">
+												<h2 className="font-bold flex items-center gap-2">
+													<BarChart3 className="h-4 w-4" />
+													Financial Data
+												</h2>
+												{isFinancialDataOpen ? (
+													<ChevronUp className="h-4 w-4" />
+												) : (
+													<ChevronDown className="h-4 w-4" />
+												)}
+											</CollapsibleTrigger>
+										</div>
+
+										<CollapsibleContent>
+											<Tabs
+												defaultValue="transactions"
+												className="w-full"
+											>
+												<div className="px-4 pt-3 pb-1 flex justify-end">
+													<TabsList className="bg-emerald-100 p-0.5 h-7">
+														<TabsTrigger
+															value="transactions"
+															className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+														>
+															Transactions
+														</TabsTrigger>
+														<TutorialSpot
+															marker={{
+																kind: "graphs",
+															}}
+														>
+															<TutorialTrigger
+																asChild
+															>
+																<div className="timeline-container">
+																	<TabsTrigger
+																		value="analysis"
+																		className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+																	>
+																		Analysis
+																	</TabsTrigger>
+																</div>
+															</TutorialTrigger>
+															<TutorialPopoverContent />
+														</TutorialSpot>
+													</TabsList>
+												</div>
+
+												<TabsContent
+													value="transactions"
+													className="p-2"
+												>
+													<TransactionList
+														actionTimings={getActionDurations(
+															{
+																description:
+																	context.description,
+																steps: allSteps,
+																currentStepIndex:
+																	allSteps.findIndex(
+																		(
+																			step
+																		) =>
+																			step.timePoint ===
+																			currentStep.timePoint
+																	),
+															}
+														)}
+														currentTimePoint={
 															currentStep.timePoint
-													),
-											})}
-											currentTimePoint={
-												currentStep.timePoint
-											}
-										/>
-									</TabsContent>
+														}
+													/>
+												</TabsContent>
 
-									<TabsContent
-										value="analysis"
-										className="p-2"
-									>
-										<SpendingGraph
-											timeUnits={currentUnits}
-											selectedUnit={currentStep.timePoint}
-											actionTimings={actionTimings}
-											timeframe={timeframe}
-										/>
-									</TabsContent>
-								</Tabs>
-							</CollapsibleContent>
-						</Collapsible>
+												<TabsContent
+													value="analysis"
+													className="p-2"
+												>
+													<TutorialSpot
+														marker={{
+															kind: "graph-container",
+														}}
+													>
+														<TutorialHighlight>
+															<div className="timeline-container">
+																<SpendingGraph
+																	timeUnits={
+																		currentUnits
+																	}
+																	selectedUnit={
+																		currentStep.timePoint
+																	}
+																	actionTimings={
+																		actionTimings
+																	}
+																	timeframe={
+																		timeframe
+																	}
+																/>
+															</div>
+														</TutorialHighlight>
+														<TutorialPopoverContent
+															isAdvanceable
+														/>
+													</TutorialSpot>
+												</TabsContent>
+											</Tabs>
+										</CollapsibleContent>
+									</Collapsible>
+								</div>
+							</TutorialHighlight>
+							<TutorialPopoverContent isAdvanceable />
+						</TutorialSpot>
+						<TutorialSpot marker={{ kind: "steps-done-dialog" }}>
+							<TutorialDialogContent />
+						</TutorialSpot>
 					</div>
 				</div>
 			</div>

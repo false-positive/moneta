@@ -7,30 +7,29 @@ import type { Step } from "@/lib/engine/actions";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
+import {
+	TutorialPopoverContent,
+	TutorialSpot,
+	TutorialTrigger,
+} from "@/components/tutorial";
 
 interface FinancialJourneyProps {
-	steps: Step[];
 	timeUnits: (string | number)[];
-	currentTimePoint: number;
 	onTimePointSelect: (timePoint: number) => void;
 }
 
 function JourneyNode({
 	timePoint,
 	point,
-	status,
 	nodeColor,
 	nodeIcon,
 	onClick,
-	isSelected,
 }: {
 	timePoint: number;
 	point: [number, number];
-	status: string;
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
 	onClick: () => void;
-	isSelected: boolean;
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
@@ -42,6 +41,7 @@ function JourneyNode({
 			style={{
 				left: `${point[0].toFixed(2)}px`,
 				top: `${point[1].toFixed(2)}px`,
+				zIndex: 50, // Add this to ensure it's above the SVG
 			}}
 			onClick={onClick}
 		>
@@ -68,14 +68,13 @@ function JourneyNode({
 							animate={{ opacity: 1, y: -110 }}
 							exit={{ opacity: 0, y: -20 }}
 							transition={{ duration: 0.3 }}
-							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer z-20"
+							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer z-50"
 							onClick={(e) => {
 								e.stopPropagation();
 								router.push("/choices");
 							}}
-							onMouseEnter={() => setShowPopup(true)} // Keep popup visible when hovering over it
+							onMouseEnter={() => setShowPopup(true)}
 							onMouseLeave={(e) => {
-								// Only hide if we're not moving to the node
 								const rect =
 									e.currentTarget.getBoundingClientRect();
 								const isMovingToNode =
@@ -101,13 +100,10 @@ function JourneyNode({
 }
 
 export function FinancialJourney({
-	steps,
 	timeUnits,
-	currentTimePoint,
 	onTimePointSelect,
 }: FinancialJourneyProps) {
 	const [minWidth, setMinWidth] = useState(0);
-	const router = useRouter();
 
 	const timePoints = useMemo(
 		() => timeUnits.filter((unit) => typeof unit === "number") as number[],
@@ -238,17 +234,31 @@ export function FinancialJourney({
 					const point = pathPoints[index];
 					const { color, icon } = getNodeAppearance(timePoint);
 
+					const numericTimePoint = Number(timePoint);
+					console.log(
+						"Creating marker for timePoint:",
+						numericTimePoint
+					);
+
 					return (
-						<JourneyNode
+						<TutorialSpot
 							key={timePoint}
-							timePoint={timePoint}
-							point={point}
-							status={status}
-							nodeColor={color}
-							nodeIcon={icon}
-							onClick={() => onTimePointSelect(timePoint)}
-							isSelected={timePoint === currentTimePoint}
-						/>
+							marker={{
+								kind: "journey-node" as const, // ensure correct type
+								instance: { timePoint: numericTimePoint },
+							}}
+						>
+							<TutorialTrigger asChild>
+								<JourneyNode
+									timePoint={timePoint}
+									point={point}
+									nodeColor={color}
+									nodeIcon={icon}
+									onClick={() => onTimePointSelect(timePoint)}
+								/>
+							</TutorialTrigger>
+							<TutorialPopoverContent isAdvanceable />
+						</TutorialSpot>
 					);
 				})}
 			</div>

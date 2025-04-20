@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TutorialSpotMarker } from "@/lib/engine/tutorials";
 import {
 	tutorialStore,
@@ -110,10 +103,15 @@ export function TutorialPopoverContent({
 	return (
 		<PopoverContent
 			{...popoverContentProps}
-			className="w-[320px] bg-white border-2 border-indigo-100 shadow-xl rounded-xl p-5"
+			className="w-[320px] bg-white border-2 border-indigo-100 shadow-xl rounded-xl p-5 z-[100]"
 			side={step.popoverSide || "top"}
-			sideOffset={20}
+			sideOffset={15}
 			align="center"
+			style={{
+				position: "relative",
+				zIndex: 100,
+				pointerEvents: "auto",
+			}}
 		>
 			<div className="space-y-4">
 				<div className="text-sm text-zinc-600 leading-relaxed text-center">
@@ -158,7 +156,7 @@ export function TutorialDialogContent() {
 	if (!step) return null;
 
 	return (
-		<DialogContent className="sm:max-w-[90vw] h-[90vh] bg-transparent border-none shadow-none animate-fadeIn rounded-xl before:absolute before:inset-[-100px] before:-z-10 before:[background:radial-gradient(circle_at_center,white_0%,transparent_70%)] before:rounded-full">
+		<DialogContent className="sm:max-w-[90vw] h-[90vh] bg-transparent border-none shadow-none animate-fadeIn rounded-xl before:absolute before:inset-[-200px] before:-z-10 before:[background:radial-gradient(circle_at_center,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.9)_30%,transparent_80%)] before:rounded-full">
 			<div className="flex flex-col items-center justify-center h-full space-y-6 py-8">
 				{step.title && (
 					<h2 className="text-4xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn">

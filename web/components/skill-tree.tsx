@@ -470,21 +470,34 @@ export default function SkillTree() {
 
 								<div className="space-y-2">
 									{!selectedNode.unlocked && (
-										<Button
-											onClick={() =>
-												unlockSkill(selectedNode.id)
-											}
-											className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+										<TutorialSpot
+											marker={{
+												kind: "post-action-button",
+											}}
 										>
-											{selectedNode.actionObject.kind ===
-											"investment"
-												? "Invest"
-												: selectedNode.actionObject
-														.kind === "income"
-												? "Work"
-												: "Accept Expense"}
-											<ArrowRight className="ml-2 h-4 w-4" />
-										</Button>
+											<TutorialTrigger asChild>
+												<Button
+													onClick={() =>
+														unlockSkill(
+															selectedNode.id
+														)
+													}
+													className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+												>
+													{selectedNode.actionObject
+														.kind === "investment"
+														? "Invest"
+														: selectedNode
+																.actionObject
+																.kind ===
+														  "income"
+														? "Work"
+														: "Accept Expense"}
+													<ArrowRight className="ml-2 h-4 w-4" />
+												</Button>
+											</TutorialTrigger>
+											<TutorialPopoverContent />
+										</TutorialSpot>
 									)}
 								</div>
 							</div>
