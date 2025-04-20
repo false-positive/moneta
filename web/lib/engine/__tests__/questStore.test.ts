@@ -1,8 +1,7 @@
 import { expect, test } from "vitest";
-import { getNewActionsPerStep, Quest, QuestDescription } from "../quests";
+import { getNewActionsPerStep } from "../quests";
 import { questStore } from "@/lib/stores/quest-store";
 import {
-	lifeAction,
 	savingsDepositAction,
 	waiterJobAction,
 } from "../actions/standard-actions";
