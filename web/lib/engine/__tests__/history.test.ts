@@ -18,6 +18,10 @@ test("simulate with actions", () => {
 		},
 		maxStepCount: 5,
 		timePointKind: "year",
+		goal: {
+			description: "John wants to save 100000 BGN",
+			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
+		},
 	};
 
 	const invest = (steps: number, capital: number) => ({
