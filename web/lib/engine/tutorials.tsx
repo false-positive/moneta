@@ -28,15 +28,8 @@ export type TutorialStep<
 export const tutorialSteps: TutorialStep[] = [
 	{
 		marker: { kind: "welcome-dialog" },
-		title: "Welcome to the Financial Journey!",
-		description: (
-			<>
-				This is an interactive simulation where you’ll shape your
-				financial future through decisions over time.
-				<br />
-				We’ll guide you step by step — let’s begin!
-			</>
-		),
+		title: "Lets begin with your first choice!",
+		description: <></>,
 		popoverSide: "bottom",
 	},
 	// {

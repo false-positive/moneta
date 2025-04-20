@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LockKeyholeOpen } from "lucide-react";
 import type { Step } from "@/lib/engine/actions";
@@ -12,6 +12,7 @@ import {
 	TutorialSpot,
 	TutorialTrigger,
 } from "@/components/tutorial";
+import { cn } from "@/lib/utils";
 
 interface FinancialJourneyProps {
 	timeUnits: (string | number)[];
@@ -25,6 +26,7 @@ function JourneyNode({
 	nodeIcon,
 	onClick,
 	ref,
+	className,
 }: {
 	timePoint: number;
 	point: [number, number];
@@ -32,6 +34,7 @@ function JourneyNode({
 	nodeIcon: React.ReactNode;
 	onClick: () => void;
 	ref: React.RefObject<HTMLDivElement>;
+	className?: string;
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
@@ -39,11 +42,11 @@ function JourneyNode({
 	return (
 		<motion.div
 			key={timePoint}
-			className="absolute flex flex-col items-center"
+			className={cn("absolute flex flex-col items-center", className)}
 			style={{
 				left: `${point[0].toFixed(2)}px`,
 				top: `${point[1].toFixed(2)}px`,
-				zIndex: 50, // Add this to ensure it's above the SVG
+				zIndex: 50,
 			}}
 			onClick={onClick}
 			ref={ref}
@@ -55,7 +58,11 @@ function JourneyNode({
 				onMouseLeave={() => setShowPopup(false)}
 			>
 				<div
-					className={`w-16 h-16 rounded-full ${nodeColor} border-4 flex items-center justify-center relative z-10 shadow-lg`}
+					className={cn(
+						"w-16 h-16 rounded-full border-4 flex items-center justify-center relative z-10 shadow-lg",
+						nodeColor,
+						className
+					)}
 				>
 					{nodeIcon}
 					<div className="absolute -bottom-8 bg-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
@@ -64,7 +71,6 @@ function JourneyNode({
 				</div>
 
 				{showPopup && (
-					// TO Do - add shadcn tooltip
 					<AnimatePresence>
 						<motion.div
 							initial={{ opacity: 0, y: -30 }}
@@ -236,6 +242,7 @@ export function FinancialJourney({
 				{timePoints.map((timePoint, index) => {
 					const point = pathPoints[index];
 					const { color, icon } = getNodeAppearance(timePoint);
+					const nodeRef = useRef<HTMLDivElement>(null);
 
 					const numericTimePoint = Number(timePoint);
 					console.log(
@@ -253,6 +260,7 @@ export function FinancialJourney({
 						>
 							<TutorialTrigger asChild>
 								<JourneyNode
+									ref={nodeRef}
 									timePoint={timePoint}
 									point={point}
 									nodeColor={color}

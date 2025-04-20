@@ -7,6 +7,7 @@ import { tutorialStore } from "@/lib/stores/tutorial-store";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
 import { Heart, Wallet, Clock } from "lucide-react";
+import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
 
 export default function TestPage() {
 	const [currentDialog, setCurrentDialog] = useState<
@@ -32,13 +33,18 @@ export default function TestPage() {
 	};
 
 	const handleMetricsNext = () => {
+		// Only start tutorial after metrics dialog is closed
 		setCurrentDialog("none");
-		// Explicitly start the tutorial at the first step
-		tutorialStore.send({ type: "startTutorial" });
+		// setTimeout(() => {
+		tutorialStore.send({ type: "nextStep" });
+		// }, 100);
 	};
 
 	return (
 		<div className="container mx-auto py-8">
+			<TutorialSpot marker={{ kind: "welcome-dialog" }}>
+				<TutorialDialogContent />
+			</TutorialSpot>
 			<h1 className="text-3xl font-bold mb-6">
 				What is the best financial choice in your opinion?
 			</h1>
