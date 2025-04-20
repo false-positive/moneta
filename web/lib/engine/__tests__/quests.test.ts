@@ -38,6 +38,10 @@ test("get new actions per step", () => {
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
+		goal: {
+			description: "John wants to save 100000 BGN",
+			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
+		},
 	};
 
 	const quest: Quest = {
@@ -123,6 +127,10 @@ test("simulate with actions", () => {
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
+		goal: {
+			description: "John wants to save 100000 BGN",
+			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
+		},
 	};
 
 	const job = (steps: number) => ({
@@ -220,6 +228,10 @@ test("get action durations", () => {
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
+		goal: {
+			description: "John wants to save 100000 BGN",
+			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
+		},
 	};
 
 	const job = (steps: number) => ({

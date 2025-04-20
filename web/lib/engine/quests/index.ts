@@ -33,6 +33,19 @@ export type QuestDescription = {
 	 * The kind of time point to use for the quest.
 	 */
 	timePointKind: TimePointKind;
+	/**
+	 * The goal of the quest - when the user reaches it, the quest is finished.
+	 */
+	goal: {
+		/**
+		 * A freeform description of the goal for the UI.
+		 */
+		description: string;
+		/**
+		 * A predicate that checks if the goal is reached.
+		 */
+		goalReached: (options: { lastStep: Step; quest: Quest }) => boolean;
+	};
 };
 
 /**
