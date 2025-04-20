@@ -24,12 +24,14 @@ function JourneyNode({
 	nodeColor,
 	nodeIcon,
 	onClick,
+	ref,
 }: {
 	timePoint: number;
 	point: [number, number];
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
 	onClick: () => void;
+	ref: React.RefObject<HTMLDivElement>;
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
@@ -44,6 +46,7 @@ function JourneyNode({
 				zIndex: 50, // Add this to ensure it's above the SVG
 			}}
 			onClick={onClick}
+			ref={ref}
 		>
 			<motion.div
 				className="relative cursor-pointer"
@@ -244,7 +247,7 @@ export function FinancialJourney({
 						<TutorialSpot
 							key={timePoint}
 							marker={{
-								kind: "journey-node" as const, // ensure correct type
+								kind: "journey-node" as const,
 								instance: { timePoint: numericTimePoint },
 							}}
 						>
