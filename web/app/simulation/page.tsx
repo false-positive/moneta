@@ -32,6 +32,17 @@ import {
 	TutorialSpot,
 	TutorialTrigger,
 } from "@/components/tutorial";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter,
+} from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import { tutorialStore } from "@/lib/stores/tutorial-store";
+import { Button } from "@/components/ui/button";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -55,6 +66,13 @@ export default function Simulation() {
 	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
 	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
 	const [isFinancialDataOpen, setIsFinancialDataOpen] = useState(true);
+	const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+
+	// Add this selector to check if tutorial is active
+	const isTutorialActive = useSelector(
+		tutorialStore,
+		(state) => state.context.currentStepIndex < state.context.steps.length
+	);
 
 	// Get current simulation state from XState store
 	const context = useSelector(questStore, (s) => s.context);
@@ -111,6 +129,12 @@ export default function Simulation() {
 	useEffect(() => {
 		console.log("Current step:", currentStep);
 	}, [currentStep]);
+
+	const handleEndTutorial = () => {
+		console.log("Tutorial ended by user");
+		setShowExitConfirmation(false);
+		// TODO: Implement actual tutorial end logic
+	};
 
 	return (
 		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white flex justify-center">
@@ -380,6 +404,52 @@ export default function Simulation() {
 					</div>
 				</div>
 			</div>
+			{isTutorialActive && (
+				<>
+					<Button
+						variant="outline"
+						size="sm"
+						className="fixed bottom-4 right-4 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+						onClick={() => setShowExitConfirmation(true)}
+					>
+						<X className="h-4 w-4 mr-2" />
+						End Tutorial
+					</Button>
+
+					<Dialog
+						open={showExitConfirmation}
+						onOpenChange={setShowExitConfirmation}
+					>
+						<DialogContent>
+							<DialogHeader className="text-center">
+								<DialogTitle>End Tutorial?</DialogTitle>
+								<DialogDescription>
+									Are you sure you want to end the tutorial?
+									You can always restart it later from the
+									help menu.
+								</DialogDescription>
+							</DialogHeader>
+							<DialogFooter className="flex gap-2">
+								<Button
+									variant="ghost"
+									onClick={() =>
+										setShowExitConfirmation(false)
+									}
+								>
+									Cancel
+								</Button>
+								<Button
+									variant="outline"
+									className="bg-white/80 border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+									onClick={handleEndTutorial}
+								>
+									End Tutorial
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</>
+			)}
 		</main>
 	);
 }
