@@ -36,8 +36,11 @@ export const questStore = createStore({
 				currentStepIndex: newSteps.length - 1,
 			};
 		},
-		currentStepStopAction: (quest, event: { action: Action }) => {
-			const newSteps = stopAction(quest, event.action);
+		currentStepStopAction: (
+			quest,
+			event: { stepIdx: number; actionIdx: number }
+		) => {
+			const newSteps = stopAction(quest, event.stepIdx, event.actionIdx);
 
 			if (newSteps.length == 0) {
 				return quest;
@@ -49,8 +52,15 @@ export const questStore = createStore({
 				currentStepIndex: newSteps.length - 1,
 			};
 		},
-		currentStepDeleteAction: (quest, event: { action: Action }) => {
-			const newSteps = deleteAction(quest, event.action);
+		currentStepDeleteAction: (
+			quest,
+			event: { stepIdx: number; actionIdx: number }
+		) => {
+			const newSteps = deleteAction(
+				quest,
+				event.stepIdx,
+				event.actionIdx
+			);
 
 			if (newSteps.length == 0) {
 				return quest;
@@ -109,39 +119,12 @@ function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
 	return simulateWithActions(quest.description, newActionsPerStep);
 }
 
-function indexAction(newActionsPerStep: Action[][], action: Action) {
-	var actionStartStep = -1,
-		actionIndex = -1;
-	for (let step = 0; step < newActionsPerStep.length; step++) {
-		for (
-			let iteratedActionIndex = 0;
-			iteratedActionIndex < newActionsPerStep[step].length;
-			iteratedActionIndex++
-		) {
-			if (
-				(action.name =
-					newActionsPerStep[step][iteratedActionIndex].name)
-			) {
-				actionStartStep = step;
-				actionIndex = iteratedActionIndex;
-			}
-		}
-	}
-
-	return [actionStartStep, actionIndex];
-}
-
-function stopAction(quest: Quest, action: Action) {
+function stopAction(quest: Quest, stepIdx: number, actionIdx: number) {
 	const newActionsPerStep = getNewActionsPerStep(quest);
 
-	const [actionStartStep, actionIndex] = indexAction(
-		newActionsPerStep,
-		action
-	);
-
-	if (actionStartStep != -1 || quest.currentStepIndex > actionStartStep) {
-		newActionsPerStep[actionStartStep][actionIndex].remainingSteps =
-			quest.currentStepIndex - actionStartStep;
+	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
+		newActionsPerStep[stepIdx][actionIdx].remainingSteps =
+			quest.currentStepIndex - stepIdx;
 	} else {
 		return [];
 	}
@@ -149,16 +132,11 @@ function stopAction(quest: Quest, action: Action) {
 	return simulateWithActions(quest.description, newActionsPerStep);
 }
 
-function deleteAction(quest: Quest, action: Action) {
+function deleteAction(quest: Quest, stepIdx: number, actionIdx: number) {
 	const newActionsPerStep = getNewActionsPerStep(quest);
 
-	const [actionStartStep, actionIndex] = indexAction(
-		newActionsPerStep,
-		action
-	);
-
-	if (actionStartStep != -1 || quest.currentStepIndex > actionStartStep) {
-		newActionsPerStep[actionStartStep].splice(actionIndex, 1);
+	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
+		newActionsPerStep[stepIdx].splice(actionIdx, 1);
 	} else {
 		return [];
 	}
