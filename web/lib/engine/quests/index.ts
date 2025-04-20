@@ -33,6 +33,10 @@ export type QuestDescription = {
 	 * The kind of time point to use for the quest.
 	 */
 	timePointKind: TimePointKind;
+	goal: {
+		description: string;
+		isCompleted: (idk: unknown) => boolean;
+	};
 };
 
 /**
