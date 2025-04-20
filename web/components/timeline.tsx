@@ -153,9 +153,8 @@ export function Timeline({
 								(unit) => Number(unit) === endTimePoint
 							);
 
-							// Calculate position and width based on actual timepoints with right offset
 							const timeSpan = endTimePoint - startTimePoint + 1;
-							const left = startIndex * 80 + 40; // Added 40px offset (half a unit)
+							const left = startIndex * 75;
 							const width = timeSpan * 80;
 
 							const joyImpact = timing.action.joyImpact;
