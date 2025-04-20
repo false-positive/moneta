@@ -147,7 +147,7 @@ export default function SkillTree() {
 			newActions: unlockedActions,
 		});
 
-		if (isQuestCompleted(quest)) {
+		if (!isQuestCompleted(quest)) {
 			router.push("/simulation");
 		} else {
 			router.push("/quest-end");
