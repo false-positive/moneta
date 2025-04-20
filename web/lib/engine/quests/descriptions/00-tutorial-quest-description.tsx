@@ -16,7 +16,7 @@ export const tutorialQuestDescription: QuestDescription = {
 		continuingActions: [{ ...lifeAction }],
 	},
 	goal: {
-		description: "Save 1000 BGN",
-		goalReached: (options) => options.lastStep.bankAccount >= 1000,
+		description: "Ivan wants to save 100000 BGN",
+		goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 	},
 };
