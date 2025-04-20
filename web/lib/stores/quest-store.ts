@@ -6,9 +6,9 @@ import {
 	getNewActionsPerStep,
 	simulateWithActions,
 } from "@/lib/engine/quests";
-import { standardQuests } from "@/lib/engine/quests/standard-quests";
+import { questDescriptions } from "../engine/quests/descriptions";
 
-const initialQuestDescription = standardQuests["maria"];
+const initialQuestDescription = questDescriptions.tutorial;
 
 const initialQuest: Quest = {
 	description: initialQuestDescription,
