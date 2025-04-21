@@ -14,14 +14,10 @@ export const tutorialStore = createStore({
 	},
 	on: {
 		nextStep: (context) => {
-			const nextIndex = context.currentStepIndex + 1;
-			if (nextIndex < context.steps.length) {
-				return {
-					...context,
-					currentStepIndex: nextIndex,
-				};
-			}
-			return context;
+			return {
+				...context,
+				currentStepIndex: context.currentStepIndex + 1,
+			};
 		},
 	},
 });
