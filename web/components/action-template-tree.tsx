@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ActionTemplate } from "@/lib/engine/actions/templates";
+import {
+	ActionTemplate,
+	applyActionTemplate,
+} from "@/lib/engine/actions/templates";
 import { getCurrentStep } from "@/lib/engine/quests";
 import { questStore } from "@/lib/stores/quest-store";
 import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
 	ArrowRight,
@@ -27,16 +30,27 @@ import {
 	TutorialSpot,
 	TutorialTrigger,
 } from "./tutorial";
+import { Action } from "@/lib/engine/actions";
 
 // D3 Action Template Tree Visualization Component
 function ActionTemplateTreeVisualization({
 	templates,
 	setSelectedTemplate,
+	appliedActionTemplateIds,
 }: {
 	templates: ReadonlyArray<ActionTemplate>;
 	setSelectedTemplate: (template: ActionTemplate) => void;
+	appliedActionTemplateIds: Set<number>;
 }) {
 	const svgRef = useRef<SVGSVGElement>(null);
+
+	const wasApplied = useCallback(
+		(template: ActionTemplate) => {
+			console.log(template.id, appliedActionTemplateIds.has(template.id));
+			return appliedActionTemplateIds.has(template.id);
+		},
+		[appliedActionTemplateIds]
+	);
 
 	useEffect(() => {
 		if (!svgRef.current) return;
@@ -81,15 +95,9 @@ function ActionTemplateTreeVisualization({
 				const size = getNodeSize();
 				return `M 0,-${size} L ${size},0 L 0,${size} L -${size},0 Z`;
 			})
-			.attr("fill", (d) =>
-				// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
-				d.isUnlocked({} as any, d as any) ? getCategoryColor(d) : "#fff"
-			)
+			.attr("fill", (d) => (wasApplied(d) ? getCategoryColor(d) : "#fff"))
 			.attr("stroke", (d) => getCategoryColor(d))
-			.attr("stroke-width", (d) =>
-				// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
-				!d.isUnlocked({} as any, d as any) ? 3 : 1.5
-			);
+			.attr("stroke-width", (d) => (wasApplied(d) ? 3 : 1.5));
 
 		// Append an icon inside each rhombus
 		const iconSize = 16;
@@ -125,7 +133,7 @@ function ActionTemplateTreeVisualization({
 			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
-	}, [templates, setSelectedTemplate]);
+	}, [templates, setSelectedTemplate, wasApplied]);
 
 	return (
 		<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
@@ -224,22 +232,24 @@ function ConfigurationPanel({
 // Node Details Component
 function NodeDetails({
 	template,
-	unlockActionTemplate,
+	onActionTemplateChosen,
 	endPoints,
 	setEndPoints,
 	initialPrice,
 	setInitialPrice,
 	repeatedPrice,
 	setRepeatedPrice,
+	wasApplied,
 }: {
 	template: ActionTemplate;
-	unlockActionTemplate: (id: number) => void;
+	onActionTemplateChosen: (actionTemplate: ActionTemplate) => void;
 	endPoints: number;
 	setEndPoints: (value: number) => void;
 	initialPrice: number;
 	setInitialPrice: (value: number) => void;
 	repeatedPrice: number;
 	setRepeatedPrice: (value: number) => void;
+	wasApplied: boolean;
 }) {
 	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
 	const action =
@@ -248,8 +258,6 @@ function NodeDetails({
 			: template.initialAction;
 
 	const quest = useSelector(questStore, (state) => state.context);
-	// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
-	const isUnlocked = template.isUnlocked(quest, template as any);
 
 	return (
 		<div className="space-y-4">
@@ -274,7 +282,7 @@ function NodeDetails({
 				</div>
 			</div>
 
-			{!isUnlocked && (
+			{!wasApplied && (
 				<ConfigurationPanel
 					template={template}
 					endPoints={endPoints}
@@ -287,9 +295,9 @@ function NodeDetails({
 			)}
 
 			<div className="space-y-2">
-				{!isUnlocked && (
+				{!wasApplied && (
 					<Button
-						onClick={() => unlockActionTemplate(template.id)}
+						onClick={() => onActionTemplateChosen(template)}
 						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 					>
 						{action.kind === "investment"
@@ -428,13 +436,17 @@ function ChatSystem({
 export function ActionTemplateTree() {
 	const [selectedTemplate, setSelectedTemplate] =
 		useState<ActionTemplate | null>(null);
+	const [newActions, setNewActions] = useState<Action[]>([]);
+
 	const [showChat, setShowChat] = useState(false);
-	const [endPoints, setEndPoints] = useState<number>(0);
-	const [initialPrice, setInitialPrice] = useState<number>(0);
-	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
 	const [messages, setMessages] = useState<
 		Array<{ role: "user" | "assistant"; content: string }>
 	>([]);
+
+	// TODO(tech-debt): These should be removed soon and replaced with the configurable action template's own schema
+	const [endPoints, setEndPoints] = useState<number>(0);
+	const [initialPrice, setInitialPrice] = useState<number>(0);
+	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
 
 	const router = useRouter();
 
@@ -447,10 +459,36 @@ export function ActionTemplateTree() {
 		(state) => state.context.description
 	);
 
+	const appliedActionTemplateIds = useMemo(
+		() =>
+			new Set(
+				newActions
+					.filter((a) => a.templateId)
+					.map((a): number => a.templateId!)
+			),
+		[newActions]
+	);
+
+	console.log(appliedActionTemplateIds);
+
+	const handleActionTemplateChosen = (actionTemplate: ActionTemplate) => {
+		const action = applyActionTemplate(actionTemplate, {
+			remainingSteps: endPoints,
+			initialPrice,
+			repeatedPrice,
+		});
+		setNewActions([...newActions, action]);
+
+		setSelectedTemplate(null);
+		setEndPoints(0);
+		setInitialPrice(0);
+		setRepeatedPrice(0);
+	};
+
 	const handleSubmit = () => {
 		questStore.send({
 			type: "newActionsAppend",
-			newActions: [],
+			newActions,
 		});
 		router.push("/simulation");
 	};
@@ -549,6 +587,7 @@ export function ActionTemplateTree() {
 						<ActionTemplateTreeVisualization
 							templates={questDescription.actionTemplates}
 							setSelectedTemplate={setSelectedTemplate}
+							appliedActionTemplateIds={appliedActionTemplateIds}
 						/>
 					</div>
 				</div>
@@ -578,17 +617,18 @@ export function ActionTemplateTree() {
 						{selectedTemplate ? (
 							<NodeDetails
 								template={selectedTemplate}
-								unlockActionTemplate={(id) => {
-									throw new Error(
-										"Unlocking action templates has been disabled. Please come back later! This is intended and is a feature, which must be kept!"
-									);
-								}}
+								onActionTemplateChosen={
+									handleActionTemplateChosen
+								}
 								endPoints={endPoints}
 								setEndPoints={setEndPoints}
 								initialPrice={initialPrice}
 								setInitialPrice={setInitialPrice}
 								repeatedPrice={repeatedPrice}
 								setRepeatedPrice={setRepeatedPrice}
+								wasApplied={appliedActionTemplateIds.has(
+									selectedTemplate.id
+								)}
 							/>
 						) : (
 							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">

@@ -2,6 +2,7 @@ import { Action } from ".";
 import { z } from "zod";
 import { Quest } from "../quests";
 import { lifeAction } from "./standard-actions";
+import invariant from "tiny-invariant";
 
 // Things we need to display in the choices UI
 type RequiredActionKeys =
@@ -70,7 +71,7 @@ export interface CustomizableActionTemplate<
 		this: void,
 		initialAction: TInitialAction,
 		userInput: TUserInput
-	) => Action;
+	) => Omit<Action, "templateId">;
 }
 
 /**
@@ -112,3 +113,27 @@ export const createActionTemplates = <
 	actionTemplateArray.map((actionTemplate) =>
 		createActionTemplate(actionTemplate)
 	);
+
+export function applyActionTemplate<
+	TInitialAction extends InitialAction,
+	TUserInput
+>(
+	actionTemplate: ActionTemplate<TInitialAction, TUserInput>,
+	userInput: TUserInput
+) {
+	if (actionTemplate.templateKind === "constant") {
+		return { ...actionTemplate.action, templateId: actionTemplate.id };
+	}
+
+	if (actionTemplate.templateKind === "user-customizable") {
+		const action = actionTemplate.apply(
+			actionTemplate.initialAction,
+			userInput
+		);
+		return { ...action, templateId: actionTemplate.id };
+	}
+
+	// @ts-expect-error: This will never be reached and if it does, it's a bug
+	actionTemplate.templateKind;
+	invariant(false);
+}

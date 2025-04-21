@@ -235,6 +235,12 @@ export type Action = {
 
 	canChangeInitialPrice?: boolean;
 	canChangeRepeatedPrice?: boolean;
+
+	/**
+	 * The ID of the action template that was used to create this action.
+	 * Used to identify the action in the UI.
+	 */
+	templateId?: number;
 };
 
 function calculateMetric(
