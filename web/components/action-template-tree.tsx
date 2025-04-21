@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
-import { getLatestStep } from "@/lib/engine/quests";
+import { getCurrentStep, getLatestStep } from "@/lib/engine/quests";
 
 import {
 	allActionsList,
@@ -427,15 +427,13 @@ export function ActionTemplateTree() {
 	const router = useRouter();
 
 	// Get state from quest store
-	const context = useSelector(questStore, (s) => s.context);
-
-	const { currentStep } = useMemo(() => {
-		const currentStep = getLatestStep(context);
-		return {
-			currentStep,
-			steps: context.steps,
-		};
-	}, [context]);
+	const currentStep = useSelector(questStore, (state) =>
+		getCurrentStep(state.context)
+	);
+	const questDescription = useSelector(
+		questStore,
+		(state) => state.context.description
+	);
 
 	// Reset newlyUnlockedActions when component mounts or when currentStep changes
 	useEffect(() => {
@@ -551,7 +549,13 @@ export function ActionTemplateTree() {
 					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div className="text-white text-lg flex items-center gap-2 font-semibold">
 							<Sparkles className="h-5 w-5" />
-							Financial Journey - Year {context.steps.length}
+							<span>
+								Financial Journey -{" "}
+								<span className="capitalize">
+									{questDescription.timePointKind}
+								</span>{" "}
+								{currentStep.timePoint}
+							</span>
 						</div>
 					</div>
 					<div className="h-full p-3">
