@@ -10,9 +10,13 @@ import { Heart, Wallet, Clock } from "lucide-react";
 import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
 
 export default function TestPage() {
+	const currentTutorialStepIndex = useSelector(
+		tutorialStore,
+		(state) => state.context.currentStepIndex
+	);
 	const [currentDialog, setCurrentDialog] = useState<
 		"welcome" | "goals" | "metrics" | "none"
-	>("welcome");
+	>(currentTutorialStepIndex < 0 ? "welcome" : "none");
 
 	const questGoal = useSelector(
 		questStore,
@@ -54,6 +58,7 @@ export default function TestPage() {
 
 			{currentDialog === "welcome" && (
 				<WelcomeDialog
+					key={"welcome-dialog"}
 					isOpen={true}
 					title="Are you ready?"
 					onNext={handleWelcomeNext}
@@ -68,6 +73,7 @@ export default function TestPage() {
 
 			{currentDialog === "goals" && (
 				<WelcomeDialog
+					key={"welcome-dialog"}
 					isOpen={true}
 					title="Your goal is to..."
 					onNext={handleGoalsNext}
@@ -82,6 +88,7 @@ export default function TestPage() {
 
 			{currentDialog === "metrics" && (
 				<WelcomeDialog
+					key={"welcome-dialog"}
 					isOpen={true}
 					title="Your starting position"
 					onNext={handleMetricsNext}
