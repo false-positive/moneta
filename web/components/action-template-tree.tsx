@@ -292,16 +292,12 @@ function ChatSystem({
 	showChat,
 	setShowChat,
 	messages,
-	chatInput,
-	setChatInput,
 	sendHint,
 	setMessages,
 }: {
 	showChat: boolean;
 	setShowChat: (show: boolean) => void;
 	messages: Array<{ role: "user" | "assistant"; content: string }>;
-	chatInput: string;
-	setChatInput: (input: string) => void;
 	sendHint: (question?: string) => void;
 	setMessages: React.Dispatch<
 		React.SetStateAction<
@@ -309,6 +305,8 @@ function ChatSystem({
 		>
 	>;
 }) {
+	const [chatInput, setChatInput] = useState("");
+
 	const chatEndRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -419,7 +417,6 @@ export function ActionTemplateTree() {
 	const [endPoints, setEndPoints] = useState<number>(0);
 	const [initialPrice, setInitialPrice] = useState<number>(0);
 	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
-	const [chatInput, setChatInput] = useState("");
 	const [messages, setMessages] = useState<
 		Array<{ role: "user" | "assistant"; content: string }>
 	>([]);
@@ -660,8 +657,6 @@ export function ActionTemplateTree() {
 					showChat={showChat}
 					setShowChat={setShowChat}
 					messages={messages}
-					chatInput={chatInput}
-					setChatInput={setChatInput}
 					sendHint={sendHint}
 					setMessages={setMessages}
 				/>
