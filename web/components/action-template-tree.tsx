@@ -538,7 +538,7 @@ export function ActionTemplateTree() {
 				const data = await response.json();
 				const hint =
 					data.response ||
-					"🔍 Try clicking on a action node to view more details.";
+					"🔍 Try clicking on an action node to view more details.";
 				setMessages((prev) => [
 					...prev,
 					{ role: "assistant", content: hint },
@@ -549,7 +549,7 @@ export function ActionTemplateTree() {
 					{
 						role: "assistant",
 						content:
-							"🔍 Try clicking on a action node to view more details.",
+							"🔍 Try clicking on an action node to view more details.",
 					},
 				]);
 			}
@@ -559,7 +559,7 @@ export function ActionTemplateTree() {
 				{
 					role: "assistant",
 					content:
-						"🔍 Try clicking on a action node to view more details.",
+						"🔍 Try clicking on an action node to view more details.",
 				},
 			]);
 		} finally {
@@ -634,7 +634,7 @@ export function ActionTemplateTree() {
 							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
 								<Zap className="h-10 w-10 text-indigo-400 mb-2" />
 								<p className="text-indigo-600 font-medium">
-									Click on a action node to view details
+									Click on an action node to view details
 								</p>
 								<p className="text-xs text-indigo-500 mt-1">
 									Explore the action tree to unlock new
