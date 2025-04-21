@@ -16,6 +16,10 @@ interface InitialAction
 
 interface ActionTemplateBase {
 	/**
+	 * A unique numeric identifier for the action template.
+	 */
+	id: number;
+	/**
 	 * The icon image href of the action.
 	 */
 	iconImageHref: string;
@@ -57,19 +61,6 @@ export interface CustomizableActionTemplate<
 	) => Action;
 }
 
-type CreateActionOptions<
-	TInitialAction extends InitialAction = InitialAction,
-	TUserInput = unknown
-> =
-	| { actionTemplate: ConstantActionTemplate }
-	| {
-			actionTemplate: CustomizableActionTemplate<
-				TInitialAction,
-				TUserInput
-			>;
-			userInput: TUserInput;
-	  };
-
 /**
  * A template for an action.
  *
@@ -79,11 +70,33 @@ type CreateActionOptions<
 export type ActionTemplate<
 	TInitialAction extends InitialAction = InitialAction,
 	TUserInput = unknown
-> = CreateActionOptions<TInitialAction, TUserInput>["actionTemplate"];
+> =
+	| ConstantActionTemplate
+	| CustomizableActionTemplate<TInitialAction, TUserInput>;
+
+let id = 0;
+
+export const createActionTemplate = <
+	TInitialAction extends InitialAction,
+	TObject
+>(
+	// FIXME: Cursed type stuff
+	actionTemplate:
+		| Omit<ConstantActionTemplate, "id">
+		| Omit<CustomizableActionTemplate<TInitialAction, TObject>, "id">
+): ActionTemplate<TInitialAction, TObject> => {
+	return { id: ++id, ...actionTemplate };
+};
 
 export const createActionTemplates = <
 	TInitialAction extends InitialAction,
 	TObject
 >(
-	actionTemplateArray: ReadonlyArray<ActionTemplate<TInitialAction, TObject>>
-) => actionTemplateArray;
+	// FIXME: More cursed type stuff
+	actionTemplateArray: ReadonlyArray<
+		Parameters<typeof createActionTemplate<TInitialAction, TObject>>[0]
+	>
+): ReadonlyArray<ActionTemplate<TInitialAction, TObject>> =>
+	actionTemplateArray.map((actionTemplate) =>
+		createActionTemplate(actionTemplate)
+	);
