@@ -32,11 +32,9 @@ import {
 function ActionTemplateTreeVisualization({
 	templates,
 	setSelectedTemplate,
-	getCategoryColor,
 }: {
 	templates: ReadonlyArray<ActionTemplate>;
 	setSelectedTemplate: (template: ActionTemplate) => void;
-	getCategoryColor: (template: ActionTemplate) => string;
 }) {
 	const svgRef = useRef<SVGSVGElement>(null);
 
@@ -127,7 +125,7 @@ function ActionTemplateTreeVisualization({
 			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
-	}, [templates, setSelectedTemplate, getCategoryColor]);
+	}, [templates, setSelectedTemplate]);
 
 	return (
 		<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
@@ -449,20 +447,6 @@ export function ActionTemplateTree() {
 		(state) => state.context.description
 	);
 
-	const getCategoryColor = (template: ActionTemplate) => {
-		// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-		const action =
-			template.templateKind === "constant"
-				? template.action
-				: template.initialAction;
-
-		if (action.kind === "investment") return "#f59e0b";
-		if (action.kind === "income") return "#10b981";
-		if (action.kind === "expense") return "#ef4444";
-		if (action.kind === "other") return "#34d399";
-		return "#3730a3";
-	};
-
 	const handleSubmit = () => {
 		questStore.send({
 			type: "newActionsAppend",
@@ -564,17 +548,7 @@ export function ActionTemplateTree() {
 					<div className="h-full p-3">
 						<ActionTemplateTreeVisualization
 							templates={questDescription.actionTemplates}
-							setSelectedTemplate={(template) => {
-								setInitialPrice(0);
-								setRepeatedPrice(0);
-								const action =
-									template.templateKind === "constant"
-										? template.action
-										: template.initialAction;
-								setEndPoints(action.remainingSteps || 0); // Default to 0 if undefined
-								setSelectedTemplate(template);
-							}}
-							getCategoryColor={getCategoryColor}
+							setSelectedTemplate={setSelectedTemplate}
 						/>
 					</div>
 				</div>
@@ -656,4 +630,18 @@ export function ActionTemplateTree() {
 			</div>
 		</div>
 	);
+}
+
+function getCategoryColor(template: ActionTemplate) {
+	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+	const action =
+		template.templateKind === "constant"
+			? template.action
+			: template.initialAction;
+
+	if (action.kind === "investment") return "#f59e0b";
+	if (action.kind === "income") return "#10b981";
+	if (action.kind === "expense") return "#ef4444";
+	if (action.kind === "other") return "#34d399";
+	return "#3730a3";
 }
