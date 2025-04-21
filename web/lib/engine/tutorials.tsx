@@ -25,6 +25,7 @@ export type TutorialStep<
 	popoverSide?: "top" | "right" | "bottom" | "left";
 	pulse?: boolean;
 };
+
 export const tutorialSteps: TutorialStep[] = [
 	{
 		marker: { kind: "welcome-dialog" },
@@ -40,7 +41,8 @@ export const tutorialSteps: TutorialStep[] = [
 	// 	title: "Start Your Journey",
 	// 	description: (
 	// 		<>
-	// 			Click this node to begin in the year <strong>2020</strong>.<br />
+	// 			Click this node to begin in the year <strong>2020</strong>.
+	// 			<br />
 	// 			Each year unlocks new decisions and consequences!
 	// 		</>
 	// 	),
@@ -89,21 +91,22 @@ export const tutorialSteps: TutorialStep[] = [
 		),
 		popoverSide: "left",
 	},
-	// {
-	// 	marker: {
-	// 		kind: "journey-node",
-	// 		instance: { timePoint: 2021 },
-	// 	},
-	// 	title: "Next Year Awaits",
-	// 	description: (
-	// 		<>
-	// 			Advance to <strong>2021</strong> by clicking here.<br />
-	// 			See how your previous moves shape new options!
-	// 		</>
-	// 	),
-	// 	popoverSide: "bottom",
-	// 	pulse: true,
-	// },
+	{
+		marker: {
+			kind: "journey-node",
+			instance: { timePoint: 2021 },
+		},
+		title: "Next Year Awaits",
+		description: (
+			<>
+				Advance to <strong>2021</strong> by clicking here.
+				<br />
+				See how your previous moves shape new options!
+			</>
+		),
+		popoverSide: "bottom",
+		pulse: true,
+	},
 	{
 		marker: { kind: "post-action-button" },
 		title: "Lock In Your Move",
@@ -207,7 +210,7 @@ export const tutorialSteps: TutorialStep[] = [
 				From now on, you can explore, experiment, and build your own
 				financial path.
 				<br />
-				The tutorial will finish automatically ones you reach your goal.
+				The tutorial will finish automatically once you reach your goal.
 			</>
 		),
 		popoverSide: "bottom",
