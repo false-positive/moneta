@@ -33,6 +33,42 @@ export const questStore = createStore({
 				currentStepIndex: newSteps.length - 1,
 			};
 		},
+		currentStepStopAction: (
+			quest,
+			event: { stepIdx: number; actionIdx: number }
+		) => {
+			const newSteps = stopAction(quest, event.stepIdx, event.actionIdx);
+
+			if (newSteps.length == 0) {
+				return quest;
+			}
+
+			return {
+				...quest,
+				steps: newSteps,
+				currentStepIndex: newSteps.length - 1,
+			};
+		},
+		currentStepDeleteAction: (
+			quest,
+			event: { stepIdx: number; actionIdx: number }
+		) => {
+			const newSteps = deleteAction(
+				quest,
+				event.stepIdx,
+				event.actionIdx
+			);
+
+			if (newSteps.length == 0) {
+				return quest;
+			}
+
+			return {
+				...quest,
+				steps: newSteps,
+				currentStepIndex: newSteps.length - 1,
+			};
+		},
 		currentStepIndexChange: (
 			quest,
 			event: { newCurrentStepIndex: number }
@@ -76,6 +112,31 @@ function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
 		...(newActionsPerStep[quest.currentStepIndex] || []),
 		...newActions,
 	];
+
+	return simulateWithActions(quest.description, newActionsPerStep);
+}
+
+function stopAction(quest: Quest, stepIdx: number, actionIdx: number) {
+	const newActionsPerStep = getNewActionsPerStep(quest);
+
+	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
+		newActionsPerStep[stepIdx][actionIdx].remainingSteps =
+			quest.currentStepIndex - stepIdx;
+	} else {
+		return [];
+	}
+
+	return simulateWithActions(quest.description, newActionsPerStep);
+}
+
+function deleteAction(quest: Quest, stepIdx: number, actionIdx: number) {
+	const newActionsPerStep = getNewActionsPerStep(quest);
+
+	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
+		newActionsPerStep[stepIdx].splice(actionIdx, 1);
+	} else {
+		return [];
+	}
 
 	return simulateWithActions(quest.description, newActionsPerStep);
 }
