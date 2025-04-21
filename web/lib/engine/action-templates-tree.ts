@@ -16,11 +16,6 @@ export interface Node {
 	fy?: number | null;
 }
 
-interface Link {
-	source: string;
-	target: string;
-}
-
 export const initialNodes: Node[] = [
 	{
 		id: "lifeAction",
@@ -162,5 +157,3 @@ export const initialNodes: Node[] = [
 		actionObject: allActionsList.seniorSweJobAction,
 	},
 ];
-
-export const links: Link[] = [];

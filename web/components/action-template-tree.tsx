@@ -14,7 +14,7 @@ import {
 	allActionsList,
 	initialNodes,
 	type Node,
-} from "@/lib/engine/skill-tree";
+} from "@/lib/engine/action-templates-tree";
 import {
 	Sparkles,
 	Zap,
@@ -32,8 +32,8 @@ import {
 	TutorialPopoverContent,
 } from "./tutorial";
 
-// D3 Skill Tree Visualization Component
-function SkillTreeVisualization({
+// D3 Action Template Tree Visualization Component
+function ActionTemplateTreeVisualization({
 	nodes,
 	setSelectedNode,
 	getCategoryColor,
@@ -215,7 +215,7 @@ function ConfigurationPanel({
 // Node Details Component
 function NodeDetails({
 	node,
-	unlockSkill,
+	unlockActionTemplate,
 	endPoints,
 	setEndPoints,
 	initialPrice,
@@ -224,7 +224,7 @@ function NodeDetails({
 	setRepeatedPrice,
 }: {
 	node: Node;
-	unlockSkill: (id: string) => void;
+	unlockActionTemplate: (id: string) => void;
 	endPoints: number;
 	setEndPoints: (value: number) => void;
 	initialPrice: number;
@@ -271,7 +271,7 @@ function NodeDetails({
 			<div className="space-y-2">
 				{!node.unlocked && (
 					<Button
-						onClick={() => unlockSkill(node.id)}
+						onClick={() => unlockActionTemplate(node.id)}
 						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 					>
 						{node.actionObject.kind === "investment"
@@ -362,7 +362,7 @@ function ChatSystem({
 							) : (
 								<div className="flex flex-col items-center justify-center h-full text-center p-4">
 									<p className="text-gray-500 text-sm">
-										Ask a question about the selected skill
+										Ask a question about the selected action
 									</p>
 								</div>
 							)}
@@ -409,8 +409,7 @@ function ChatSystem({
 	);
 }
 
-// Main SkillTree Component (refactored)
-export default function SkillTree() {
+export function ActionTemplateTree() {
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
 	const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 	const [newlyUnlockedActions, setNewlyUnlockedActions] = useState<string[]>(
@@ -516,7 +515,7 @@ export default function SkillTree() {
 				const data = await response.json();
 				const hint =
 					data.response ||
-					"🔍 Try clicking on a skill node to view more details.";
+					"🔍 Try clicking on a action node to view more details.";
 				setMessages((prev) => [
 					...prev,
 					{ role: "assistant", content: hint },
@@ -527,7 +526,7 @@ export default function SkillTree() {
 					{
 						role: "assistant",
 						content:
-							"🔍 Try clicking on a skill node to view more details.",
+							"🔍 Try clicking on a action node to view more details.",
 					},
 				]);
 			}
@@ -537,7 +536,7 @@ export default function SkillTree() {
 				{
 					role: "assistant",
 					content:
-						"🔍 Try clicking on a skill node to view more details.",
+						"🔍 Try clicking on a action node to view more details.",
 				},
 			]);
 		} finally {
@@ -556,7 +555,7 @@ export default function SkillTree() {
 						</div>
 					</div>
 					<div className="h-full p-3">
-						<SkillTreeVisualization
+						<ActionTemplateTreeVisualization
 							nodes={nodes}
 							setSelectedNode={(node) => {
 								setInitialPrice(0);
@@ -576,7 +575,7 @@ export default function SkillTree() {
 						<div>
 							<div className="text-white text-lg flex items-center gap-2 font-semibold">
 								<Zap className="h-5 w-5" />
-								Skill Details
+								Action Details
 							</div>
 						</div>
 						<div className="relative group mt-1">
@@ -594,7 +593,7 @@ export default function SkillTree() {
 						{selectedNode ? (
 							<NodeDetails
 								node={selectedNode}
-								unlockSkill={(id) => {
+								unlockActionTemplate={(id) => {
 									setNodes((prev) => {
 										const updatedNodes = prev.map((node) =>
 											node.id === id
@@ -642,10 +641,10 @@ export default function SkillTree() {
 							<div className="flex flex-col items-center justify-center h-40 text-center p-4 bg-indigo-50 rounded-lg border border-indigo-100">
 								<Zap className="h-10 w-10 text-indigo-400 mb-2" />
 								<p className="text-indigo-600 font-medium">
-									Click on a skill node to view details
+									Click on a action node to view details
 								</p>
 								<p className="text-xs text-indigo-500 mt-1">
-									Explore the skill tree to unlock new
+									Explore the action tree to unlock new
 									abilities
 								</p>
 							</div>

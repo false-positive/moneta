@@ -1,4 +1,4 @@
-import SkillTree from "@/components/skill-tree";
+import { ActionTemplateTree } from "@/components/action-template-tree";
 import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
 
 export default function TestPage() {
@@ -8,7 +8,7 @@ export default function TestPage() {
 				What is the best financial choice in your opinion?
 			</h1>
 			<div className="h-[800px]">
-				<SkillTree />
+				<ActionTemplateTree />
 			</div>
 			<TutorialSpot marker={{ kind: "welcome-dialog" }}>
 				<TutorialDialogContent />
