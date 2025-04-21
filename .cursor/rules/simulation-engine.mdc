@@ -49,7 +49,7 @@ function MyComponent() {
   
   // Add a new action
   const addAction = () => {
-    questStore.send({ type: "newActions", newActions: [myNewAction] });
+    questStore.send({ type: "newActionsAppend", newActions: [myNewAction] });
   };
   
   // Advance to next step
