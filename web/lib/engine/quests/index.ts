@@ -1,5 +1,6 @@
 import invariant from "tiny-invariant";
 import { Action, computeNextStep, Step, TimePointKind } from "../actions";
+import { ActionTemplate } from "../actions/templates";
 
 /**
  * A description of a quest, predefined in the given levels.
@@ -46,6 +47,10 @@ export type QuestDescription = {
 		 */
 		goalReached: (options: { lastStep: Step; quest: Quest }) => boolean;
 	};
+	/**
+	 * A list of action templates that are available to the user.
+	 */
+	actionTemplates: ReadonlyArray<ActionTemplate>;
 };
 
 /**

@@ -1,5 +1,7 @@
 import { QuestDescription } from "..";
 import { lifeAction } from "@/lib/engine/actions/standard-actions";
+import { createActionTemplates } from "../../actions/templates";
+import { allActionsList } from "../../action-templates-tree";
 
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
@@ -19,4 +21,125 @@ export const tutorialQuestDescription: QuestDescription = {
 		description: "Ivan wants to save 100000 BGN",
 		goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 	},
+	actionTemplates: createActionTemplates([
+		{
+			templateKind: "constant",
+			action: allActionsList.lifeAction,
+			iconImageHref: "/icons/lifeAction.svg",
+			hardcodedPosition: { x: 600, y: 300 },
+			isUnlocked: () => true,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.liveWithParentsAction,
+			iconImageHref: "/icons/liveWithParentsAction.png",
+			hardcodedPosition: { x: 575, y: 275 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.savingsDepositAction,
+			iconImageHref: "/icons/savingsDepositAction.png",
+			hardcodedPosition: { x: 625, y: 275 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.pensionDepositAction,
+			iconImageHref: "/icons/pensionDepositAction.svg",
+			hardcodedPosition: { x: 650, y: 250 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.etfInvestmentOnceAction,
+			iconImageHref: "/icons/etfInvestmentOnceAction.png",
+			hardcodedPosition: { x: 650, y: 300 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.etfInvestmentRepeatedAction,
+			iconImageHref: "/icons/etfInvestmentRepeatedAction.png",
+			hardcodedPosition: { x: 675, y: 325 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.stocksInvestmentAction,
+			iconImageHref: "/icons/stocksInvestmentAction.png",
+			hardcodedPosition: { x: 675, y: 275 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.cryptoInvestmentAction,
+			iconImageHref: "/icons/cryptoInvestmentAction.png",
+			hardcodedPosition: { x: 700, y: 250 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.goldInvestmentAction,
+			iconImageHref: "/icons/goldInvestmentAction.png",
+			hardcodedPosition: { x: 725, y: 275 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.skiTripAction,
+			iconImageHref: "/icons/skiTripAction.png",
+			hardcodedPosition: { x: 575, y: 325 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.hobbyMotorbikeRidingAction,
+			iconImageHref: "/icons/hobbyMotorbikeRidingAction.png",
+			hardcodedPosition: { x: 550, y: 300 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.partyingAction,
+			iconImageHref: "/icons/partyingAction.png",
+			hardcodedPosition: { x: 550, y: 350 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.havingAKidAction,
+			iconImageHref: "/icons/havingAKidAction.png",
+			hardcodedPosition: { x: 600, y: 350 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.waiterPartTimeJobAction,
+			iconImageHref: "/icons/waiterPartTimeJobAction.png",
+			hardcodedPosition: { x: 600, y: 250 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.waiterFullTimeJobAction,
+			iconImageHref: "/icons/waiterFullTimeJobAction.png",
+			hardcodedPosition: { x: 625, y: 225 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.juniorSweJobAction,
+			iconImageHref: "/icons/juniorSweJobAction.png",
+			hardcodedPosition: { x: 575, y: 225 },
+			isUnlocked: () => false,
+		},
+		{
+			templateKind: "constant",
+			action: allActionsList.seniorSweJobAction,
+			iconImageHref: "/icons/seniorSweJobAction.png",
+			hardcodedPosition: { x: 600, y: 200 },
+			isUnlocked: () => false,
+		},
+	]),
 };
