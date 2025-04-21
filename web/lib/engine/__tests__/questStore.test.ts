@@ -64,10 +64,6 @@ test("stop given action", () => {
 });
 
 test("delete given action", () => {
-	const job = (steps: number) => ({
-		...waiterJobAction,
-		remainingSteps: steps,
-	});
 	const invest = (steps: number, capital: number) => ({
 		...savingsDepositAction,
 		remainingSteps: steps,

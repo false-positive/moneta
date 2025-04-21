@@ -7,9 +7,6 @@ import {
 	simulateWithActions,
 } from "@/lib/engine/quests";
 import { questDescriptions } from "../engine/quests/descriptions";
-import { aC } from "vitest/dist/chunks/reporters.d.CqBhtcTq.js";
-import { act } from "react";
-import { steps } from "framer-motion";
 
 const initialQuestDescription = questDescriptions.tutorial;
 
