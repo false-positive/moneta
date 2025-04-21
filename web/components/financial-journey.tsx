@@ -33,11 +33,14 @@ function JourneyNode({
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
 	onClick: () => void;
-	ref: React.RefObject<HTMLDivElement>;
+	ref?: React.RefObject<HTMLDivElement>;
 	className?: string;
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
+
+	// HACK: className doesn't work and breaks everything
+	className = ""; // :(
 
 	return (
 		<motion.div
@@ -242,7 +245,6 @@ export function FinancialJourney({
 				{timePoints.map((timePoint, index) => {
 					const point = pathPoints[index];
 					const { color, icon } = getNodeAppearance(timePoint);
-					const nodeRef = useRef<HTMLDivElement>(null);
 
 					const numericTimePoint = Number(timePoint);
 					console.log(
@@ -260,7 +262,6 @@ export function FinancialJourney({
 						>
 							<TutorialTrigger asChild>
 								<JourneyNode
-									ref={nodeRef}
 									timePoint={timePoint}
 									point={point}
 									nodeColor={color}
