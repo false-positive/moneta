@@ -1,46 +1,42 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
-import * as d3 from "d3";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useSelector } from "@xstate/store/react";
+import { ActionTemplate } from "@/lib/engine/actions/templates";
+import { getCurrentStep } from "@/lib/engine/quests";
 import { questStore } from "@/lib/stores/quest-store";
-import { getCurrentStep, getLatestStep } from "@/lib/engine/quests";
+import { useSelector } from "@xstate/store/react";
+import * as d3 from "d3";
+import { useEffect, useRef, useState } from "react";
 
 import {
-	allActionsList,
-	initialNodes,
-	type Node,
-} from "@/lib/engine/action-templates-tree";
-import {
-	Sparkles,
-	Zap,
 	ArrowRight,
-	Send,
-	Lightbulb,
 	Coins,
-	TrendingUp,
 	DollarSign,
+	Lightbulb,
+	Send,
+	Sparkles,
+	TrendingUp,
+	Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
+	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
-	TutorialPopoverContent,
 } from "./tutorial";
 
 // D3 Action Template Tree Visualization Component
 function ActionTemplateTreeVisualization({
-	nodes,
-	setSelectedNode,
+	templates,
+	setSelectedTemplate,
 	getCategoryColor,
 }: {
-	nodes: Node[];
-	setSelectedNode: (node: Node) => void;
-	getCategoryColor: (node: Node) => string;
+	templates: ReadonlyArray<ActionTemplate>;
+	setSelectedTemplate: (template: ActionTemplate) => void;
+	getCategoryColor: (template: ActionTemplate) => string;
 }) {
 	const svgRef = useRef<SVGSVGElement>(null);
 
@@ -68,12 +64,16 @@ function ActionTemplateTreeVisualization({
 		const nodeSelection = g
 			.append("g")
 			.selectAll("g")
-			.data(nodes)
+			.data(templates)
 			.join("g")
 			.attr("cursor", "pointer")
-			.attr("transform", (d) => `translate(${d.x},${d.y})`)
+			.attr(
+				"transform",
+				(d) =>
+					`translate(${d.hardcodedPosition.x},${d.hardcodedPosition.y})`
+			)
 			.on("click", (event, d) => {
-				setSelectedNode(d);
+				setSelectedTemplate(d);
 			});
 
 		// Draw the rhombus shape
@@ -83,15 +83,21 @@ function ActionTemplateTreeVisualization({
 				const size = getNodeSize();
 				return `M 0,-${size} L ${size},0 L 0,${size} L -${size},0 Z`;
 			})
-			.attr("fill", (d) => (d.unlocked ? getCategoryColor(d) : "#fff"))
+			.attr("fill", (d) =>
+				// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
+				d.isUnlocked({} as any, d as any) ? getCategoryColor(d) : "#fff"
+			)
 			.attr("stroke", (d) => getCategoryColor(d))
-			.attr("stroke-width", (d) => (!d.unlocked ? 3 : 1.5));
+			.attr("stroke-width", (d) =>
+				// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
+				!d.isUnlocked({} as any, d as any) ? 3 : 1.5
+			);
 
 		// Append an icon inside each rhombus
 		const iconSize = 16;
 		nodeSelection
 			.append("image")
-			.attr("href", (d: Node) => d.icon || "/icons/default-icon.svg")
+			.attr("href", (d) => d.iconImageHref)
 			.attr("x", -iconSize / 2)
 			.attr("y", -iconSize / 2)
 			.attr("width", iconSize)
@@ -113,13 +119,15 @@ function ActionTemplateTreeVisualization({
 				g.attr("transform", event.transform);
 			});
 
+		// TODO(tech-debt): Fix d3 type assertions - d3-zoom types need to be properly imported and used
 		svg.call(zoom as any);
 
 		svg.call(
+			// TODO(tech-debt): Fix d3 type assertions - d3-zoom types need to be properly imported and used
 			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
-	}, [nodes, setSelectedNode, getCategoryColor]);
+	}, [templates, setSelectedTemplate, getCategoryColor]);
 
 	return (
 		<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
@@ -130,7 +138,7 @@ function ActionTemplateTreeVisualization({
 
 // Configuration Panel Component
 function ConfigurationPanel({
-	node,
+	template,
 	endPoints,
 	setEndPoints,
 	initialPrice,
@@ -138,7 +146,7 @@ function ConfigurationPanel({
 	repeatedPrice,
 	setRepeatedPrice,
 }: {
-	node: Node;
+	template: ActionTemplate;
 	endPoints: number;
 	setEndPoints: (value: number) => void;
 	initialPrice: number;
@@ -146,17 +154,20 @@ function ConfigurationPanel({
 	repeatedPrice: number;
 	setRepeatedPrice: (value: number) => void;
 }) {
-	if (
-		!node.actionObject.canChangeInitialPrice &&
-		!node.actionObject.canChangeRepeatedPrice
-	) {
+	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+	const action =
+		template.templateKind === "constant"
+			? template.action
+			: template.initialAction;
+
+	if (!action.canChangeInitialPrice && !action.canChangeRepeatedPrice) {
 		return null;
 	}
 
 	return (
 		<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
 			<h4 className="font-medium text-gray-700">Configuration</h4>
-			{node.actionObject.kind === "investment" && (
+			{action.kind === "investment" && (
 				<div>
 					<Label htmlFor="ticks" className="text-sm text-gray-600">
 						Years
@@ -170,7 +181,7 @@ function ConfigurationPanel({
 					/>
 				</div>
 			)}
-			{node.actionObject.canChangeInitialPrice && (
+			{action.canChangeInitialPrice && (
 				<div>
 					<Label
 						htmlFor="initialPrice"
@@ -189,7 +200,7 @@ function ConfigurationPanel({
 					/>
 				</div>
 			)}
-			{node.actionObject.canChangeRepeatedPrice && (
+			{action.canChangeRepeatedPrice && (
 				<div>
 					<Label
 						htmlFor="repeatedPrice"
@@ -214,7 +225,7 @@ function ConfigurationPanel({
 
 // Node Details Component
 function NodeDetails({
-	node,
+	template,
 	unlockActionTemplate,
 	endPoints,
 	setEndPoints,
@@ -223,8 +234,8 @@ function NodeDetails({
 	repeatedPrice,
 	setRepeatedPrice,
 }: {
-	node: Node;
-	unlockActionTemplate: (id: string) => void;
+	template: ActionTemplate;
+	unlockActionTemplate: (id: number) => void;
 	endPoints: number;
 	setEndPoints: (value: number) => void;
 	initialPrice: number;
@@ -232,33 +243,42 @@ function NodeDetails({
 	repeatedPrice: number;
 	setRepeatedPrice: (value: number) => void;
 }) {
+	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+	const action =
+		template.templateKind === "constant"
+			? template.action
+			: template.initialAction;
+
+	const quest = useSelector(questStore, (state) => state.context);
+	// TODO(tech-debt): isUnlocked currently ignores its args but will use them soon - fix any type
+	const isUnlocked = template.isUnlocked(quest, template as any);
+
 	return (
 		<div className="space-y-4">
 			<div className="p-3 bg-indigo-50 border-indigo-100">
 				<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
-					{node.actionObject.kind === "investment" && (
+					{action.kind === "investment" && (
 						<Coins className="h-5 w-5 text-amber-500" />
 					)}
-					{node.actionObject.kind === "income" && (
+					{action.kind === "income" && (
 						<TrendingUp className="h-5 w-5 text-emerald-500" />
 					)}
-					{node.actionObject.kind === "expense" && (
+					{action.kind === "expense" && (
 						<DollarSign className="h-5 w-5 text-rose-500" />
 					)}
-					{node.actionObject.name}
+					{action.name}
 				</h3>
 				<p className="text-sm text-indigo-600 mt-1">
-					{node.actionObject.shortDescription}
+					{action.shortDescription}
 				</p>
 				<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
-					{node.actionObject.kind.charAt(0).toUpperCase() +
-						node.actionObject.kind.slice(1)}
+					{action.kind.charAt(0).toUpperCase() + action.kind.slice(1)}
 				</div>
 			</div>
 
-			{!node.unlocked && (
+			{!isUnlocked && (
 				<ConfigurationPanel
-					node={node}
+					template={template}
 					endPoints={endPoints}
 					setEndPoints={setEndPoints}
 					initialPrice={initialPrice}
@@ -269,14 +289,14 @@ function NodeDetails({
 			)}
 
 			<div className="space-y-2">
-				{!node.unlocked && (
+				{!isUnlocked && (
 					<Button
-						onClick={() => unlockActionTemplate(node.id)}
+						onClick={() => unlockActionTemplate(template.id)}
 						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 					>
-						{node.actionObject.kind === "investment"
+						{action.kind === "investment"
 							? "Invest"
-							: node.actionObject.kind === "income"
+							: action.kind === "income"
 							? "Work"
 							: "Accept Expense"}
 						<ArrowRight className="ml-2 h-4 w-4" />
@@ -408,11 +428,8 @@ function ChatSystem({
 }
 
 export function ActionTemplateTree() {
-	const [nodes, setNodes] = useState<Node[]>(initialNodes);
-	const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-	const [newlyUnlockedActions, setNewlyUnlockedActions] = useState<string[]>(
-		[]
-	);
+	const [selectedTemplate, setSelectedTemplate] =
+		useState<ActionTemplate | null>(null);
 	const [showChat, setShowChat] = useState(false);
 	const [endPoints, setEndPoints] = useState<number>(0);
 	const [initialPrice, setInitialPrice] = useState<number>(0);
@@ -432,68 +449,57 @@ export function ActionTemplateTree() {
 		(state) => state.context.description
 	);
 
-	// Reset newlyUnlockedActions when component mounts or when currentStep changes
-	useEffect(() => {
-		setNewlyUnlockedActions([]);
+	const getCategoryColor = (template: ActionTemplate) => {
+		// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+		const action =
+			template.templateKind === "constant"
+				? template.action
+				: template.initialAction;
 
-		if (!currentStep) {
-			router.push("/");
-			return;
-		}
-
-		const activeActions = [
-			...currentStep.continuingActions,
-			...currentStep.newActions,
-		];
-		const unlockedActionNames = activeActions.map((action) => action.name);
-
-		const updatedNodes = nodes.map((node) => {
-			if (unlockedActionNames.includes(node.actionObject.name)) {
-				return { ...node, unlocked: true };
-			}
-			return node;
-		});
-
-		setNodes(updatedNodes);
-	}, [currentStep]);
-
-	const getCategoryColor = (node: Node) => {
-		if (node.actionObject.kind === "investment") return "#f59e0b";
-		if (node.actionObject.kind === "income") return "#10b981";
-		if (node.actionObject.kind === "expense") return "#ef4444";
-		if (node.actionObject.kind === "other") return "#34d399";
+		if (action.kind === "investment") return "#f59e0b";
+		if (action.kind === "income") return "#10b981";
+		if (action.kind === "expense") return "#ef4444";
+		if (action.kind === "other") return "#34d399";
 		return "#3730a3";
 	};
 
 	const handleSubmit = () => {
-		const newlyUnlockedNodes = nodes.filter((node) =>
-			newlyUnlockedActions.includes(node.actionObject.name)
-		);
-		const unlockedActions = newlyUnlockedNodes.map(
-			(node) => node.actionObject
-		);
 		questStore.send({
 			type: "newActionsAppend",
-			newActions: unlockedActions,
+			newActions: [],
 		});
 		router.push("/simulation");
 	};
 
 	const sendHint = async (question = "") => {
-		if (!selectedNode) {
+		if (!selectedTemplate) {
 			return;
 		}
 
 		try {
+			// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+			const action =
+				selectedTemplate.templateKind === "constant"
+					? selectedTemplate.action
+					: selectedTemplate.initialAction;
+
 			let body = JSON.stringify({
-				action_name: selectedNode?.actionObject.name,
-				actions: allActionsList,
+				action_name: action.name,
+				// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+				actions: questDescription.actionTemplates.map((t) =>
+					t.templateKind === "constant" ? t.action : t.initialAction
+				),
 			});
 
 			if (question) {
 				body = JSON.stringify({
-					action_name: selectedNode?.actionObject.name,
-					actions: allActionsList,
+					action_name: action.name,
+					// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
+					actions: questDescription.actionTemplates.map((t) =>
+						t.templateKind === "constant"
+							? t.action
+							: t.initialAction
+					),
 					question,
 				});
 			}
@@ -557,12 +563,16 @@ export function ActionTemplateTree() {
 					</div>
 					<div className="h-full p-3">
 						<ActionTemplateTreeVisualization
-							nodes={nodes}
-							setSelectedNode={(node) => {
+							templates={questDescription.actionTemplates}
+							setSelectedTemplate={(template) => {
 								setInitialPrice(0);
 								setRepeatedPrice(0);
-								setEndPoints(node.actionObject.remainingSteps);
-								setSelectedNode(node);
+								const action =
+									template.templateKind === "constant"
+										? template.action
+										: template.initialAction;
+								setEndPoints(action.remainingSteps || 0); // Default to 0 if undefined
+								setSelectedTemplate(template);
 							}}
 							getCategoryColor={getCategoryColor}
 						/>
@@ -591,45 +601,13 @@ export function ActionTemplateTree() {
 						</div>
 					</div>
 					<div className="p-4">
-						{selectedNode ? (
+						{selectedTemplate ? (
 							<NodeDetails
-								node={selectedNode}
+								template={selectedTemplate}
 								unlockActionTemplate={(id) => {
-									setNodes((prev) => {
-										const updatedNodes = prev.map((node) =>
-											node.id === id
-												? {
-														...node,
-														unlocked: true,
-														actionObject: {
-															...node.actionObject,
-															investmentImpact: {
-																...node
-																	.actionObject
-																	.investmentImpact,
-																initialPrice,
-																repeatedPrice,
-															},
-															remainingSteps:
-																endPoints,
-														},
-												  }
-												: node
-										);
-										const unlockedNode = updatedNodes.find(
-											(n) => n.id === id
-										);
-										if (unlockedNode) {
-											setNewlyUnlockedActions(
-												(prevActions) => [
-													...prevActions,
-													unlockedNode.actionObject
-														.name,
-												]
-											);
-										}
-										return updatedNodes;
-									});
+									throw new Error(
+										"Unlocking action templates has been disabled. Please come back later! This is intended and is a feature, which must be kept!"
+									);
 								}}
 								endPoints={endPoints}
 								setEndPoints={setEndPoints}
