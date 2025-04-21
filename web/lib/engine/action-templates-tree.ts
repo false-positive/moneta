@@ -10,10 +10,8 @@ export interface Node {
 	icon: string;
 	actionObject: Action;
 
-	x?: number;
-	y?: number;
-	fx?: number | null;
-	fy?: number | null;
+	x: number;
+	y: number;
 }
 
 export const initialNodes: Node[] = [

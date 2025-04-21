@@ -23,6 +23,18 @@ interface ActionTemplateBase {
 	 * The icon image href of the action.
 	 */
 	iconImageHref: string;
+
+	/**
+	 * The position of the action template in the action template tree.
+	 *
+	 * This is used to determine the order of the action templates in the tree.
+	 *
+	 * FIXME: Remove this once we have a proper positioning system.
+	 */
+	hardcodedPosition: {
+		x: number;
+		y: number;
+	};
 }
 
 type IsUnlockedFn<TActionTemplate extends ActionTemplateBase> = (
