@@ -69,10 +69,8 @@ export const tutorialQuestDescription: QuestDescription = {
 		experience: new Map(),
 	},
 	goal: {
-		description:
-			"Ivan wants to save 100000 BGN while maintaining a good quality of life",
-		goalReached: ({ lastStep }) =>
-			lastStep.bankAccount >= 100000 && lastStep.joy >= 50,
+		description: "Save 100 000 BGN",
+		goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 	},
 	actionTemplates: [
 		lifeActionTemplate,

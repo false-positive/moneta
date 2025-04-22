@@ -10,7 +10,7 @@ import {
 export const tutorialStore = createStore({
 	context: {
 		steps: tutorialSteps,
-		currentStepIndex: 0,
+		currentStepIndex: -1, // Start at -1 so first nextStep brings us to index 0
 	},
 	on: {
 		nextStep: (context) => {

@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
+	TutorialHighlight,
 	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
@@ -621,29 +622,36 @@ export function ActionTemplateTree() {
 
 	return (
 		<div className="flex flex-col md:flex-row gap-4 p-4 h-full">
-			<div className="flex-1">
-				<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
-						<div className="text-white text-lg flex items-center gap-2 font-semibold">
-							<Sparkles className="h-5 w-5" />
-							<span>
-								Financial Journey -{" "}
-								<span className="capitalize">
-									{questDescription.timePointKind}
-								</span>{" "}
-								{currentStep.timePoint}
-							</span>
+			<TutorialSpot marker={{ kind: "actions-choice-container" }}>
+				<TutorialHighlight>
+					<div className="flex-1">
+						<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
+							<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+								<div className="text-white text-lg flex items-center gap-2 font-semibold">
+									<Sparkles className="h-5 w-5" />
+									<span>
+										Financial Journey -{" "}
+										<span className="capitalize">
+											{questDescription.timePointKind}
+										</span>{" "}
+										{currentStep.timePoint}
+									</span>
+								</div>
+							</div>
+							<div className="h-full p-3">
+								<ActionTemplateTreeVisualization
+									templates={questDescription.actionTemplates}
+									setSelectedTemplate={setSelectedTemplate}
+									appliedActionTemplateIds={
+										appliedActionTemplateIds
+									}
+								/>
+							</div>
 						</div>
 					</div>
-					<div className="h-full p-3">
-						<ActionTemplateTreeVisualization
-							templates={questDescription.actionTemplates}
-							setSelectedTemplate={setSelectedTemplate}
-							appliedActionTemplateIds={appliedActionTemplateIds}
-						/>
-					</div>
-				</div>
-			</div>
+				</TutorialHighlight>
+				<TutorialPopoverContent isAdvanceable />
+			</TutorialSpot>
 
 			<div className="w-full md:w-80 relative">
 				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
