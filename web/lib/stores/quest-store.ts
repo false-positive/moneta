@@ -30,7 +30,6 @@ export const questStore = createStore({
 			return {
 				...quest,
 				steps: newSteps,
-				currentStepIndex: newSteps.length - 1,
 			};
 		},
 		currentStepStopAction: (
