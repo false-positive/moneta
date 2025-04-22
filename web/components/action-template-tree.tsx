@@ -430,10 +430,13 @@ export function ActionTemplateTree() {
 		() =>
 			new Set(
 				newActions
-					.filter((a) => a.templateId)
-					.map((a): number => a.templateId!)
+					.map((a) => a.templateId)
+					.concat(
+						currentStep.continuingActions.map((a) => a.templateId)
+					)
+					.filter((tid): tid is number => !!tid)
 			),
-		[newActions]
+		[newActions, currentStep]
 	);
 
 	console.log(appliedActionTemplateIds);

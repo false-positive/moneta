@@ -1,4 +1,4 @@
-import { lifeAction, noOpAction } from "@/lib/engine/actions/standard-actions";
+import { noOpAction } from "@/lib/engine/actions/standard-actions";
 import { z } from "zod";
 import { QuestDescription } from "..";
 import {
@@ -11,9 +11,31 @@ import {
 } from "../../actions";
 import {
 	ActionTemplate,
+	applyActionTemplate,
 	createConstantTemplate,
 	createCustomizableTemplate,
 } from "../../actions/templates";
+
+const lifeActionTemplate = createConstantTemplate({
+	action: {
+		...noOpAction,
+		name: "Life",
+		kind: "expense",
+		shortDescription: "Pay for living expenses",
+		llmDescription:
+			"Pay for rent, utilities, food, and other basic living expenses",
+		bankAccountImpact: impact({
+			repeatedAbsoluteDelta: -1000,
+			repeatedPercent: constantPercent(-2 / 12),
+		}), // levs per month + inflation per month
+		joyImpact: percentImpact(-10),
+		freeTimeImpact: absoluteImpact(100), // hours per week
+		remainingSteps: Infinity,
+	},
+	iconImageHref: "/icons/lifeAction.svg",
+	hardcodedPosition: { x: 600, y: 300 },
+	isUnlocked: () => true,
+});
 
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
@@ -27,7 +49,7 @@ export const tutorialQuestDescription: QuestDescription = {
 		joy: 100,
 		freeTimeHours: 100,
 		newActions: [],
-		continuingActions: [{ ...lifeAction }],
+		continuingActions: [applyActionTemplate(lifeActionTemplate, {})],
 	},
 	goal: {
 		description:
@@ -36,26 +58,7 @@ export const tutorialQuestDescription: QuestDescription = {
 			lastStep.bankAccount >= 100000 && lastStep.joy >= 50,
 	},
 	actionTemplates: [
-		createConstantTemplate({
-			action: {
-				...noOpAction,
-				name: "Life",
-				kind: "expense",
-				shortDescription: "Pay for living expenses",
-				llmDescription:
-					"Pay for rent, utilities, food, and other basic living expenses",
-				bankAccountImpact: impact({
-					repeatedAbsoluteDelta: -1000,
-					repeatedPercent: constantPercent(-2 / 12),
-				}), // levs per month + inflation per month
-				joyImpact: percentImpact(-10),
-				freeTimeImpact: absoluteImpact(100), // hours per week
-				remainingSteps: Infinity,
-			},
-			iconImageHref: "/icons/lifeAction.svg",
-			hardcodedPosition: { x: 600, y: 300 },
-			isUnlocked: () => true,
-		}),
+		lifeActionTemplate,
 		createConstantTemplate({
 			action: {
 				...noOpAction,
