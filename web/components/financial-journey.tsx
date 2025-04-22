@@ -2,48 +2,87 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LockKeyholeOpen } from "lucide-react";
-import type { Step } from "@/lib/engine/actions";
+import { Lock, LockKeyholeOpen, HandCoins } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
+import {
+	TutorialPopoverContent,
+	TutorialSpot,
+	TutorialTrigger,
+} from "@/components/tutorial";
+import { cn } from "@/lib/utils";
+import { tutorialStore } from "@/lib/stores/tutorial-store";
 
 interface FinancialJourneyProps {
-	steps: Step[];
 	timeUnits: (string | number)[];
-	currentTimePoint: number;
 	onTimePointSelect: (timePoint: number) => void;
 }
 
 function JourneyNode({
 	timePoint,
 	point,
-	status,
 	nodeColor,
 	nodeIcon,
 	onClick,
-	isSelected,
+	ref,
+	className,
 }: {
 	timePoint: number;
 	point: [number, number];
-	status: string;
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
 	onClick: () => void;
-	isSelected: boolean;
+	ref?: React.RefObject<HTMLDivElement>;
+	className?: string;
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
 
+	const currentStep = useSelector(
+		tutorialStore,
+		(state) => state.context.steps[state.context.currentStepIndex]
+	);
+
+	// Get current selected timePoint
+	const currentTimePoint = useSelector(
+		questStore,
+		(state) =>
+			state.context.steps[state.context.currentStepIndex]?.timePoint
+	);
+
+	const isCurrentTimePoint = timePoint === currentTimePoint;
+
+	// Check if this specific node is the current tutorial target
+	const isCurrentTutorialNode =
+		currentStep?.marker.kind === "journey-node" &&
+		"instance" in currentStep.marker &&
+		currentStep.marker.instance.timePoint === timePoint;
+
+	const handleNodeClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		onClick();
+
+		// Only route to choices if this is the currently selected timePoint
+		if (isCurrentTimePoint) {
+			router.push("/choices");
+		}
+	};
+
+	// HACK: className doesn't work and breaks everything
+	className = ""; // :(
+
 	return (
 		<motion.div
 			key={timePoint}
-			className="absolute flex flex-col items-center"
+			className={cn("absolute flex flex-col items-center", className)}
 			style={{
 				left: `${point[0].toFixed(2)}px`,
 				top: `${point[1].toFixed(2)}px`,
+				zIndex: isCurrentTutorialNode ? 102 : 50,
 			}}
-			onClick={onClick}
+			onClick={handleNodeClick}
+			ref={ref}
 		>
 			<motion.div
 				className="relative cursor-pointer"
@@ -52,7 +91,11 @@ function JourneyNode({
 				onMouseLeave={() => setShowPopup(false)}
 			>
 				<div
-					className={`w-16 h-16 rounded-full ${nodeColor} border-4 flex items-center justify-center relative z-10 shadow-lg`}
+					className={cn(
+						"w-16 h-16 rounded-full border-4 flex items-center justify-center relative z-10 shadow-lg",
+						nodeColor,
+						className
+					)}
 				>
 					{nodeIcon}
 					<div className="absolute -bottom-8 bg-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
@@ -61,21 +104,15 @@ function JourneyNode({
 				</div>
 
 				{showPopup && (
-					// TO Do - add shadcn tooltip
 					<AnimatePresence>
 						<motion.div
 							initial={{ opacity: 0, y: -30 }}
 							animate={{ opacity: 1, y: -110 }}
 							exit={{ opacity: 0, y: -20 }}
 							transition={{ duration: 0.3 }}
-							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer z-20"
-							onClick={(e) => {
-								e.stopPropagation();
-								router.push("/choices");
-							}}
-							onMouseEnter={() => setShowPopup(true)} // Keep popup visible when hovering over it
+							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg z-50"
+							onMouseEnter={() => setShowPopup(true)}
 							onMouseLeave={(e) => {
-								// Only hide if we're not moving to the node
 								const rect =
 									e.currentTarget.getBoundingClientRect();
 								const isMovingToNode =
@@ -101,13 +138,10 @@ function JourneyNode({
 }
 
 export function FinancialJourney({
-	steps,
 	timeUnits,
-	currentTimePoint,
 	onTimePointSelect,
 }: FinancialJourneyProps) {
 	const [minWidth, setMinWidth] = useState(0);
-	const router = useRouter();
 
 	const timePoints = useMemo(
 		() => timeUnits.filter((unit) => typeof unit === "number") as number[],
@@ -171,18 +205,35 @@ export function FinancialJourney({
 		(state) => state.context.steps.length
 	);
 
-	const getNodeAppearance = useCallback((timePoint: number) => {
-		if (timePoint <= initialTimePoint + stepsLength - 1)
-			return {
-				color: "bg-indigo-500 border-indigo-600",
-				icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
-			};
+	const currentTimePoint = useSelector(
+		questStore,
+		(state) =>
+			state.context.steps[state.context.currentStepIndex]?.timePoint
+	);
 
-		return {
-			color: "bg-gray-300 border-gray-400",
-			icon: <Lock className="h-4 w-4 text-gray-500" />,
-		};
-	}, []);
+	const getNodeAppearance = useCallback(
+		(timePoint: number) => {
+			if (timePoint === currentTimePoint) {
+				return {
+					color: "bg-purple-500 border-purple-600",
+					icon: <HandCoins className="h-5 w-5 text-white" />,
+				};
+			}
+
+			if (timePoint <= initialTimePoint + stepsLength - 1) {
+				return {
+					color: "bg-indigo-500 border-indigo-600",
+					icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
+				};
+			}
+
+			return {
+				color: "bg-gray-300 border-gray-400",
+				icon: <Lock className="h-4 w-4 text-gray-500" />,
+			};
+		},
+		[initialTimePoint, stepsLength, currentTimePoint]
+	);
 
 	return (
 		<div className="relative w-full h-70 overflow-auto bg-gradient-to-b from-indigo-50 to-white rounded-lg">
@@ -238,17 +289,31 @@ export function FinancialJourney({
 					const point = pathPoints[index];
 					const { color, icon } = getNodeAppearance(timePoint);
 
+					const numericTimePoint = Number(timePoint);
+					console.log(
+						"Creating marker for timePoint:",
+						numericTimePoint
+					);
+
 					return (
-						<JourneyNode
+						<TutorialSpot
 							key={timePoint}
-							timePoint={timePoint}
-							point={point}
-							status={status}
-							nodeColor={color}
-							nodeIcon={icon}
-							onClick={() => onTimePointSelect(timePoint)}
-							isSelected={timePoint === currentTimePoint}
-						/>
+							marker={{
+								kind: "journey-node" as const,
+								instance: { timePoint: numericTimePoint },
+							}}
+						>
+							<TutorialTrigger asChild>
+								<JourneyNode
+									timePoint={timePoint}
+									point={point}
+									nodeColor={color}
+									nodeIcon={icon}
+									onClick={() => onTimePointSelect(timePoint)}
+								/>
+							</TutorialTrigger>
+							<TutorialPopoverContent />
+						</TutorialSpot>
 					);
 				})}
 			</div>

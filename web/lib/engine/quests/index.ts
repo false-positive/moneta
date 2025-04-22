@@ -165,3 +165,10 @@ export function getActionDurations(quest: Quest) {
 		}));
 	});
 }
+
+export function isQuestCompleted(quest: Quest) {
+	return quest.description.goal.goalReached({
+		lastStep: getLatestStep(quest),
+		quest,
+	});
+}

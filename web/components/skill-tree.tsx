@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
-import { getLatestStep } from "@/lib/engine/quests";
+import { getLatestStep, isQuestCompleted } from "@/lib/engine/quests";
 
 import {
 	allActionsList,
@@ -30,6 +30,7 @@ import {
 	TutorialSpot,
 	TutorialTrigger,
 	TutorialPopoverContent,
+	TutorialHighlight,
 } from "./tutorial";
 
 export default function SkillTree() {
@@ -48,15 +49,15 @@ export default function SkillTree() {
 	const router = useRouter();
 
 	// Get state from quest store
-	const context = useSelector(questStore, (s) => s.context);
+	const quest = useSelector(questStore, (s) => s.context);
 
 	const { currentStep } = useMemo(() => {
-		const currentStep = getLatestStep(context);
+		const currentStep = getLatestStep(quest);
 		return {
 			currentStep,
-			steps: context.steps,
+			steps: quest.steps,
 		};
-	}, [context]);
+	}, [quest]);
 
 	// Reset newlyUnlockedActions when component mounts or when currentStep changes
 	useEffect(() => {
@@ -147,7 +148,11 @@ export default function SkillTree() {
 			newActions: unlockedActions,
 		});
 
-		router.push("/simulation");
+		if (!isQuestCompleted(quest)) {
+			router.push("/simulation");
+		} else {
+			router.push("/quest-end");
+		}
 	};
 
 	// Function for chat/hint
@@ -306,22 +311,30 @@ export default function SkillTree() {
 
 	return (
 		<div className="flex flex-col md:flex-row gap-4 p-4 h-full">
-			<div className="flex-1">
-				<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
-						<div className="text-white text-lg flex items-center gap-2 font-semibold">
-							<Sparkles className="h-5 w-5" />
-							{/* To Do : add here timeframe, unhardcode */}
-							Financial Journey - Year {context.steps.length}
+			<TutorialSpot marker={{ kind: "actions-choice-container" }}>
+				<TutorialHighlight>
+					<div className="flex-1">
+						<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
+							<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+								<div className="text-white text-lg flex items-center gap-2 font-semibold">
+									<Sparkles className="h-5 w-5" />
+									Financial Journey - Step{" "}
+									{quest.steps.length}
+								</div>
+							</div>
+							<div className="h-full p-3">
+								<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
+									<svg
+										ref={svgRef}
+										className="w-full h-full"
+									></svg>
+								</div>
+							</div>
 						</div>
 					</div>
-					<div className="h-full p-3">
-						<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
-							<svg ref={svgRef} className="w-full h-full"></svg>
-						</div>
-					</div>
-				</div>
-			</div>
+				</TutorialHighlight>
+				<TutorialPopoverContent isAdvanceable />
+			</TutorialSpot>
 
 			<div className="w-full md:w-80 relative">
 				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
@@ -377,6 +390,116 @@ export default function SkillTree() {
 											)}
 									</div>
 								</div>
+								{!selectedNode.unlocked &&
+									!(
+										selectedNode.actionObject
+											.canChangeInitialPrice ||
+										selectedNode.actionObject
+											.canChangeRepeatedPrice
+									) && (
+										<div className="space-y-2 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+											<h4 className="font-medium text-gray-700">
+												Impact Details
+											</h4>
+
+											{selectedNode.actionObject
+												.bankAccountImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Bank Account Impact:
+													</span>
+													<span
+														className={`font-medium ${
+															selectedNode
+																.actionObject
+																.bankAccountImpact
+																.repeatedAbsoluteDelta <
+															0
+																? "text-red-500"
+																: "text-green-500"
+														}`}
+													>
+														{
+															selectedNode
+																.actionObject
+																.bankAccountImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														BGN
+													</span>
+												</div>
+											)}
+
+											{selectedNode.actionObject.joyImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Joy Impact:
+													</span>
+													<span className="font-medium text-purple-500">
+														{
+															selectedNode
+																.actionObject
+																.joyImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														points
+													</span>
+												</div>
+											)}
+
+											{selectedNode.actionObject
+												.freeTimeImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Free Time Impact:
+													</span>
+													<span
+														className={`font-medium ${
+															selectedNode
+																.actionObject
+																.freeTimeImpact
+																.repeatedAbsoluteDelta <
+															0
+																? "text-red-500"
+																: "text-green-500"
+														}`}
+													>
+														{
+															selectedNode
+																.actionObject
+																.freeTimeImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														hours/week
+													</span>
+												</div>
+											)}
+
+											<div className="flex items-center justify-between text-sm">
+												<span className="text-gray-600">
+													Duration:
+												</span>
+												<span className="font-medium text-blue-500">
+													{selectedNode.actionObject
+														.remainingSteps ===
+													Infinity
+														? "No end date"
+														: selectedNode
+																.actionObject
+																.remainingSteps ===
+														  1
+														? "Once"
+														: `${selectedNode.actionObject.remainingSteps} years`}
+												</span>
+											</div>
+										</div>
+									)}
 
 								{/* ----------- Conditional Number Inputs ----------- */}
 								{/** Example: show the number fields only if this action requires them */}
@@ -470,21 +593,34 @@ export default function SkillTree() {
 
 								<div className="space-y-2">
 									{!selectedNode.unlocked && (
-										<Button
-											onClick={() =>
-												unlockSkill(selectedNode.id)
-											}
-											className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+										<TutorialSpot
+											marker={{
+												kind: "post-action-button",
+											}}
 										>
-											{selectedNode.actionObject.kind ===
-											"investment"
-												? "Invest"
-												: selectedNode.actionObject
-														.kind === "income"
-												? "Work"
-												: "Accept Expense"}
-											<ArrowRight className="ml-2 h-4 w-4" />
-										</Button>
+											<TutorialTrigger asChild>
+												<Button
+													onClick={() =>
+														unlockSkill(
+															selectedNode.id
+														)
+													}
+													className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+												>
+													{selectedNode.actionObject
+														.kind === "investment"
+														? "Invest"
+														: selectedNode
+																.actionObject
+																.kind ===
+														  "income"
+														? "Work"
+														: "Accept Expense"}
+													<ArrowRight className="ml-2 h-4 w-4" />
+												</Button>
+											</TutorialTrigger>
+											<TutorialPopoverContent />
+										</TutorialSpot>
 									)}
 								</div>
 							</div>
