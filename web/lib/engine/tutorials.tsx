@@ -86,7 +86,7 @@ export const tutorialSteps: TutorialStep[] = [
 		description: (
 			<>
 				This is your decisions <strong>Roadmap</strong> — a visual
-				overview of the steps you've made in time.
+				overview of the steps {"you've"} made in time.
 				<br />
 				Use the roadmap to jump between different years in your
 				simulation. From here, you can select any point of time and make
