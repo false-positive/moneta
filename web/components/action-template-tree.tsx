@@ -373,20 +373,28 @@ function NodeDetails({
 							</div>
 						)}
 						<TutorialSpot marker={{ kind: "post-action-button" }}>
-							<TutorialTrigger asChild>
-								<Button
-									type="submit"
-									className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-									disabled={!isUnlocked}
-								>
-									{getAction(template).kind === "investment"
-										? "Invest"
-										: getAction(template).kind === "income"
-										? "Work"
-										: "Accept Expense"}
-									<ArrowRight className="ml-2 h-4 w-4" />
-								</Button>
-							</TutorialTrigger>
+							<div className="w-full">
+								<TutorialTrigger asChild>
+									<Button
+										type="submit"
+										className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+										disabled={!isUnlocked}
+										onClick={(e) => {
+											e.stopPropagation();
+											form.handleSubmit(onSubmit)(e);
+										}}
+									>
+										{getAction(template).kind ===
+										"investment"
+											? "Invest"
+											: getAction(template).kind ===
+											  "income"
+											? "Work"
+											: "Accept Expense"}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Button>
+								</TutorialTrigger>
+							</div>
 							<TutorialPopoverContent />
 						</TutorialSpot>
 					</>

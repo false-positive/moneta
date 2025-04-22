@@ -42,6 +42,17 @@ export type QuestDescription = {
 		 * A freeform description of the goal for the UI.
 		 */
 		description: string;
+
+		/**
+		 * A challenge-style description of the goal (e.g., "Buy your first car").
+		 */
+		challengeText: string;
+
+		/**
+		 * A description of the person's age (e.g., "You are 18 years old").
+		 */
+		ageText: string;
+
 		/**
 		 * A predicate that checks if the goal is reached.
 		 */
