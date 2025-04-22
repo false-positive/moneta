@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LockKeyholeOpen } from "lucide-react";
-import type { Step } from "@/lib/engine/actions";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
@@ -13,6 +12,7 @@ import {
 	TutorialTrigger,
 } from "@/components/tutorial";
 import { cn } from "@/lib/utils";
+import { tutorialStore } from "@/lib/stores/tutorial-store";
 
 interface FinancialJourneyProps {
 	timeUnits: (string | number)[];
@@ -39,6 +39,18 @@ function JourneyNode({
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
 
+	// Get current tutorial step to check if this node is highlighted
+	const currentStep = useSelector(
+		tutorialStore,
+		(state) => state.context.steps[state.context.currentStepIndex]
+	);
+
+	// Check if this specific node is the current tutorial target
+	const isCurrentTutorialNode =
+		currentStep?.marker.kind === "journey-node" &&
+		"instance" in currentStep.marker &&
+		currentStep.marker.instance.timePoint === timePoint;
+
 	// HACK: className doesn't work and breaks everything
 	className = ""; // :(
 
@@ -49,7 +61,7 @@ function JourneyNode({
 			style={{
 				left: `${point[0].toFixed(2)}px`,
 				top: `${point[1].toFixed(2)}px`,
-				zIndex: 50,
+				zIndex: isCurrentTutorialNode ? 102 : 50, // Higher z-index when highlighted
 			}}
 			onClick={onClick}
 			ref={ref}
@@ -269,7 +281,7 @@ export function FinancialJourney({
 									onClick={() => onTimePointSelect(timePoint)}
 								/>
 							</TutorialTrigger>
-							<TutorialPopoverContent isAdvanceable />
+							<TutorialPopoverContent />
 						</TutorialSpot>
 					);
 				})}

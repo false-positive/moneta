@@ -317,14 +317,12 @@ export default function Simulation() {
 															<TutorialTrigger
 																asChild
 															>
-																<div className="timeline-container">
-																	<TabsTrigger
-																		value="analysis"
-																		className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
-																	>
-																		Analysis
-																	</TabsTrigger>
-																</div>
+																<TabsTrigger
+																	value="analysis"
+																	className="text-xs h-6 data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+																>
+																	Analysis
+																</TabsTrigger>
 															</TutorialTrigger>
 															<TutorialPopoverContent />
 														</TutorialSpot>

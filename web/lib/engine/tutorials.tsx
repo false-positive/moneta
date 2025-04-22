@@ -14,7 +14,8 @@ export type TutorialSpotMarker =
 	| { kind: "financial-data" }
 	| { kind: "steps-done-dialog" }
 	| { kind: "graphs" }
-	| { kind: "graph-container" };
+	| { kind: "graph-container" }
+	| { kind: "actions-choice-container" };
 
 export type TutorialStep<
 	MarkerType extends TutorialSpotMarker = TutorialSpotMarker
@@ -24,6 +25,7 @@ export type TutorialStep<
 	description: ReactNode;
 	popoverSide?: "top" | "right" | "bottom" | "left";
 	pulse?: boolean;
+	blockInteractions?: boolean;
 };
 
 export const tutorialSteps: TutorialStep[] = [
@@ -32,23 +34,24 @@ export const tutorialSteps: TutorialStep[] = [
 		title: "Lets begin with your first choice!",
 		description: <></>,
 		popoverSide: "bottom",
+		blockInteractions: true,
 	},
-	// {
-	// 	marker: {
-	// 		kind: "journey-node",
-	// 		instance: { timePoint: 2020 },
-	// 	},
-	// 	title: "Start Your Journey",
-	// 	description: (
-	// 		<>
-	// 			Click this node to begin in the year <strong>2020</strong>.
-	// 			<br />
-	// 			Each year unlocks new decisions and consequences!
-	// 		</>
-	// 	),
-	// 	popoverSide: "bottom",
-	// 	pulse: true,
-	// },
+	{
+		marker: { kind: "actions-choice-container" },
+		title: "Your First Choice",
+		description: (
+			<>
+				In this section you can make your first choice.
+				<br />
+				Choose <strong>one action</strong> that aligns with your goals
+				and preferences. You can pick more later.
+				<br />
+				Click on an action to select it and view more details.
+			</>
+		),
+		popoverSide: "right",
+		blockInteractions: false,
+	},
 	{
 		marker: { kind: "post-action-button" },
 		title: "Lock In Your Move",
@@ -61,6 +64,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "bottom",
+		blockInteractions: false,
 	},
 	{
 		marker: { kind: "submit-choice-button" },
@@ -74,7 +78,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "bottom",
-		pulse: true,
+		pulse: false,
 	},
 	{
 		marker: { kind: "decision-roadmap" },
@@ -90,6 +94,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "left",
+		blockInteractions: true,
 	},
 	{
 		marker: {
@@ -99,13 +104,18 @@ export const tutorialSteps: TutorialStep[] = [
 		title: "Next Year Awaits",
 		description: (
 			<>
-				Advance to <strong>2021</strong> by clicking here.
+				These "levels" represent the time in your simulation.
 				<br />
-				See how your previous moves shape new options!
+				Click on the second step to select it as{" "}
+				<strong>current</strong>.
+				<br />
+				You already made a descicion for the first one, so now select
+				the <strong>second</strong>.
 			</>
 		),
-		popoverSide: "bottom",
+		popoverSide: "top",
 		pulse: true,
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "post-action-button" },
@@ -118,6 +128,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "bottom",
+		blockInteractions: false,
 	},
 	{
 		marker: { kind: "submit-choice-button" },
@@ -129,6 +140,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "bottom",
+		blockInteractions: false,
 	},
 	{
 		marker: { kind: "timeline" },
@@ -142,6 +154,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "top",
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "metrics-card" },
@@ -159,6 +172,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "left",
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "financial-data" },
@@ -173,6 +187,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "left",
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "graphs" },
@@ -186,6 +201,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "left",
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "graph-container" },
@@ -199,6 +215,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "left",
+		blockInteractions: true,
 	},
 	{
 		marker: { kind: "steps-done-dialog" },
@@ -214,6 +231,7 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "bottom",
+		blockInteractions: true,
 	},
 ];
 

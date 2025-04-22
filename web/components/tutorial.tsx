@@ -53,7 +53,7 @@ export function TutorialHighlight(props: React.ComponentProps<typeof Slot>) {
 						"shadow-[0_0_15px_rgba(99,102,241,0.5)]",
 						"ring-4 ring-indigo-500/30",
 						"transition-all duration-300 hover:scale-105",
-						"relative",
+						"relative z-[102]", // Higher than the overlay
 						"before:absolute before:inset-0",
 						"before:bg-indigo-500/20",
 						"before:rounded-xl",
@@ -103,13 +103,13 @@ export function TutorialPopoverContent({
 	return (
 		<PopoverContent
 			{...popoverContentProps}
-			className="w-[320px] bg-white border-2 border-indigo-100 shadow-xl rounded-xl p-5 z-[100]"
+			className="w-[320px] bg-white border-2 border-indigo-100 shadow-xl rounded-xl p-5 z-[103]" // Higher than overlay and highlighted elements
 			side={step.popoverSide || "top"}
 			sideOffset={15}
 			align="center"
 			style={{
 				position: "relative",
-				zIndex: 100,
+				zIndex: 103,
 				pointerEvents: "auto",
 			}}
 		>
@@ -124,7 +124,8 @@ export function TutorialPopoverContent({
 						className={cn(
 							"w-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
 							"hover:text-indigo-700 hover:scale-[1.02] active:scale-[0.98]",
-							"transition-all duration-200 font-medium tracking-wide"
+							"transition-all duration-200 font-medium tracking-wide",
+							"relative z-[103]" // Ensure button is also clickable
 						)}
 						onClick={() => tutorialStore.send({ type: "nextStep" })}
 					>
@@ -156,7 +157,10 @@ export function TutorialDialogContent() {
 	if (!step) return null;
 
 	return (
-		<DialogContent className="sm:max-w-[90vw] h-[90vh] bg-transparent border-none shadow-none animate-fadeIn rounded-xl before:absolute before:inset-[-200px] before:-z-10 before:[background:radial-gradient(circle_at_center,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.9)_30%,transparent_80%)] before:rounded-full">
+		<DialogContent
+			className="sm:max-w-[90vw] h-[90vh] bg-transparent border-none shadow-none animate-fadeIn rounded-xl before:absolute before:inset-[-200px] before:-z-10 before:[background:radial-gradient(circle_at_center,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.9)_30%,transparent_80%)] before:rounded-full"
+			style={{ zIndex: 103 }} // Ensure dialog content is also above overlay
+		>
 			<div className="flex flex-col items-center justify-center h-full space-y-6 py-8">
 				{step.title && (
 					<h2 className="text-4xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn">
