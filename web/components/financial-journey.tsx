@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LockKeyholeOpen } from "lucide-react";
+import { Lock, LockKeyholeOpen, HandCoins } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
@@ -39,17 +39,35 @@ function JourneyNode({
 	const [showPopup, setShowPopup] = useState(false);
 	const router = useRouter();
 
-	// Get current tutorial step to check if this node is highlighted
 	const currentStep = useSelector(
 		tutorialStore,
 		(state) => state.context.steps[state.context.currentStepIndex]
 	);
+
+	// Get current selected timePoint
+	const currentTimePoint = useSelector(
+		questStore,
+		(state) =>
+			state.context.steps[state.context.currentStepIndex]?.timePoint
+	);
+
+	const isCurrentTimePoint = timePoint === currentTimePoint;
 
 	// Check if this specific node is the current tutorial target
 	const isCurrentTutorialNode =
 		currentStep?.marker.kind === "journey-node" &&
 		"instance" in currentStep.marker &&
 		currentStep.marker.instance.timePoint === timePoint;
+
+	const handleNodeClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		onClick();
+
+		// Only route to choices if this is the currently selected timePoint
+		if (isCurrentTimePoint) {
+			router.push("/choices");
+		}
+	};
 
 	// HACK: className doesn't work and breaks everything
 	className = ""; // :(
@@ -61,9 +79,9 @@ function JourneyNode({
 			style={{
 				left: `${point[0].toFixed(2)}px`,
 				top: `${point[1].toFixed(2)}px`,
-				zIndex: isCurrentTutorialNode ? 102 : 50, // Higher z-index when highlighted
+				zIndex: isCurrentTutorialNode ? 102 : 50,
 			}}
-			onClick={onClick}
+			onClick={handleNodeClick}
 			ref={ref}
 		>
 			<motion.div
@@ -92,11 +110,7 @@ function JourneyNode({
 							animate={{ opacity: 1, y: -110 }}
 							exit={{ opacity: 0, y: -20 }}
 							transition={{ duration: 0.3 }}
-							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer z-50"
-							onClick={(e) => {
-								e.stopPropagation();
-								router.push("/choices");
-							}}
+							className="absolute left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg z-50"
 							onMouseEnter={() => setShowPopup(true)}
 							onMouseLeave={(e) => {
 								const rect =
@@ -191,18 +205,35 @@ export function FinancialJourney({
 		(state) => state.context.steps.length
 	);
 
-	const getNodeAppearance = useCallback((timePoint: number) => {
-		if (timePoint <= initialTimePoint + stepsLength - 1)
-			return {
-				color: "bg-indigo-500 border-indigo-600",
-				icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
-			};
+	const currentTimePoint = useSelector(
+		questStore,
+		(state) =>
+			state.context.steps[state.context.currentStepIndex]?.timePoint
+	);
 
-		return {
-			color: "bg-gray-300 border-gray-400",
-			icon: <Lock className="h-4 w-4 text-gray-500" />,
-		};
-	}, []);
+	const getNodeAppearance = useCallback(
+		(timePoint: number) => {
+			if (timePoint === currentTimePoint) {
+				return {
+					color: "bg-purple-500 border-purple-600",
+					icon: <HandCoins className="h-5 w-5 text-white" />,
+				};
+			}
+
+			if (timePoint <= initialTimePoint + stepsLength - 1) {
+				return {
+					color: "bg-indigo-500 border-indigo-600",
+					icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
+				};
+			}
+
+			return {
+				color: "bg-gray-300 border-gray-400",
+				icon: <Lock className="h-4 w-4 text-gray-500" />,
+			};
+		},
+		[initialTimePoint, stepsLength, currentTimePoint]
+	);
 
 	return (
 		<div className="relative w-full h-70 overflow-auto bg-gradient-to-b from-indigo-50 to-white rounded-lg">
