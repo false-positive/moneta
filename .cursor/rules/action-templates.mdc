@@ -96,10 +96,6 @@ createCustomizableTemplate({
             .max(10000, "Maximum monthly contribution is 10,000 BGN")
             .default(0)
             .describe("How much would you like to invest monthly? (Optional)"),
-            
-        riskLevel: z.enum(["low", "medium", "high"])
-            .describe("Choose your preferred risk level")
-            .default("medium")
     }),
     apply: (baseAction, userInput) => ({
         ...baseAction,
@@ -136,15 +132,20 @@ Key Zod Features to Use:
    - Helps handle string inputs from form fields
    - Reduces manual type conversion code
 
-5. **Enums and Unions**
-   - Use `z.enum()` for fixed choices
-   - Create radio buttons or dropdowns automatically
-   - Make selection intuitive for users
+5. **Value Types**
+   - Only `number` values are supported
+   - Create numeric inputs automatically
+   - Dropdowns and radio buttons are *NOT* supported
 
 6. **Complex Validation**
    - Use `.refine()` for custom validation logic
    - Validate relationships between fields
    - Implement business rules and constraints
+
+7. **Schema Shape**
+   - Keep all properties at the top level object
+   - Give any arbitrary descriptive name to the properties
+   - Refer to the properties by their correc tnames in `apply()`
 
 ## Visual Representation
 

@@ -18,7 +18,7 @@ import {
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
 	questLLMDescription:
-		"Ivan is 18 years old and has 5000 BGN in his bank account, which he spends on buying food, clothes and other stuff",
+		"Ivan is 18 years old and has 5000 BGN in his bank account. He lives with his parents and is looking for ways to grow his savings while maintaining a good work-life balance.",
 	maxStepCount: 5,
 	timePointKind: "year",
 	initialStep: {
@@ -30,8 +30,10 @@ export const tutorialQuestDescription: QuestDescription = {
 		continuingActions: [{ ...lifeAction }],
 	},
 	goal: {
-		description: "Ivan wants to save 100000 BGN",
-		goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
+		description:
+			"Ivan wants to save 100000 BGN while maintaining a good quality of life",
+		goalReached: ({ lastStep }) =>
+			lastStep.bankAccount >= 100000 && lastStep.joy >= 50,
 	},
 	actionTemplates: [
 		createConstantTemplate({
@@ -40,7 +42,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Life",
 				kind: "expense",
 				shortDescription: "Pay for living expenses",
-				llmDescription: "Pay for living expenses",
+				llmDescription:
+					"Pay for rent, utilities, food, and other basic living expenses",
 				bankAccountImpact: impact({
 					repeatedAbsoluteDelta: -1000,
 					repeatedPercent: constantPercent(-2 / 12),
@@ -60,113 +63,106 @@ export const tutorialQuestDescription: QuestDescription = {
 				kind: "expense",
 				shortDescription:
 					"Living expenses when living with your parents",
-				llmDescription: "Living expenses when living with your parents",
+				llmDescription:
+					"Living with your parents - lower expenses but may affect your independence and joy",
 				bankAccountImpact: impact({
 					repeatedAbsoluteDelta: -(200 * 12),
 					repeatedPercent: constantPercent(-2),
 				}), // levs and inflation per year
-				joyImpact: percentImpact(-10),
-				freeTimeImpact: absoluteImpact(100), // hours per week
+				joyImpact: percentImpact(-15), // Increased negative joy impact to reflect reduced independence
+				freeTimeImpact: absoluteImpact(120), // More free time as parents help with chores
 				remainingSteps: Infinity,
 			},
 			iconImageHref: "/icons/liveWithParentsAction.png",
 			hardcodedPosition: { x: 575, y: 275 },
-			isUnlocked: () => false,
-		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
-				name: "Savings Deposit",
-				kind: "investment",
-				shortDescription: "Deposit money into a savings account",
-				llmDescription: "Deposit money into a savings account",
-				investmentImpact: impact({
-					repeatedPercent: constantPercent(0.2),
-					initialPrice: 5000,
-				}),
-				joyImpact: noImpact,
-				freeTimeImpact: noImpact,
-				remainingSteps: 2, // years
-				canChangeInitialPrice: true,
-				canChangeRepeatedPrice: true,
-			},
-			iconImageHref: "/icons/savingsDepositAction.png",
-			hardcodedPosition: { x: 625, y: 275 },
-			isUnlocked: () => false,
-		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
-				name: "Pension Deposit",
-				kind: "investment",
-				shortDescription: "Deposit money into a pension account",
-				llmDescription: "Deposit money into a pension account",
-				investmentImpact: impact({
-					repeatedPercent: constantPercent(2),
-					initialPrice: 0,
-					repeatedPrice: 5000,
-				}),
-				joyImpact: noImpact,
-				freeTimeImpact: noImpact,
-				remainingSteps: 10, // years
-				canChangeInitialPrice: true,
-				canChangeRepeatedPrice: true,
-			},
-			iconImageHref: "/icons/pensionDepositAction.svg",
-			hardcodedPosition: { x: 650, y: 250 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => quest.description.personAge <= 25,
 		}),
 		createCustomizableTemplate({
 			baseAction: {
-				name: "ETF Investment - One-off",
+				name: "Savings Deposit",
 				kind: "investment",
-				shortDescription: "Buy an ETF fund",
-				llmDescription: "Buy an ETF fund",
-				investmentImpact: impact({
-					repeatedPercent: historyPercent("etf"),
-					initialPrice: 10000,
-				}),
+				shortDescription: "Deposit money into a savings account",
+				llmDescription:
+					"A low-risk way to grow your money with guaranteed interest",
+				remainingSteps: 2, // years
 				joyImpact: noImpact,
 				freeTimeImpact: noImpact,
-				remainingSteps: 10, // years
-				canChangeInitialPrice: true,
 			},
 			userInputSchema: z.object({
-				temporaryInitialPriceForTesting: z.coerce
+				initialDeposit: z.coerce
 					.number()
-					.min(0)
-					.default(10000)
-					.describe("this description should be visible"),
+					.min(1000, "Minimum deposit is 1,000 BGN")
+					.max(50000, "Maximum deposit is 50,000 BGN")
+					.default(5000)
+					.describe("Initial deposit amount"),
+				monthlyDeposit: z.coerce
+					.number()
+					.min(0, "Monthly deposit cannot be negative")
+					.max(5000, "Maximum monthly deposit is 5,000 BGN")
+					.default(0)
+					.describe("Optional monthly deposit amount"),
 			}),
 			apply: (baseAction, userInput) => ({
 				...noOpAction,
 				...baseAction,
-				initialPrice: userInput.temporaryInitialPriceForTesting,
+				investmentImpact: impact({
+					repeatedPercent: constantPercent(0.2),
+					initialPrice: userInput.initialDeposit,
+					repeatedPrice: userInput.monthlyDeposit,
+				}),
+			}),
+			iconImageHref: "/icons/savingsDepositAction.png",
+			hardcodedPosition: { x: 625, y: 275 },
+			isUnlocked: (quest) =>
+				quest.steps[quest.currentStepIndex].bankAccount >= 1000,
+		}),
+		createCustomizableTemplate({
+			baseAction: {
+				name: "ETF Investment",
+				kind: "investment",
+				shortDescription: "Invest in a diversified ETF fund",
+				llmDescription:
+					"A balanced investment in a diversified portfolio of stocks through an ETF",
+				remainingSteps: 10, // years
+				joyImpact: noImpact,
+				freeTimeImpact: noImpact,
+			},
+			userInputSchema: z.object({
+				initialInvestment: z.coerce
+					.number()
+					.min(1000, "Minimum investment is 1,000 BGN")
+					.max(100000, "Maximum investment is 100,000 BGN")
+					.default(10000)
+					.describe("Initial investment amount"),
+				monthlyInvestment: z.coerce
+					.number()
+					.min(0, "Monthly investment cannot be negative")
+					.max(10000, "Maximum monthly investment is 10,000 BGN")
+					.default(0)
+					.describe("Optional monthly investment amount"),
+			}),
+			apply: (baseAction, userInput) => ({
+				...noOpAction,
+				...baseAction,
+				investmentImpact: impact({
+					repeatedPercent: historyPercent("etf"),
+					initialPrice: userInput.initialInvestment,
+					repeatedPrice: userInput.monthlyInvestment,
+				}),
 			}),
 			iconImageHref: "/icons/etfInvestmentOnceAction.png",
 			hardcodedPosition: { x: 650, y: 300 },
-			isUnlocked: () => false,
-		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
-				name: "ETF Investment - Repeated",
-				kind: "investment",
-				shortDescription: "Buy an ETF fund regularly",
-				llmDescription: "Buy an ETF fund regularly",
-				investmentImpact: impact({
-					repeatedPercent: historyPercent("etf"),
-					repeatedPrice: 5000,
-				}),
-				joyImpact: noImpact,
-				freeTimeImpact: noImpact,
-				remainingSteps: 10, // years
-				canChangeInitialPrice: true,
-				canChangeRepeatedPrice: true,
+			isUnlocked: (quest) => {
+				const hasSavings = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) => action.name === "Savings Deposit"
+					)
+				);
+				return (
+					hasSavings &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 5000
+				);
 			},
-			iconImageHref: "/icons/etfInvestmentRepeatedAction.png",
-			hardcodedPosition: { x: 675, y: 325 },
-			isUnlocked: () => false,
 		}),
 		createConstantTemplate({
 			action: {
@@ -189,47 +185,131 @@ export const tutorialQuestDescription: QuestDescription = {
 			hardcodedPosition: { x: 675, y: 275 },
 			isUnlocked: () => false,
 		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
+		createCustomizableTemplate({
+			baseAction: {
 				name: "Crypto Investment",
 				kind: "investment",
-				shortDescription: "Buy a crypto currency",
-				llmDescription: "Buy a crypto currency",
-				investmentImpact: impact({
-					repeatedPercent: historyPercent("btc"),
-					initialPrice: 5000,
-				}),
+				shortDescription: "Invest in cryptocurrency",
+				llmDescription:
+					"High-risk, high-volatility investment in cryptocurrency. Only invest what you can afford to lose!",
+				remainingSteps: 5, // years
 				joyImpact: noImpact,
 				freeTimeImpact: noImpact,
-				remainingSteps: 5, // years
-				canChangeInitialPrice: true,
-				canChangeRepeatedPrice: true,
 			},
+			userInputSchema: z.object({
+				investmentAmount: z.coerce
+					.number()
+					.min(500, "Minimum crypto investment is 500 BGN")
+					.max(50000, "Maximum crypto investment is 50,000 BGN")
+					.default(5000)
+					.describe("How much would you like to invest in crypto?"),
+			}),
+			apply: (baseAction, userInput) => ({
+				...noOpAction,
+				...baseAction,
+				investmentImpact: impact({
+					repeatedPercent: historyPercent("btc"),
+					initialPrice: userInput.investmentAmount,
+				}),
+			}),
 			iconImageHref: "/icons/cryptoInvestmentAction.png",
 			hardcodedPosition: { x: 700, y: 250 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const hasStableInvestments = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.name.includes("ETF") ||
+							action.name.includes("Savings")
+					)
+				);
+				return (
+					hasStableInvestments &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 10000
+				);
+			},
 		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
+		createCustomizableTemplate({
+			baseAction: {
 				name: "Gold Investment",
 				kind: "investment",
 				shortDescription: "Buy investment gold",
-				llmDescription: "Buy investment gold",
-				investmentImpact: impact({
-					repeatedPercent: historyPercent("gold"),
-					initialPrice: 5000,
-				}),
+				llmDescription:
+					"A traditional store of value that can help protect against inflation",
+				remainingSteps: 5, // years
 				joyImpact: noImpact,
 				freeTimeImpact: noImpact,
-				remainingSteps: 5, // years
-				canChangeInitialPrice: true,
-				canChangeRepeatedPrice: false,
 			},
+			userInputSchema: z.object({
+				investmentAmount: z.coerce
+					.number()
+					.min(1000, "Minimum gold investment is 1,000 BGN")
+					.max(100000, "Maximum gold investment is 100,000 BGN")
+					.default(5000)
+					.describe("How much would you like to invest in gold?"),
+			}),
+			apply: (baseAction, userInput) => ({
+				...noOpAction,
+				...baseAction,
+				investmentImpact: impact({
+					repeatedPercent: historyPercent("gold"),
+					initialPrice: userInput.investmentAmount,
+				}),
+			}),
 			iconImageHref: "/icons/goldInvestmentAction.png",
 			hardcodedPosition: { x: 725, y: 275 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const hasStableInvestments = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.name.includes("ETF") ||
+							action.name.includes("Savings")
+					)
+				);
+				return (
+					hasStableInvestments &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 15000
+				);
+			},
+		}),
+		createCustomizableTemplate({
+			baseAction: {
+				name: "Partying",
+				kind: "expense",
+				shortDescription: "Going out and partying with friends",
+				llmDescription:
+					"Regular social activities and parties with friends - good for joy but costs money and time",
+				remainingSteps: 12, // one year commitment
+				freeTimeImpact: absoluteImpact(-4), // base hours per week
+			},
+			userInputSchema: z.object({
+				monthlyBudget: z.coerce
+					.number()
+					.min(50, "Minimum monthly party budget is 50 BGN")
+					.max(1000, "Maximum monthly party budget is 1,000 BGN")
+					.default(200)
+					.describe("Monthly party budget"),
+				frequency: z.coerce
+					.number()
+					.min(1, "Minimum once per month")
+					.max(8, "Maximum twice per week")
+					.default(4)
+					.describe("Times per month"),
+			}),
+			apply: (baseAction, userInput) => ({
+				...noOpAction,
+				...baseAction,
+				bankAccountImpact: absoluteImpact(
+					-(userInput.monthlyBudget * 12)
+				), // yearly impact
+				joyImpact: absoluteImpact(
+					Math.min(30, userInput.frequency * 3)
+				), // joy scales with frequency but caps at 30
+				freeTimeImpact: absoluteImpact(-(userInput.frequency * 4)), // 4 hours per party
+			}),
+			iconImageHref: "/icons/partyingAction.png",
+			hardcodedPosition: { x: 550, y: 350 },
+			isUnlocked: (quest) =>
+				quest.steps[quest.currentStepIndex].bankAccount >= 1000,
 		}),
 		createConstantTemplate({
 			action: {
@@ -237,7 +317,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Ski Trip",
 				kind: "expense",
 				shortDescription: "Go skiing",
-				llmDescription: "Go skiing",
+				llmDescription:
+					"Take a week-long ski trip - great for joy but expensive",
 				bankAccountImpact: absoluteImpact(-2000),
 				joyImpact: absoluteImpact(50),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
@@ -245,7 +326,20 @@ export const tutorialQuestDescription: QuestDescription = {
 			},
 			iconImageHref: "/icons/skiTripAction.png",
 			hardcodedPosition: { x: 575, y: 325 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const hasStableIncome = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.kind === "income" &&
+							action.bankAccountImpact.repeatedAbsoluteDelta >=
+								1400 * 12
+					)
+				);
+				return (
+					hasStableIncome &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 3000
+				);
+			},
 		}),
 		createConstantTemplate({
 			action: {
@@ -253,31 +347,29 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Hobby Motorbike Riding",
 				kind: "expense",
 				shortDescription: "Buying and servicing a motorbike",
-				llmDescription: "Buying and servicing a motorbike",
-				investmentImpact: absoluteImpact(20000),
+				llmDescription:
+					"Buy a motorbike and enjoy riding it as a hobby - expensive but very enjoyable",
+				bankAccountImpact: absoluteImpact(-20000), // initial purchase
 				joyImpact: absoluteImpact(20),
-				freeTimeImpact: noImpact,
-				remainingSteps: 1, // year
+				freeTimeImpact: absoluteImpact(-10), // hours per week for riding and maintenance
+				remainingSteps: Infinity,
 			},
 			iconImageHref: "/icons/hobbyMotorbikeRidingAction.png",
 			hardcodedPosition: { x: 550, y: 300 },
-			isUnlocked: () => false,
-		}),
-		createConstantTemplate({
-			action: {
-				...noOpAction,
-				name: "Partying",
-				kind: "expense",
-				shortDescription: "Going out and partying with friends",
-				llmDescription: "Going out and partying with friends",
-				investmentImpact: absoluteImpact(100),
-				joyImpact: absoluteImpact(15),
-				freeTimeImpact: noImpact,
-				remainingSteps: 24, // per year
+			isUnlocked: (quest) => {
+				const hasStableIncome = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.kind === "income" &&
+							action.bankAccountImpact.repeatedAbsoluteDelta >=
+								2000 * 12
+					)
+				);
+				return (
+					hasStableIncome &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 25000
+				);
 			},
-			iconImageHref: "/icons/partyingAction.png",
-			hardcodedPosition: { x: 550, y: 350 },
-			isUnlocked: () => false,
 		}),
 		createConstantTemplate({
 			action: {
@@ -287,15 +379,39 @@ export const tutorialQuestDescription: QuestDescription = {
 				shortDescription:
 					"Having a kid and paying all the expenses they bring",
 				llmDescription:
-					"Having a kid and paying all the expenses they bring",
-				investmentImpact: absoluteImpact(15000),
-				joyImpact: absoluteImpact(1),
-				freeTimeImpact: noImpact,
+					"Start a family - a lifelong commitment that brings joy but requires significant financial stability",
+				bankAccountImpact: impact({
+					repeatedAbsoluteDelta: -(2000 * 12), // yearly child expenses
+					repeatedPercent: constantPercent(-5), // additional cost increase
+				}),
+				joyImpact: absoluteImpact(40),
+				freeTimeImpact: absoluteImpact(-60), // significant time commitment
 				remainingSteps: Infinity,
 			},
 			iconImageHref: "/icons/havingAKidAction.png",
 			hardcodedPosition: { x: 600, y: 350 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const hasStableIncome = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.kind === "income" &&
+							action.bankAccountImpact.repeatedAbsoluteDelta >=
+								3000 * 12
+					)
+				);
+				const hasHousing = quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.name === "Life" ||
+							action.name === "Live with parents"
+					)
+				);
+				return (
+					hasStableIncome &&
+					hasHousing &&
+					quest.steps[quest.currentStepIndex].bankAccount >= 50000
+				);
+			},
 		}),
 		createConstantTemplate({
 			action: {
@@ -303,7 +419,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Part-time job as a waiter",
 				kind: "income",
 				shortDescription: "Part-time work as a waiter",
-				llmDescription: "Part-time work as a waiter",
+				llmDescription:
+					"Entry-level job that provides flexible hours and basic income while allowing time for other activities",
 				bankAccountImpact: absoluteImpact(700 * 12), // levs per year
 				joyImpact: absoluteImpact(-5),
 				freeTimeImpact: absoluteImpact(-20), // hours per week
@@ -311,7 +428,7 @@ export const tutorialQuestDescription: QuestDescription = {
 			},
 			iconImageHref: "/icons/waiterPartTimeJobAction.png",
 			hardcodedPosition: { x: 600, y: 250 },
-			isUnlocked: () => false,
+			isUnlocked: () => true, // Always available as entry-level job
 		}),
 		createConstantTemplate({
 			action: {
@@ -319,7 +436,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Full-time job as a waiter",
 				kind: "income",
 				shortDescription: "Full-time work as a waiter",
-				llmDescription: "Full-time work as a waiter",
+				llmDescription:
+					"Full-time position with better pay but requires more time commitment",
 				bankAccountImpact: absoluteImpact(1400 * 12), // levs per year
 				joyImpact: absoluteImpact(-12),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
@@ -327,7 +445,12 @@ export const tutorialQuestDescription: QuestDescription = {
 			},
 			iconImageHref: "/icons/waiterFullTimeJobAction.png",
 			hardcodedPosition: { x: 625, y: 225 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) =>
+				quest.steps.some((step) =>
+					step.continuingActions.some(
+						(action) => action.name === "Part-time job as a waiter"
+					)
+				),
 		}),
 		createConstantTemplate({
 			action: {
@@ -335,7 +458,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Job as a junior software engineer",
 				kind: "income",
 				shortDescription: "Work as a software engineer",
-				llmDescription: "Work as a software engineer",
+				llmDescription:
+					"Entry-level software development position with good pay and career growth potential",
 				bankAccountImpact: absoluteImpact(3000 * 12), // levs per year
 				joyImpact: absoluteImpact(-8),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
@@ -343,7 +467,17 @@ export const tutorialQuestDescription: QuestDescription = {
 			},
 			iconImageHref: "/icons/juniorSweJobAction.png",
 			hardcodedPosition: { x: 575, y: 225 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const hasWorkExperience = quest.steps.some((step) =>
+					step.continuingActions.some((action) =>
+						action.name.includes("waiter")
+					)
+				);
+				return (
+					hasWorkExperience &&
+					quest.steps[quest.currentStepIndex].timePoint >= 2021
+				);
+			},
 		}),
 		createConstantTemplate({
 			action: {
@@ -351,7 +485,8 @@ export const tutorialQuestDescription: QuestDescription = {
 				name: "Job as a senior software engineer",
 				kind: "income",
 				shortDescription: "Work as a software engineer",
-				llmDescription: "Work as a software engineer",
+				llmDescription:
+					"Senior software development position with excellent compensation and work-life balance",
 				bankAccountImpact: absoluteImpact(5000 * 12), // levs per year
 				joyImpact: absoluteImpact(-8),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
@@ -359,7 +494,15 @@ export const tutorialQuestDescription: QuestDescription = {
 			},
 			iconImageHref: "/icons/seniorSweJobAction.png",
 			hardcodedPosition: { x: 600, y: 200 },
-			isUnlocked: () => false,
+			isUnlocked: (quest) => {
+				const juniorYears = quest.steps.filter((step) =>
+					step.continuingActions.some(
+						(action) =>
+							action.name === "Job as a junior software engineer"
+					)
+				).length;
+				return juniorYears >= 3;
+			},
 		}),
 	] satisfies readonly ActionTemplate[],
 };
