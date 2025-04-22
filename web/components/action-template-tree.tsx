@@ -13,6 +13,7 @@ import { questStore } from "@/lib/stores/quest-store";
 import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 
 import { Action } from "@/lib/engine/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,7 +44,42 @@ import {
 	FormMessage,
 } from "./ui/form";
 
-// D3 Action Template Tree Visualization Component
+// Safe Portal Component for Tutorial Spot
+function TutorialSpotPortal({
+	children,
+	container,
+	templateId,
+}: {
+	children: React.ReactNode;
+	container: HTMLElement | null;
+	templateId: number;
+}) {
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		if (container) {
+			setMounted(true);
+		}
+	}, [container]);
+
+	if (!mounted || !container) {
+		return null;
+	}
+
+	return ReactDOM.createPortal(
+		<div style={{ width: "100%", height: "100%" }}>
+			<TutorialSpot
+				marker={{ kind: "action-template", instance: { templateId } }}
+			>
+				<TutorialTrigger asChild>{children}</TutorialTrigger>
+				<TutorialPopoverContent />
+			</TutorialSpot>
+		</div>,
+		container
+	);
+}
+
+// D3 Action Template Tree Visualization Component with React Integration
 function ActionTemplateTreeVisualization({
 	templates,
 	setSelectedTemplate,
@@ -55,106 +91,157 @@ function ActionTemplateTreeVisualization({
 }) {
 	const quest = useSelector(questStore, (state) => state.context);
 	const svgRef = useRef<SVGSVGElement>(null);
+	const [transform, setTransform] = useState<d3.ZoomTransform>(
+		d3.zoomIdentity
+	);
 
+	// Memoize wasApplied check for performance
 	const wasApplied = useCallback(
-		(template: ActionTemplate) => {
-			console.log(template.id, appliedActionTemplateIds.has(template.id));
-			return appliedActionTemplateIds.has(template.id);
-		},
+		(template: ActionTemplate) => appliedActionTemplateIds.has(template.id),
 		[appliedActionTemplateIds]
 	);
 
+	// Constants for node sizing and styling
+	const baseSize = 22;
+	const iconSize = 16;
+	const initialScale = 2.5;
+
+	// Generate rhombus path for nodes
+	const getRhombusPath = useCallback((size: number) => {
+		return `M 0,-${size} L ${size},0 L 0,${size} L -${size},0 Z`;
+	}, []);
+
+	// Setup zoom behavior
 	useEffect(() => {
 		if (!svgRef.current) return;
 
 		const width = svgRef.current.clientWidth || 600;
 		const height = svgRef.current.clientHeight || 400;
-
-		d3.select(svgRef.current).selectAll("*").remove();
-
-		const svg = d3
-			.select(svgRef.current)
-			.attr("width", width)
-			.attr("height", height)
-			.attr("viewBox", `0 0 ${width} ${height}`)
-			.attr("style", "max-width: 100%; height: auto;");
-
-		const g = svg.append("g");
-
-		const baseSize = 22;
-		const getNodeSize = () => baseSize;
-
-		// Filter templates to only show unlocked ones
-		const unlockedTemplates = templates.filter((template) =>
-			template.isUnlocked(quest)
-		);
-
-		// Create node groups
-		const nodeSelection = g
-			.append("g")
-			.selectAll("g")
-			.data(unlockedTemplates)
-			.join("g")
-			.attr("cursor", "pointer")
-			.attr(
-				"transform",
-				(d) =>
-					`translate(${d.hardcodedPosition.x},${d.hardcodedPosition.y})`
-			)
-			.on("click", (event, d) => {
-				setSelectedTemplate(d);
-			});
-
-		// Draw the rhombus shape
-		nodeSelection
-			.append("path")
-			.attr("d", (d) => {
-				const size = getNodeSize();
-				return `M 0,-${size} L ${size},0 L 0,${size} L -${size},0 Z`;
-			})
-			.attr("fill", (d) => (wasApplied(d) ? getCategoryColor(d) : "#fff"))
-			.attr("stroke", (d) => getCategoryColor(d))
-			.attr("stroke-width", (d) => (wasApplied(d) ? 3 : 1.5));
-
-		// Append an icon inside each rhombus
-		const iconSize = 16;
-		nodeSelection
-			.append("image")
-			.attr("href", (d) => d.iconImageHref)
-			.attr("x", -iconSize / 2)
-			.attr("y", -iconSize / 2)
-			.attr("width", iconSize)
-			.attr("height", iconSize);
-
-		// Setup Zoom
-		const initialScale = 2.5;
 		const initialX = -(width / 2) - 400;
 		const initialY = -(height / 2) - 50;
 
 		const zoom = d3
-			.zoom()
+			.zoom<SVGSVGElement, unknown>()
 			.extent([
 				[0, 0],
 				[width, height],
 			])
 			.scaleExtent([0.5, 5])
 			.on("zoom", (event) => {
-				g.attr("transform", event.transform);
+				setTransform(event.transform);
 			});
 
-		// TODO(tech-debt): Fix d3 type assertions - d3-zoom types need to be properly imported and used
+		const svg = d3.select(svgRef.current);
 		svg.call(zoom as any);
-
 		svg.call(
-			// TODO(tech-debt): Fix d3 type assertions - d3-zoom types need to be properly imported and used
 			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
-	}, [templates, setSelectedTemplate, wasApplied, quest]);
+
+		// Set initial SVG attributes
+		svg.attr("width", width)
+			.attr("height", height)
+			.attr("viewBox", `0 0 ${width} ${height}`)
+			.attr("style", "max-width: 100%; height: auto;");
+	}, []);
+
+	// Node component with Radix UI integration
+	const Node = useCallback(
+		({ template }: { template: ActionTemplate }) => {
+			const isUnlocked = template.isUnlocked(quest);
+			const isApplied = wasApplied(template);
+			const color = getCategoryColor(template);
+
+			// Handle click events, preventing propagation to parent elements
+			const handleClick = (e: React.MouseEvent) => {
+				e.stopPropagation();
+				if (isUnlocked) {
+					setSelectedTemplate(template);
+				}
+			};
+
+			return (
+				<g
+					transform={`translate(${template.hardcodedPosition.x},${template.hardcodedPosition.y})`}
+					style={{ cursor: isUnlocked ? "pointer" : "not-allowed" }}
+					onClick={handleClick}
+				>
+					{/* Rhombus shape */}
+					<path
+						d={getRhombusPath(baseSize)}
+						fill={
+							!isUnlocked ? "#f1f5f9" : isApplied ? color : "#fff"
+						}
+						stroke={!isUnlocked ? "#94a3b8" : color}
+						strokeWidth={!isUnlocked ? 1 : isApplied ? 3 : 1.5}
+						opacity={isUnlocked ? 1 : 0.7}
+					/>
+
+					{/* Icon */}
+					<image
+						href={template.iconImageHref}
+						x={-iconSize / 2}
+						y={-iconSize / 2}
+						width={iconSize}
+						height={iconSize}
+						opacity={isUnlocked ? 1 : 0.4}
+					/>
+
+					{/* Radix UI Tutorial Spot integration using foreignObject */}
+					<foreignObject
+						x={-baseSize}
+						y={-baseSize}
+						width={baseSize * 2}
+						height={baseSize * 2}
+						style={{
+							overflow: "visible",
+							pointerEvents: "none",
+						}}
+					>
+						<div
+							style={{
+								width: "100%",
+								height: "100%",
+								position: "relative",
+								transform: `scale(${1 / (transform.k || 1)})`,
+								transformOrigin: "center center",
+							}}
+						>
+							<TutorialSpot
+								marker={{
+									kind: "action-template",
+									instance: { templateId: template.id },
+								}}
+							>
+								<TutorialTrigger asChild>
+									<div
+										style={{
+											position: "absolute",
+											inset: 0,
+											pointerEvents: "auto",
+										}}
+										onClick={handleClick}
+									/>
+								</TutorialTrigger>
+								<TutorialPopoverContent />
+							</TutorialSpot>
+						</div>
+					</foreignObject>
+				</g>
+			);
+		},
+		[quest, wasApplied, getRhombusPath, setSelectedTemplate, transform]
+	);
 
 	return (
 		<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
-			<svg ref={svgRef} className="w-full h-full"></svg>
+			<svg ref={svgRef} className="w-full h-full">
+				<g transform={transform.toString()}>
+					{templates.map((template) => (
+						<Node key={template.id} template={template} />
+					))}
+				</g>
+			</svg>
 		</div>
 	);
 }
@@ -181,6 +268,9 @@ function NodeDetails({
 	) => void;
 	wasApplied: boolean;
 }) {
+	const quest = useSelector(questStore, (state) => state.context);
+	const isUnlocked = template.isUnlocked(quest);
+
 	const schema = getFormSchema(template);
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
@@ -256,6 +346,7 @@ function NodeDetails({
 														type="number"
 														{...field}
 														className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+														disabled={!isUnlocked}
 													/>
 												</FormControl>
 												<FormMessage />
@@ -268,17 +359,26 @@ function NodeDetails({
 					)}
 
 				{!wasApplied && (
-					<Button
-						type="submit"
-						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
-					>
-						{getAction(template).kind === "investment"
-							? "Invest"
-							: getAction(template).kind === "income"
-							? "Work"
-							: "Accept Expense"}
-						<ArrowRight className="ml-2 h-4 w-4" />
-					</Button>
+					<>
+						{!isUnlocked && (
+							<div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600">
+								This action is currently locked. Keep playing to
+								unlock it!
+							</div>
+						)}
+						<Button
+							type="submit"
+							className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled={!isUnlocked}
+						>
+							{getAction(template).kind === "investment"
+								? "Invest"
+								: getAction(template).kind === "income"
+								? "Work"
+								: "Accept Expense"}
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Button>
+					</>
 				)}
 			</form>
 		</Form>
