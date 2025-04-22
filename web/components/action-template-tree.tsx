@@ -43,6 +43,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "./ui/form";
+import { z } from "zod";
 
 // D3 Action Template Tree Visualization Component
 function ActionTemplateTreeVisualization({
@@ -154,79 +155,21 @@ function ActionTemplateTreeVisualization({
 	);
 }
 
-// Configuration Panel Component
-function ConfigurationPanel({
-	template,
-	endPoints,
-	setEndPoints,
-	initialPrice,
-	setInitialPrice,
-	repeatedPrice,
-	setRepeatedPrice,
-}: {
-	template: CustomizableActionTemplate;
-	endPoints: number;
-	setEndPoints: (value: number) => void;
-	initialPrice: number;
-	setInitialPrice: (value: number) => void;
-	repeatedPrice: number;
-	setRepeatedPrice: (value: number) => void;
-}) {
-	// Get the shape and prepare default values
-	const fields = Object.entries(template.userInputSchema.shape);
-	const defaultValues = Object.fromEntries(
-		fields.map(([name, field]) => [name, field._def.defaultValue?.()])
-	);
-
-	const form = useForm({
-		resolver: zodResolver(template.userInputSchema),
-		defaultValues,
-	});
-
-	function onSubmit(data: FieldValues) {
-		console.log(data);
+// Helper to get form schema based on template kind
+function getFormSchema(template: ActionTemplate) {
+	if (template.templateKind === "user-customizable") {
+		return template.userInputSchema;
 	}
-
-	return (
-		<Form {...form}>
-			<form
-				onSubmit={form.handleSubmit(onSubmit)}
-				className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm"
-			>
-				<h4 className="font-medium text-gray-700">Configuration</h4>
-				{fields.map(([fieldName, fieldSchema]) => (
-					<FormField
-						key={fieldName}
-						control={form.control}
-						name={fieldName}
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel
-									htmlFor={fieldName}
-									className="text-sm text-gray-600"
-								>
-									{/* Use description if available, otherwise fallback to formatted field name */}
-									{fieldSchema.description ||
-										fieldName.charAt(0).toUpperCase() +
-											fieldName.slice(1)}
-								</FormLabel>
-								<FormControl>
-									<Input
-										id={fieldName}
-										type="number"
-										{...field}
-										className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				))}
-			</form>
-		</Form>
-	);
+	// For constant templates, return an empty object schema
+	return z.object({});
 }
+
+type FormData<T extends ActionTemplate> = T extends CustomizableActionTemplate<
+	any,
+	infer U
+>
+	? U
+	: Record<string, never>;
 
 // Node Details Component
 function NodeDetails({
@@ -250,46 +193,95 @@ function NodeDetails({
 	setRepeatedPrice: (value: number) => void;
 	wasApplied: boolean;
 }) {
+	const schema = getFormSchema(template);
+	const form = useForm<FormData<typeof template>>({
+		resolver: zodResolver(schema),
+		defaultValues:
+			template.templateKind === "user-customizable"
+				? Object.fromEntries(
+						Object.entries(template.userInputSchema.shape).map(
+							([name, field]) => [
+								name,
+								field._def.defaultValue?.() ?? 0,
+							]
+						)
+				  )
+				: {},
+	});
+
+	const onSubmit = (data: FormData<typeof template>) => {
+		onActionTemplateChosen(template);
+	};
+
 	return (
-		<div className="space-y-4">
-			<div className="p-3 bg-indigo-50 border-indigo-100">
-				<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
-					{getAction(template).kind === "investment" && (
-						<Coins className="h-5 w-5 text-amber-500" />
-					)}
-					{getAction(template).kind === "income" && (
-						<TrendingUp className="h-5 w-5 text-emerald-500" />
-					)}
-					{getAction(template).kind === "expense" && (
-						<DollarSign className="h-5 w-5 text-rose-500" />
-					)}
-					{getAction(template).name}
-				</h3>
-				<p className="text-sm text-indigo-600 mt-1">
-					{getAction(template).shortDescription}
-				</p>
-				<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
-					{getAction(template).kind.charAt(0).toUpperCase() +
-						getAction(template).kind.slice(1)}
+		<Form {...form}>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+				<div className="p-3 bg-indigo-50 border-indigo-100">
+					<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
+						{getAction(template).kind === "investment" && (
+							<Coins className="h-5 w-5 text-amber-500" />
+						)}
+						{getAction(template).kind === "income" && (
+							<TrendingUp className="h-5 w-5 text-emerald-500" />
+						)}
+						{getAction(template).kind === "expense" && (
+							<DollarSign className="h-5 w-5 text-rose-500" />
+						)}
+						{getAction(template).name}
+					</h3>
+					<p className="text-sm text-indigo-600 mt-1">
+						{getAction(template).shortDescription}
+					</p>
+					<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
+						{getAction(template).kind.charAt(0).toUpperCase() +
+							getAction(template).kind.slice(1)}
+					</div>
 				</div>
-			</div>
 
-			{!wasApplied && template.templateKind === "user-customizable" && (
-				<ConfigurationPanel
-					template={template}
-					endPoints={endPoints}
-					setEndPoints={setEndPoints}
-					initialPrice={initialPrice}
-					setInitialPrice={setInitialPrice}
-					repeatedPrice={repeatedPrice}
-					setRepeatedPrice={setRepeatedPrice}
-				/>
-			)}
+				{!wasApplied &&
+					template.templateKind === "user-customizable" && (
+						<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+							<h4 className="font-medium text-gray-700">
+								Configuration
+							</h4>
+							{Object.entries(template.userInputSchema.shape).map(
+								([fieldName, fieldSchema]) => (
+									<FormField
+										key={fieldName}
+										control={form.control}
+										name={fieldName}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel
+													htmlFor={fieldName}
+													className="text-sm text-gray-600"
+												>
+													{fieldSchema.description ||
+														fieldName
+															.charAt(0)
+															.toUpperCase() +
+															fieldName.slice(1)}
+												</FormLabel>
+												<FormControl>
+													<Input
+														id={fieldName}
+														type="number"
+														{...field}
+														className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								)
+							)}
+						</div>
+					)}
 
-			<div className="space-y-2">
 				{!wasApplied && (
 					<Button
-						onClick={() => onActionTemplateChosen(template)}
+						type="submit"
 						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 					>
 						{getAction(template).kind === "investment"
@@ -300,8 +292,8 @@ function NodeDetails({
 						<ArrowRight className="ml-2 h-4 w-4" />
 					</Button>
 				)}
-			</div>
-		</div>
+			</form>
+		</Form>
 	);
 }
 

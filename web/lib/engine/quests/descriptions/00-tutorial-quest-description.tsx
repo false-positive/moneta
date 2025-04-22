@@ -56,7 +56,7 @@ export const tutorialQuestDescription: QuestDescription = {
 			templateKind: "user-customizable",
 			initialAction: actions18.etfInvestmentOnceAction,
 			userInputSchema: z.object({
-				temporaryInitialPriceForTesting: z
+				temporaryInitialPriceForTesting: z.coerce
 					.number()
 					.min(0)
 					.default(10000)
