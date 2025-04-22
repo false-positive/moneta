@@ -1,20 +1,18 @@
-import { Action } from ".";
+import { Action, ActionKind } from ".";
 import { z } from "zod";
 import { Quest } from "../quests";
 import { lifeAction } from "./standard-actions";
 import invariant from "tiny-invariant";
 import { FieldValues } from "react-hook-form";
 
-// Things we need to display in the choices UI
-type RequiredActionKeys =
-	| "kind"
-	| "name"
-	| "shortDescription"
-	| "llmDescription";
-
-interface InitialAction
-	extends Omit<Partial<Action>, RequiredActionKeys>,
-		Pick<Action, RequiredActionKeys> {}
+// Define what's required in an action
+interface RequiredActionProperties {
+	kind: ActionKind;
+	name: string;
+	shortDescription: string;
+	llmDescription: string;
+	remainingSteps: number;
+}
 
 interface ActionTemplateBase {
 	/**
@@ -37,42 +35,30 @@ interface ActionTemplateBase {
 		x: number;
 		y: number;
 	};
-}
 
-type IsUnlockedFn<TActionTemplate extends ActionTemplateBase> = (
-	quest: Quest,
-	actionTemplate: TActionTemplate
-) => boolean;
+	/**
+	 * Whether this action template is unlocked for the given quest state
+	 */
+	isUnlocked: (quest: Quest) => boolean;
+}
 
 interface ConstantActionTemplate extends ActionTemplateBase {
 	templateKind: "constant";
 	action: Action;
-	isUnlocked: IsUnlockedFn<ConstantActionTemplate>;
 }
 
-export interface CustomizableActionTemplate<
-	TInitialAction extends InitialAction = InitialAction,
-	TUserInput extends FieldValues = FieldValues
+interface CustomizableActionTemplate<
+	TBaseAction extends Partial<Action> &
+		RequiredActionProperties = Partial<Action> & RequiredActionProperties,
+	TUserInput extends z.ZodRawShape = z.ZodRawShape
 > extends ActionTemplateBase {
 	templateKind: "user-customizable";
-
-	/**
-	 * Default values and base descriptions of the action.
-	 *
-	 * Properties like its kind, name and descriptions are required. The rest can be optionally provided
-	 */
-	initialAction: TInitialAction;
-
-	isUnlocked: IsUnlockedFn<
-		CustomizableActionTemplate<TInitialAction, TUserInput>
-	>;
-
+	baseAction: TBaseAction;
 	userInputSchema: z.ZodObject<TUserInput>;
 	apply: (
-		this: void,
-		initialAction: TInitialAction,
-		userInput: TUserInput
-	) => Omit<Action, "templateId">;
+		baseAction: TBaseAction,
+		userInput: z.infer<z.ZodObject<TUserInput>>
+	) => Action;
 }
 
 /**
@@ -81,46 +67,57 @@ export interface CustomizableActionTemplate<
  * An action template is a definition of an action that can be created by the user.
  * It defines the values of each property of an action, as well as the schema the user may use to customize it.
  */
-export type ActionTemplate<
-	TInitialAction extends InitialAction = InitialAction,
-	TUserInput extends FieldValues = FieldValues
-> =
+export type ActionTemplate =
 	| ConstantActionTemplate
-	| CustomizableActionTemplate<TInitialAction, TUserInput>;
+	| CustomizableActionTemplate;
 
 let id = 0;
 
-export const createActionTemplate = <
-	TInitialAction extends InitialAction,
-	TUserInput extends FieldValues
+// Private helper function for creating templates
+function createActionTemplate(
+	template: Omit<ConstantActionTemplate, "id">
+): ActionTemplate;
+function createActionTemplate<
+	TBaseAction extends Partial<Action> & RequiredActionProperties,
+	TUserInput extends z.ZodRawShape
 >(
-	// FIXME: Cursed type stuff
-	actionTemplate:
+	template: Omit<CustomizableActionTemplate<TBaseAction, TUserInput>, "id">
+): ActionTemplate;
+function createActionTemplate(
+	template:
 		| Omit<ConstantActionTemplate, "id">
-		| Omit<CustomizableActionTemplate<TInitialAction, TUserInput>, "id">
-): ActionTemplate<TInitialAction, TUserInput> => {
-	return { id: ++id, ...actionTemplate };
-};
+		| Omit<CustomizableActionTemplate, "id">
+) {
+	return { id: ++id, ...template };
+}
 
-export const createActionTemplates = <
-	TInitialAction extends InitialAction,
-	TUserInput extends FieldValues
+export function createConstantTemplate(
+	params: Omit<ConstantActionTemplate, "id" | "templateKind">
+) {
+	return createActionTemplate({
+		templateKind: "constant",
+		...params,
+	});
+}
+
+export function createCustomizableTemplate<
+	TBaseAction extends Partial<Action> & RequiredActionProperties,
+	TUserInput extends z.ZodRawShape
 >(
-	// FIXME: More cursed type stuff
-	actionTemplateArray: ReadonlyArray<
-		Parameters<typeof createActionTemplate<TInitialAction, TUserInput>>[0]
+	params: Omit<
+		CustomizableActionTemplate<TBaseAction, TUserInput>,
+		"id" | "templateKind"
 	>
-): ReadonlyArray<ActionTemplate<TInitialAction, TUserInput>> =>
-	actionTemplateArray.map((actionTemplate) =>
-		createActionTemplate(actionTemplate)
-	);
+) {
+	return createActionTemplate({
+		templateKind: "user-customizable",
+		...params,
+	});
+}
 
-export function applyActionTemplate<
-	TInitialAction extends InitialAction,
-	TUserInput extends FieldValues
->(
-	actionTemplate: ActionTemplate<TInitialAction, TUserInput>,
-	userInput: TUserInput
+export function applyActionTemplate<TUserInput extends z.ZodRawShape>(
+	actionTemplate: ActionTemplate,
+	userInput: z.infer<z.ZodObject<TUserInput>>
 ) {
 	if (actionTemplate.templateKind === "constant") {
 		return { ...actionTemplate.action, templateId: actionTemplate.id };
@@ -128,7 +125,7 @@ export function applyActionTemplate<
 
 	if (actionTemplate.templateKind === "user-customizable") {
 		const action = actionTemplate.apply(
-			actionTemplate.initialAction,
+			actionTemplate.baseAction,
 			userInput
 		);
 		return { ...action, templateId: actionTemplate.id };
@@ -139,16 +136,13 @@ export function applyActionTemplate<
 	invariant(false);
 }
 
-export function getAction<
-	TInitialAction extends InitialAction,
-	TUserInput extends FieldValues
->(actionTemplate: ActionTemplate<TInitialAction, TUserInput>) {
+export function getAction(actionTemplate: ActionTemplate) {
 	if (actionTemplate.templateKind === "constant") {
 		return actionTemplate.action;
 	}
 
 	if (actionTemplate.templateKind === "user-customizable") {
-		return actionTemplate.initialAction;
+		return actionTemplate.baseAction;
 	}
 
 	// @ts-expect-error: This will never be reached and if it does, it's a bug

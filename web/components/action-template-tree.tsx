@@ -2,12 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	ActionTemplate,
 	applyActionTemplate,
-	CustomizableActionTemplate,
 	getAction,
 } from "@/lib/engine/actions/templates";
 import { getCurrentStep } from "@/lib/engine/quests";
@@ -16,6 +14,8 @@ import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Action } from "@/lib/engine/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	ArrowRight,
 	Coins,
@@ -27,14 +27,13 @@ import {
 	Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
 	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
 } from "./tutorial";
-import { Action } from "@/lib/engine/actions";
-import { FieldValues, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Form,
 	FormControl,
@@ -43,7 +42,6 @@ import {
 	FormLabel,
 	FormMessage,
 } from "./ui/form";
-import { z } from "zod";
 
 // D3 Action Template Tree Visualization Component
 function ActionTemplateTreeVisualization({
@@ -164,37 +162,21 @@ function getFormSchema(template: ActionTemplate) {
 	return z.object({});
 }
 
-type FormData<T extends ActionTemplate> = T extends CustomizableActionTemplate<
-	any,
-	infer U
->
-	? U
-	: Record<string, never>;
-
 // Node Details Component
 function NodeDetails({
 	template,
 	onActionTemplateChosen,
-	endPoints,
-	setEndPoints,
-	initialPrice,
-	setInitialPrice,
-	repeatedPrice,
-	setRepeatedPrice,
 	wasApplied,
 }: {
 	template: ActionTemplate;
-	onActionTemplateChosen: (actionTemplate: ActionTemplate) => void;
-	endPoints: number;
-	setEndPoints: (value: number) => void;
-	initialPrice: number;
-	setInitialPrice: (value: number) => void;
-	repeatedPrice: number;
-	setRepeatedPrice: (value: number) => void;
+	onActionTemplateChosen: (
+		actionTemplate: ActionTemplate,
+		userInput: z.ZodRawShape
+	) => void;
 	wasApplied: boolean;
 }) {
 	const schema = getFormSchema(template);
-	const form = useForm<FormData<typeof template>>({
+	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
 		defaultValues:
 			template.templateKind === "user-customizable"
@@ -209,8 +191,8 @@ function NodeDetails({
 				: {},
 	});
 
-	const onSubmit = (data: FormData<typeof template>) => {
-		onActionTemplateChosen(template);
+	const onSubmit = (data: z.infer<typeof schema>) => {
+		onActionTemplateChosen(template, data);
 	};
 
 	return (
@@ -427,11 +409,6 @@ export function ActionTemplateTree() {
 		Array<{ role: "user" | "assistant"; content: string }>
 	>([]);
 
-	// TODO(tech-debt): These should be removed soon and replaced with the configurable action template's own schema
-	const [endPoints, setEndPoints] = useState<number>(0);
-	const [initialPrice, setInitialPrice] = useState<number>(0);
-	const [repeatedPrice, setRepeatedPrice] = useState<number>(0);
-
 	const router = useRouter();
 
 	// Get state from quest store
@@ -455,18 +432,12 @@ export function ActionTemplateTree() {
 
 	console.log(appliedActionTemplateIds);
 
-	const handleActionTemplateChosen = (actionTemplate: ActionTemplate) => {
-		const action = applyActionTemplate(actionTemplate, {
-			remainingSteps: endPoints,
-			initialPrice,
-			repeatedPrice,
-		});
+	const handleActionTemplateChosen = (
+		actionTemplate: ActionTemplate,
+		userInput: z.ZodRawShape
+	) => {
+		const action = applyActionTemplate(actionTemplate, userInput);
 		setNewActions([...newActions, action]);
-
-		setSelectedTemplate(null);
-		setEndPoints(0);
-		setInitialPrice(0);
-		setRepeatedPrice(0);
 	};
 
 	const handleSubmit = () => {
@@ -592,12 +563,6 @@ export function ActionTemplateTree() {
 								onActionTemplateChosen={
 									handleActionTemplateChosen
 								}
-								endPoints={endPoints}
-								setEndPoints={setEndPoints}
-								initialPrice={initialPrice}
-								setInitialPrice={setInitialPrice}
-								repeatedPrice={repeatedPrice}
-								setRepeatedPrice={setRepeatedPrice}
 								wasApplied={appliedActionTemplateIds.has(
 									selectedTemplate.id
 								)}

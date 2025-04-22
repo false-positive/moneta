@@ -1,9 +1,13 @@
-import { QuestDescription } from "..";
 import { lifeAction } from "@/lib/engine/actions/standard-actions";
-import { createActionTemplates } from "../../actions/templates";
-import { allActionsList as standardActions } from "../../actions/standard-actions";
-import { allActionsList as actions18 } from "../../actions/actions-18";
 import { z } from "zod";
+import { QuestDescription } from "..";
+import { allActionsList as actions18 } from "../../actions/actions-18";
+import { allActionsList as standardActions } from "../../actions/standard-actions";
+import {
+	ActionTemplate,
+	createConstantTemplate,
+	createCustomizableTemplate,
+} from "../../actions/templates";
 
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
@@ -23,38 +27,39 @@ export const tutorialQuestDescription: QuestDescription = {
 		description: "Ivan wants to save 100000 BGN",
 		goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 	},
-	actionTemplates: createActionTemplates([
-		{
-			templateKind: "constant",
+	actionTemplates: [
+		createConstantTemplate({
 			action: standardActions.lifeAction,
 			iconImageHref: "/icons/lifeAction.svg",
 			hardcodedPosition: { x: 600, y: 300 },
 			isUnlocked: () => true,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.liveWithParentsAction,
 			iconImageHref: "/icons/liveWithParentsAction.png",
 			hardcodedPosition: { x: 575, y: 275 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.savingsDepositAction,
 			iconImageHref: "/icons/savingsDepositAction.png",
 			hardcodedPosition: { x: 625, y: 275 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.pensionDepositAction,
 			iconImageHref: "/icons/pensionDepositAction.svg",
 			hardcodedPosition: { x: 650, y: 250 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "user-customizable",
-			initialAction: actions18.etfInvestmentOnceAction,
+		}),
+		createCustomizableTemplate({
+			baseAction: {
+				kind: "investment",
+				name: "ETF Investment",
+				shortDescription: "One-time ETF investment",
+				llmDescription: "Make a one-time investment in an ETF fund",
+				remainingSteps: 1,
+			},
 			userInputSchema: z.object({
 				temporaryInitialPriceForTesting: z.coerce
 					.number()
@@ -62,97 +67,86 @@ export const tutorialQuestDescription: QuestDescription = {
 					.default(10000)
 					.describe("this description should be visible"),
 			}),
-			apply: (initialAction, userInput) => ({
-				...initialAction,
+			apply: (baseAction, userInput) => ({
+				...baseAction,
+				...actions18.etfInvestmentOnceAction,
 				initialPrice: userInput.temporaryInitialPriceForTesting,
 			}),
 			iconImageHref: "/icons/etfInvestmentOnceAction.png",
 			hardcodedPosition: { x: 650, y: 300 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.etfInvestmentRepeatedAction,
 			iconImageHref: "/icons/etfInvestmentRepeatedAction.png",
 			hardcodedPosition: { x: 675, y: 325 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.stocksInvestmentAction,
 			iconImageHref: "/icons/stocksInvestmentAction.png",
 			hardcodedPosition: { x: 675, y: 275 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.cryptoInvestmentAction,
 			iconImageHref: "/icons/cryptoInvestmentAction.png",
 			hardcodedPosition: { x: 700, y: 250 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.goldInvestmentAction,
 			iconImageHref: "/icons/goldInvestmentAction.png",
 			hardcodedPosition: { x: 725, y: 275 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.skiTripAction,
 			iconImageHref: "/icons/skiTripAction.png",
 			hardcodedPosition: { x: 575, y: 325 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.hobbyMotorbikeRidingAction,
 			iconImageHref: "/icons/hobbyMotorbikeRidingAction.png",
 			hardcodedPosition: { x: 550, y: 300 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.partyingAction,
 			iconImageHref: "/icons/partyingAction.png",
 			hardcodedPosition: { x: 550, y: 350 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.havingAKidAction,
 			iconImageHref: "/icons/havingAKidAction.png",
 			hardcodedPosition: { x: 600, y: 350 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.waiterPartTimeJobAction,
 			iconImageHref: "/icons/waiterPartTimeJobAction.png",
 			hardcodedPosition: { x: 600, y: 250 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.waiterFullTimeJobAction,
 			iconImageHref: "/icons/waiterFullTimeJobAction.png",
 			hardcodedPosition: { x: 625, y: 225 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.juniorSweJobAction,
 			iconImageHref: "/icons/juniorSweJobAction.png",
 			hardcodedPosition: { x: 575, y: 225 },
 			isUnlocked: () => false,
-		},
-		{
-			templateKind: "constant",
+		}),
+		createConstantTemplate({
 			action: actions18.seniorSweJobAction,
 			iconImageHref: "/icons/seniorSweJobAction.png",
 			hardcodedPosition: { x: 600, y: 200 },
 			isUnlocked: () => false,
-		},
-	]),
+		}),
+	] satisfies readonly ActionTemplate[],
 };
