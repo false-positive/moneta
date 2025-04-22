@@ -14,7 +14,10 @@ type Message = {
 export default function ChatInterface({
 	handleDiscovery,
 	scenarioConfig,
-}: any) {
+}: {
+	handleDiscovery: (discovery: string, step: number) => void;
+	scenarioConfig: Record<string, unknown>;
+}) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
 	const [isRecording, setIsRecording] = useState(false);

@@ -85,7 +85,7 @@ export default function QuestCompletionPage() {
 					</h2>
 					<div className="bg-white/70 rounded-lg p-4 mb-4">
 						<p className="text-xl text-center text-amber-900 italic">
-							"{goalDescription}"
+							&quot;{goalDescription}&quot;
 						</p>
 					</div>
 					<p className="text-center text-amber-700">

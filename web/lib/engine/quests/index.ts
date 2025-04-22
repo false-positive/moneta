@@ -189,3 +189,11 @@ export function isQuestCompleted(quest: Quest) {
 		quest,
 	});
 }
+
+export function getFailedMetrics(step: Step) {
+	return {
+		bankAccount: step.bankAccount < 0,
+		joy: step.joy < 0,
+		freeTimeHours: step.freeTimeHours < 0,
+	};
+}

@@ -48,7 +48,7 @@ export function SpendingGraph({
 	const chartData = useMemo(() => {
 		let accumulatedNetWorth = 0; // Track net worth outside the map
 
-		return timeUnits.map((unit, index) => {
+		return timeUnits.map((unit) => {
 			// Find actions that are active at this time point
 			const activeActions = actionTimings.filter(
 				(timing) =>
