@@ -104,7 +104,7 @@ export const tutorialSteps: TutorialStep[] = [
 		title: "Next Year Awaits",
 		description: (
 			<>
-				These "levels" represent the time in your simulation.
+				These {'"levels"'} represent the time in your simulation.
 				<br />
 				Click on the second step to select it as{" "}
 				<strong>current</strong>.
