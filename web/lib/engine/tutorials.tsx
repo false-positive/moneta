@@ -136,6 +136,27 @@ export const tutorialSteps: TutorialStep[] = [
 		blockInteractions: false,
 	},
 	{
+		marker: {
+			kind: "action-template-tree",
+			instance: { templateId: 3 },
+		},
+		title: "Savings Deposit",
+		description: (
+			<>
+				Now you can make a savings deposit! This is a safe way to grow
+				your money.
+				<br />
+				Click on the third step to select it as <strong>current</strong>
+				.
+				<br />
+				Consider how much you want to deposit and for how long.
+			</>
+		),
+		popoverSide: "top",
+		pulse: true,
+		blockInteractions: false,
+	},
+	{
 		marker: { kind: "post-action-button" },
 		title: "Lock In Your Move",
 		description: (

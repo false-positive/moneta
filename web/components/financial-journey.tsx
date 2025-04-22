@@ -32,7 +32,7 @@ function JourneyNode({
 	point: [number, number];
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
-	onClick: () => void;
+	onClick: (e: React.MouseEvent) => void;
 	ref?: React.RefObject<HTMLDivElement>;
 	className?: string;
 }) {
@@ -61,7 +61,7 @@ function JourneyNode({
 
 	const handleNodeClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		onClick();
+		onClick(e);
 
 		// Only route to choices if this is the currently selected timePoint
 		if (isCurrentTimePoint) {
