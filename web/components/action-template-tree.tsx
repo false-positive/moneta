@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
 	ActionTemplate,
 	applyActionTemplate,
+	getAction,
 } from "@/lib/engine/actions/templates";
 import { getCurrentStep } from "@/lib/engine/quests";
 import { questStore } from "@/lib/stores/quest-store";
@@ -251,34 +252,27 @@ function NodeDetails({
 	setRepeatedPrice: (value: number) => void;
 	wasApplied: boolean;
 }) {
-	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-	const action =
-		template.templateKind === "constant"
-			? template.action
-			: template.initialAction;
-
-	const quest = useSelector(questStore, (state) => state.context);
-
 	return (
 		<div className="space-y-4">
 			<div className="p-3 bg-indigo-50 border-indigo-100">
 				<h3 className="font-semibold text-lg text-indigo-800 flex items-center gap-2">
-					{action.kind === "investment" && (
+					{getAction(template).kind === "investment" && (
 						<Coins className="h-5 w-5 text-amber-500" />
 					)}
-					{action.kind === "income" && (
+					{getAction(template).kind === "income" && (
 						<TrendingUp className="h-5 w-5 text-emerald-500" />
 					)}
-					{action.kind === "expense" && (
+					{getAction(template).kind === "expense" && (
 						<DollarSign className="h-5 w-5 text-rose-500" />
 					)}
-					{action.name}
+					{getAction(template).name}
 				</h3>
 				<p className="text-sm text-indigo-600 mt-1">
-					{action.shortDescription}
+					{getAction(template).shortDescription}
 				</p>
 				<div className="mt-2 text-xs font-medium text-indigo-500 bg-indigo-100 px-2 py-1 rounded-full inline-block">
-					{action.kind.charAt(0).toUpperCase() + action.kind.slice(1)}
+					{getAction(template).kind.charAt(0).toUpperCase() +
+						getAction(template).kind.slice(1)}
 				</div>
 			</div>
 
@@ -300,9 +294,9 @@ function NodeDetails({
 						onClick={() => onActionTemplateChosen(template)}
 						className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
 					>
-						{action.kind === "investment"
+						{getAction(template).kind === "investment"
 							? "Invest"
-							: action.kind === "income"
+							: getAction(template).kind === "income"
 							? "Work"
 							: "Accept Expense"}
 						<ArrowRight className="ml-2 h-4 w-4" />
@@ -499,29 +493,17 @@ export function ActionTemplateTree() {
 		}
 
 		try {
-			// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-			const action =
-				selectedTemplate.templateKind === "constant"
-					? selectedTemplate.action
-					: selectedTemplate.initialAction;
+			const { name } = getAction(selectedTemplate);
 
 			let body = JSON.stringify({
-				action_name: action.name,
-				// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-				actions: questDescription.actionTemplates.map((t) =>
-					t.templateKind === "constant" ? t.action : t.initialAction
-				),
+				action_name: name,
+				actions: questDescription.actionTemplates.map(getAction),
 			});
 
 			if (question) {
 				body = JSON.stringify({
-					action_name: action.name,
-					// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-					actions: questDescription.actionTemplates.map((t) =>
-						t.templateKind === "constant"
-							? t.action
-							: t.initialAction
-					),
+					action_name: name,
+					actions: questDescription.actionTemplates.map(getAction),
 					question,
 				});
 			}
@@ -673,11 +655,7 @@ export function ActionTemplateTree() {
 }
 
 function getCategoryColor(template: ActionTemplate) {
-	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-	const action =
-		template.templateKind === "constant"
-			? template.action
-			: template.initialAction;
+	const action = getAction(template);
 
 	if (action.kind === "investment") return "#f59e0b";
 	if (action.kind === "income") return "#10b981";

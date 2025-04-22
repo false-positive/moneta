@@ -137,3 +137,19 @@ export function applyActionTemplate<
 	actionTemplate.templateKind;
 	invariant(false);
 }
+
+export function getAction<TInitialAction extends InitialAction, TUserInput>(
+	actionTemplate: ActionTemplate<TInitialAction, TUserInput>
+) {
+	if (actionTemplate.templateKind === "constant") {
+		return actionTemplate.action;
+	}
+
+	if (actionTemplate.templateKind === "user-customizable") {
+		return actionTemplate.initialAction;
+	}
+
+	// @ts-expect-error: This will never be reached and if it does, it's a bug
+	actionTemplate.templateKind;
+	invariant(false);
+}
