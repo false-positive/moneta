@@ -559,6 +559,7 @@ export function ActionTemplateTree() {
 					<div className="p-4">
 						{selectedTemplate ? (
 							<NodeDetails
+								key={selectedTemplate.id}
 								template={selectedTemplate}
 								onActionTemplateChosen={
 									handleActionTemplateChosen
