@@ -15,11 +15,13 @@ The simulation engine is located inside the `lib/engine/` subdirectory. The XSta
   - Contains metrics (bankAccount, joy, freeTimeHours)
   - Tracks continuing actions (newActions, continuingActions)
   - Has a time point value representing the time unit (week/month/year)
+  - Contains experience map tracking user progression
 
 - **Action**: A user-initiated activity that affects the simulation
   - Has impacts on various metrics (bankAccount, investment, joy, freeTime)
   - Has a duration (remainingSteps)
   - Can be of different kinds (income, expense, investment, other)
+  - Grants experiences to track user progression and unlock new actions
 
 - **Quest**: A complete simulation instance
   - Contains a sequence of steps
@@ -46,6 +48,10 @@ function MyComponent() {
   
   // Get active actions
   const activeActions = currentStep.continuingActions;
+  
+  // Get experience levels
+  const workExperience = currentStep.experience.get("work") ?? 0;
+  const investmentExperience = currentStep.experience.get("stable-investments") ?? 0;
   
   // Add a new action
   const addAction = () => {
@@ -95,24 +101,61 @@ Actions affect metrics through the `MetricImpact` type, which supports:
   });
   ```
 
+### Experience System
+
+The experience system tracks user progression and unlocks new actions:
+
+```typescript
+// Define experiences with type safety
+const { getStepExperience, experienceGain } = defineExperiences<
+  | "work"
+  | "investments"
+  | "housing"
+>();
+
+// Create an action that grants experience
+const action: Action = {
+  // ... other action properties
+  gainedExperiences: experienceGain(["work", "investments"]),
+};
+
+// Check experience in unlocking conditions
+const isUnlocked = (quest: Quest) => {
+  const currentStep = getCurrentStep(quest);
+  return getStepExperience(currentStep, "work") >= 2;
+};
+```
+
 ### Action Lifecycle
 
-1. **Creation**: Actions are created with a specific duration (remainingSteps)
-2. **Application**: When added to a step, actions immediately affect metrics
+1. **Creation**: Actions are created with:
+   - Specific duration (remainingSteps)
+   - Metric impacts
+   | Experience gains
+2. **Application**: When added to a step:
+   - Actions immediately affect metrics
+   - Experiences are added to the step's experience map
 3. **Persistence**: Actions remain active for their duration, affecting each step
-4. **Completion**: When remainingSteps reaches 0, the action is finished
+4. **Completion**: When remainingSteps reaches 0:
    - For investment actions, the capital is added to the bank account
    - The action is removed from active actions
+   - Experiences remain in the step's experience map
 
 ### Simulation Flow
 
-1. **Initialization**: A QuestDescription defines the starting conditions
-2. **Step Computation**: Each step is computed based on the previous step and new actions
+1. **Initialization**: A QuestDescription defines:
+   - Starting conditions
+   - Initial experience map (usually empty)
+2. **Step Computation**: Each step is computed based on:
+   - Previous step
+   - New actions
+   - Accumulated experiences
 3. **Action Processing**: 
    - Finished actions are removed and their capital is added to the bank account
    - Ongoing actions have their remainingSteps decremented and continue affecting metrics
-   - New actions are applied to the current step
+   - New actions are applied to the current step and grant experiences
 4. **Metric Calculation**: All metrics are recalculated based on active actions
+5. **Experience Accumulation**: Experiences from actions are added to the step's experience map
 
 ### Historical Data
 
@@ -140,12 +183,20 @@ This data is used for dynamic percentage impacts, allowing investments to follow
   const longTermAction = { ...baseAction, remainingSteps: 12 };
   ```
 
-- **DO use the appropriate time point kind for your scenario**
+- **DO use type-safe experience definitions**
   ```typescript
-  // For monthly simulations
-  const questDescription = { ...baseDescription, timePointKind: "month" };
-  // For yearly simulations
-  const questDescription = { ...baseDescription, timePointKind: "year" };
+  // Good practice: Define experiences with proper types
+  const { experienceGain } = defineExperiences<"work" | "investments">();
+  const action = {
+    gainedExperiences: experienceGain(["work"]),
+    // ... other properties
+  };
+  ```
+
+- **DO check experiences safely**
+  ```typescript
+  // Good practice: Safe experience access
+  const workExperience = getStepExperience(currentStep, "work");
   ```
 
 ### DON'Ts
@@ -179,6 +230,15 @@ This data is used for dynamic percentage impacts, allowing investments to follow
   const impact = impact({ repeatedAbsoluteDelta: MONTHLY_SALARY });
   ```
 
+- **DON'T access experiences directly**
+  ```typescript
+  // WRONG: Direct Map access
+  const experience = step.experience.get("work") ?? 0;
+  
+  // CORRECT: Using the helper
+  const experience = getStepExperience(step, "work");
+  ```
+
 - **DON'T forget to handle edge cases**
   ```typescript
   // WRONG: Not handling edge cases
@@ -190,10 +250,12 @@ This data is used for dynamic percentage impacts, allowing investments to follow
 
 ## Advanced Usage
 
-### Creating Custom Actions
+### Creating Custom Actions with Experiences
 
 ```typescript
-import { Action, impact, constantPercent, absoluteImpact } from "lib/engine/actions";
+import { Action, impact, constantPercent, absoluteImpact, defineExperiences } from "lib/engine/actions";
+
+const { experienceGain } = defineExperiences<"work" | "investments">();
 
 const myCustomAction: Action = {
   name: "My Custom Action",
@@ -211,11 +273,12 @@ const myCustomAction: Action = {
   }),
   joyImpact: percentImpact(-5),
   freeTimeImpact: absoluteImpact(-10),
-  capital: 0
+  capital: 0,
+  gainedExperiences: experienceGain(["work", "investments"])
 };
 ```
 
-### Creating Custom Quests
+### Creating Custom Quests with Initial Experience
 
 ```typescript
 import { QuestDescription } from "lib/engine/quests";
@@ -232,7 +295,8 @@ const myCustomQuest: QuestDescription = {
     joy: 100,
     freeTimeHours: 100,
     newActions: [],
-    continuingActions: [lifeAction]
+    continuingActions: [lifeAction],
+    experience: new Map() // Start with no experience
   }
 };
 ```
@@ -258,9 +322,11 @@ const simulatedFinalStep = simulatedSteps[simulatedSteps.length - 1];
 
 console.log(`Original balance: ${originalFinalStep.bankAccount}`);
 console.log(`Simulated balance: ${simulatedFinalStep.bankAccount}`);
+console.log(`Original work exp: ${getStepExperience(originalFinalStep, "work")}`);
+console.log(`Simulated work exp: ${getStepExperience(simulatedFinalStep, "work")}`);
 ```
 
-### Tracking Action Durations
+### Tracking Action Durations and Experiences
 
 ```typescript
 import { getActionDurations } from "lib/engine/quests";
@@ -278,5 +344,22 @@ const getActiveActionsAtTimePoint = (timePoint) => {
 // Find actions that start at a specific time point
 const getActionsStartingAtTimePoint = (timePoint) => {
   return actionDurations.filter(({ startTimePoint }) => startTimePoint === timePoint);
+};
+
+// Get total experience gained during an action's duration
+const getExperienceGainedDuringAction = (action, quest) => {
+  const duration = actionDurations.find(d => d.action === action);
+  if (!duration) return new Map();
+  
+  const finalStep = quest.steps[duration.endTimePoint];
+  const startStep = quest.steps[duration.startTimePoint];
+  
+  const experienceDiff = new Map();
+  for (const [key, endValue] of finalStep.experience) {
+    const startValue = startStep.experience.get(key) ?? 0;
+    experienceDiff.set(key, endValue - startValue);
+  }
+  
+  return experienceDiff;
 };
 ```

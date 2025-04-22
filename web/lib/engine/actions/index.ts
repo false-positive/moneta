@@ -57,6 +57,7 @@ export type Step = {
 	 * The result of these actions is already apparent in the current step.
 	 */
 	continuingActions: Action[];
+	experience: Map<string, number>;
 };
 
 /**
@@ -241,8 +242,25 @@ export type Action = {
 	 * Used to identify the action in the UI.
 	 */
 	templateId?: number;
+
+	/**
+	 * The keys of the experiences that the action will add to the user.
+	 */
+	gainedExperiences: string[];
 };
 
+/**
+ * Calculates the new value of a metric after applying an impact.
+ * The calculation happens in two steps:
+ * 1. Add the absolute delta to the previous value
+ * 2. Apply the percentage change (which can be constant or from historical data)
+ *
+ * @param metricImpact - The impact to apply to the metric
+ * @param previousValue - The current value of the metric
+ * @param timePoint - The current time point in the simulation
+ * @param timePointKind - Whether the simulation runs in weeks/months/years
+ * @returns The new value of the metric after applying the impact
+ */
 function calculateMetric(
 	metricImpact: MetricImpact,
 	previousValue: number,
@@ -266,6 +284,17 @@ function calculateMetric(
 	return absoluteValue + absoluteValue * (percent / 100);
 }
 
+/**
+ * Applies an action to a step, calculating all metric changes and experience gains.
+ * If the action is new, its initial price is subtracted from the bank account.
+ * The action's remaining steps are decremented.
+ *
+ * @param action - The action to apply
+ * @param step - The step to apply the action to
+ * @param isNew - Whether this is the first time this action is being applied
+ * @param timePointKind - Whether the simulation runs in weeks/months/years
+ * @returns A new step with the action's effects applied
+ */
 function applyAction(
 	action: Action,
 	step: Step,
@@ -281,6 +310,11 @@ function applyAction(
 		timePointKind
 	);
 	newAction.remainingSteps--;
+
+	const newExperience = new Map(step.experience);
+	for (const experience of action.gainedExperiences) {
+		newExperience.set(experience, newExperience.get(experience) ?? 0 + 1);
+	}
 
 	return {
 		...step,
@@ -307,9 +341,17 @@ function applyAction(
 		),
 
 		continuingActions: [...step.continuingActions, newAction],
+		experience: newExperience,
 	} satisfies Step;
 }
 
+/**
+ * Checks if an action has finished (its remaining steps have reached 0).
+ * Throws an error if the remaining steps are negative.
+ *
+ * @param action - The action to check
+ * @returns True if the action has no remaining steps, false otherwise
+ */
 function isActionFinished(action: Action) {
 	invariant(
 		action.remainingSteps >= 0,
@@ -318,6 +360,15 @@ function isActionFinished(action: Action) {
 	return action.remainingSteps === 0;
 }
 
+/**
+ * Finalizes a finished action by adding its capital to the bank account.
+ * Only called for actions that have no remaining steps.
+ *
+ * @param action - The finished action to finalize
+ * @param step - The step to apply the finalization to
+ * @returns A new step with the action's capital added to the bank account
+ * @throws If the action is not finished (has remaining steps)
+ */
 function finishAction(action: Action, step: Step) {
 	invariant(
 		isActionFinished(action),
@@ -373,4 +424,44 @@ export function computeNextStep(
 	}
 
 	return nextStep;
+}
+
+/**
+ * Creates a type-safe experience system for a specific set of experience keys.
+ * Provides helper functions to safely get and set experiences.
+ *
+ * @template TExperienceKey - The literal type of valid experience keys
+ * @returns An object with helper functions for experience management:
+ *   - getStepExperience: Safely get the count of an experience
+ *   - experienceGain: Create an array of experiences to be gained
+ *
+ * @example
+ * ```typescript
+ * const { getStepExperience, experienceGain } = defineExperiences<
+ *   "work" | "investments"
+ * >();
+ *
+ * // Get experience count
+ * const workExp = getStepExperience(step, "work");
+ *
+ * // Create action with experiences
+ * const action = {
+ *   gainedExperiences: experienceGain(["work", "investments"])
+ * };
+ * ```
+ */
+export function defineExperiences<TExperienceKey extends string>() {
+	// TODO: define human readable names for experiences, etc. here. They will be passed as a parameter to this function and the TExperienceKey will be inferred from the parameter instead of being passed. The type will be changed to have names, etc. for frontend
+	return {
+		getStepExperience: (step: Step, experienceKey: TExperienceKey) => {
+			return step.experience.get(experienceKey) ?? 0;
+		},
+		experienceGain: (
+			gainedExperiences: TExperienceKey | TExperienceKey[]
+		) => {
+			return Array.isArray(gainedExperiences)
+				? gainedExperiences
+				: [gainedExperiences];
+		},
+	};
 }

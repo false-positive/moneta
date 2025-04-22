@@ -1,9 +1,10 @@
 import { noOpAction } from "@/lib/engine/actions/standard-actions";
 import { z } from "zod";
-import { QuestDescription } from "..";
+import { getCurrentStep, QuestDescription } from "..";
 import {
 	absoluteImpact,
 	constantPercent,
+	defineExperiences,
 	historyPercent,
 	impact,
 	noImpact,
@@ -15,6 +16,20 @@ import {
 	createConstantTemplate,
 	createCustomizableTemplate,
 } from "../../actions/templates";
+
+const { getStepExperience, experienceGain } = defineExperiences<
+	| "housing"
+	| "stable-investments"
+	| "savings-deposit"
+	| "etf-investment"
+	| "btc-investment"
+	| "gold-investment"
+	| "work"
+	| "waiter"
+	| "swe"
+	| "swe-junior"
+	| "swe-senior"
+>();
 
 const lifeActionTemplate = createConstantTemplate({
 	action: {
@@ -31,6 +46,7 @@ const lifeActionTemplate = createConstantTemplate({
 		joyImpact: percentImpact(-10),
 		freeTimeImpact: absoluteImpact(100), // hours per week
 		remainingSteps: Infinity,
+		gainedExperiences: experienceGain("housing"),
 	},
 	iconImageHref: "/icons/lifeAction.svg",
 	hardcodedPosition: { x: 600, y: 300 },
@@ -40,7 +56,7 @@ const lifeActionTemplate = createConstantTemplate({
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
 	questLLMDescription:
-		"Ivan is 18 years old and has 5000 BGN in his bank account. He lives with his parents and is looking for ways to grow his savings while maintaining a good work-life balance.",
+		"Ivan is 18 years old and has 5000 BGN in his bank account. He lives alone and is looking for ways to grow his savings while maintaining a good work-life balance.",
 	maxStepCount: 5,
 	timePointKind: "year",
 	initialStep: {
@@ -50,6 +66,7 @@ export const tutorialQuestDescription: QuestDescription = {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [applyActionTemplate(lifeActionTemplate, {})],
+		experience: new Map(),
 	},
 	goal: {
 		description:
@@ -75,6 +92,7 @@ export const tutorialQuestDescription: QuestDescription = {
 				joyImpact: percentImpact(-15), // Increased negative joy impact to reflect reduced independence
 				freeTimeImpact: absoluteImpact(120), // More free time as parents help with chores
 				remainingSteps: Infinity,
+				gainedExperiences: experienceGain("housing"),
 			},
 			iconImageHref: "/icons/liveWithParentsAction.png",
 			hardcodedPosition: { x: 575, y: 275 },
@@ -90,6 +108,10 @@ export const tutorialQuestDescription: QuestDescription = {
 				remainingSteps: 2, // years
 				joyImpact: noImpact,
 				freeTimeImpact: noImpact,
+				gainedExperiences: experienceGain([
+					"savings-deposit",
+					"stable-investments",
+				]),
 			},
 			userInputSchema: z.object({
 				initialDeposit: z.coerce
@@ -129,6 +151,10 @@ export const tutorialQuestDescription: QuestDescription = {
 				remainingSteps: 10, // years
 				joyImpact: noImpact,
 				freeTimeImpact: noImpact,
+				gainedExperiences: experienceGain([
+					"etf-investment",
+					"stable-investments",
+				]),
 			},
 			userInputSchema: z.object({
 				initialInvestment: z.coerce
@@ -156,15 +182,10 @@ export const tutorialQuestDescription: QuestDescription = {
 			iconImageHref: "/icons/etfInvestmentOnceAction.png",
 			hardcodedPosition: { x: 650, y: 300 },
 			isUnlocked: (quest) => {
-				const hasSavings = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) => action.name === "Savings Deposit"
-					)
-				);
-				return (
-					hasSavings &&
-					quest.steps[quest.currentStepIndex].bankAccount >= 5000
-				);
+				const currentStep = getCurrentStep(quest);
+				const hasSavings =
+					getStepExperience(currentStep, "savings-deposit") > 0;
+				return hasSavings && currentStep.bankAccount >= 5000;
 			},
 		}),
 		createConstantTemplate({
@@ -214,21 +235,15 @@ export const tutorialQuestDescription: QuestDescription = {
 					repeatedPercent: historyPercent("btc"),
 					initialPrice: userInput.investmentAmount,
 				}),
+				gainedExperiences: experienceGain("btc-investment"),
 			}),
 			iconImageHref: "/icons/cryptoInvestmentAction.png",
 			hardcodedPosition: { x: 700, y: 250 },
 			isUnlocked: (quest) => {
-				const hasStableInvestments = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.name.includes("ETF") ||
-							action.name.includes("Savings")
-					)
-				);
-				return (
-					hasStableInvestments &&
-					quest.steps[quest.currentStepIndex].bankAccount >= 10000
-				);
+				const currentStep = getCurrentStep(quest);
+				const hasStableInvestments =
+					getStepExperience(currentStep, "stable-investments") > 0;
+				return hasStableInvestments && currentStep.bankAccount >= 10000;
 			},
 		}),
 		createCustomizableTemplate({
@@ -257,21 +272,15 @@ export const tutorialQuestDescription: QuestDescription = {
 					repeatedPercent: historyPercent("gold"),
 					initialPrice: userInput.investmentAmount,
 				}),
+				gainedExperiences: experienceGain("gold-investment"),
 			}),
 			iconImageHref: "/icons/goldInvestmentAction.png",
 			hardcodedPosition: { x: 725, y: 275 },
 			isUnlocked: (quest) => {
-				const hasStableInvestments = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.name.includes("ETF") ||
-							action.name.includes("Savings")
-					)
-				);
-				return (
-					hasStableInvestments &&
-					quest.steps[quest.currentStepIndex].bankAccount >= 15000
-				);
+				const currentStep = getCurrentStep(quest);
+				const hasStableInvestments =
+					getStepExperience(currentStep, "stable-investments") > 0;
+				return hasStableInvestments && currentStep.bankAccount >= 15000;
 			},
 		}),
 		createCustomizableTemplate({
@@ -330,18 +339,14 @@ export const tutorialQuestDescription: QuestDescription = {
 			iconImageHref: "/icons/skiTripAction.png",
 			hardcodedPosition: { x: 575, y: 325 },
 			isUnlocked: (quest) => {
-				const hasStableIncome = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.kind === "income" &&
-							action.bankAccountImpact.repeatedAbsoluteDelta >=
-								1400 * 12
-					)
+				const currentStep = getCurrentStep(quest);
+				const hasStableIncome = currentStep.continuingActions.some(
+					(action) =>
+						action.kind === "income" &&
+						action.bankAccountImpact.repeatedAbsoluteDelta >=
+							1400 * 12
 				);
-				return (
-					hasStableIncome &&
-					quest.steps[quest.currentStepIndex].bankAccount >= 3000
-				);
+				return hasStableIncome && currentStep.bankAccount >= 3000;
 			},
 		}),
 		createConstantTemplate({
@@ -360,18 +365,14 @@ export const tutorialQuestDescription: QuestDescription = {
 			iconImageHref: "/icons/hobbyMotorbikeRidingAction.png",
 			hardcodedPosition: { x: 550, y: 300 },
 			isUnlocked: (quest) => {
-				const hasStableIncome = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.kind === "income" &&
-							action.bankAccountImpact.repeatedAbsoluteDelta >=
-								2000 * 12
-					)
+				const currentStep = getCurrentStep(quest);
+				const hasStableIncome = currentStep.continuingActions.some(
+					(action) =>
+						action.kind === "income" &&
+						action.bankAccountImpact.repeatedAbsoluteDelta >=
+							2000 * 12
 				);
-				return (
-					hasStableIncome &&
-					quest.steps[quest.currentStepIndex].bankAccount >= 25000
-				);
+				return hasStableIncome && currentStep.bankAccount >= 25000;
 			},
 		}),
 		createConstantTemplate({
@@ -394,21 +395,15 @@ export const tutorialQuestDescription: QuestDescription = {
 			iconImageHref: "/icons/havingAKidAction.png",
 			hardcodedPosition: { x: 600, y: 350 },
 			isUnlocked: (quest) => {
-				const hasStableIncome = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.kind === "income" &&
-							action.bankAccountImpact.repeatedAbsoluteDelta >=
-								3000 * 12
-					)
+				const currentStep = getCurrentStep(quest);
+				const hasStableIncome = currentStep.continuingActions.some(
+					(action) =>
+						action.kind === "income" &&
+						action.bankAccountImpact.repeatedAbsoluteDelta >=
+							3000 * 12
 				);
-				const hasHousing = quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.name === "Life" ||
-							action.name === "Live with parents"
-					)
-				);
+				const hasHousing =
+					getStepExperience(currentStep, "housing") > 0;
 				return (
 					hasStableIncome &&
 					hasHousing &&
@@ -428,6 +423,7 @@ export const tutorialQuestDescription: QuestDescription = {
 				joyImpact: absoluteImpact(-5),
 				freeTimeImpact: absoluteImpact(-20), // hours per week
 				remainingSteps: Infinity,
+				gainedExperiences: experienceGain(["work", "waiter"]),
 			},
 			iconImageHref: "/icons/waiterPartTimeJobAction.png",
 			hardcodedPosition: { x: 600, y: 250 },
@@ -445,15 +441,12 @@ export const tutorialQuestDescription: QuestDescription = {
 				joyImpact: absoluteImpact(-12),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
 				remainingSteps: Infinity,
+				gainedExperiences: experienceGain(["work", "waiter"]),
 			},
 			iconImageHref: "/icons/waiterFullTimeJobAction.png",
 			hardcodedPosition: { x: 625, y: 225 },
 			isUnlocked: (quest) =>
-				quest.steps.some((step) =>
-					step.continuingActions.some(
-						(action) => action.name === "Part-time job as a waiter"
-					)
-				),
+				getStepExperience(getCurrentStep(quest), "waiter") > 0,
 		}),
 		createConstantTemplate({
 			action: {
@@ -467,19 +460,20 @@ export const tutorialQuestDescription: QuestDescription = {
 				joyImpact: absoluteImpact(-8),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
 				remainingSteps: Infinity,
+
+				gainedExperiences: experienceGain([
+					"work",
+					"swe",
+					"swe-junior",
+				]),
 			},
 			iconImageHref: "/icons/juniorSweJobAction.png",
 			hardcodedPosition: { x: 575, y: 225 },
 			isUnlocked: (quest) => {
-				const hasWorkExperience = quest.steps.some((step) =>
-					step.continuingActions.some((action) =>
-						action.name.includes("waiter")
-					)
-				);
-				return (
-					hasWorkExperience &&
-					quest.steps[quest.currentStepIndex].timePoint >= 2021
-				);
+				const currentStep = getCurrentStep(quest);
+				const hasWorkExperience =
+					getStepExperience(currentStep, "work") > 0;
+				return hasWorkExperience && currentStep.timePoint >= 2021;
 			},
 		}),
 		createConstantTemplate({
@@ -494,16 +488,16 @@ export const tutorialQuestDescription: QuestDescription = {
 				joyImpact: absoluteImpact(-8),
 				freeTimeImpact: absoluteImpact(-40), // hours per week
 				remainingSteps: Infinity,
+				gainedExperiences: experienceGain(["swe", "swe-senior"]),
 			},
 			iconImageHref: "/icons/seniorSweJobAction.png",
 			hardcodedPosition: { x: 600, y: 200 },
 			isUnlocked: (quest) => {
-				const juniorYears = quest.steps.filter((step) =>
-					step.continuingActions.some(
-						(action) =>
-							action.name === "Job as a junior software engineer"
-					)
-				).length;
+				const currentStep = getCurrentStep(quest);
+				const juniorYears = getStepExperience(
+					currentStep,
+					"swe-junior"
+				);
 				return juniorYears >= 3;
 			},
 		}),
