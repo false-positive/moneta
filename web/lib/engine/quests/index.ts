@@ -1,5 +1,6 @@
 import invariant from "tiny-invariant";
 import { Action, computeNextStep, Step, TimePointKind } from "../actions";
+import { ActionTemplate } from "../actions/templates";
 
 /**
  * A description of a quest, predefined in the given levels.
@@ -46,6 +47,10 @@ export type QuestDescription = {
 		 */
 		goalReached: (options: { lastStep: Step; quest: Quest }) => boolean;
 	};
+	/**
+	 * A list of action templates that are available to the user.
+	 */
+	actionTemplates: ReadonlyArray<ActionTemplate>;
 };
 
 /**
@@ -72,6 +77,12 @@ export type Quest = {
 	 * Value will always be within the bounds of {@link QuestDescription.maxStepCount}.
 	 */
 	currentStepIndex: number;
+	/**
+	 * The index of the latest step that the user has unlocked.
+	 *
+	 * Value will always be within the bounds of {@link QuestDescription.maxStepCount}.
+	 */
+	greatestUnlockedStepIndex: number;
 };
 
 /**
@@ -99,15 +110,16 @@ export function simulateWithActions(
 	questDescription: QuestDescription,
 	newActionsPerStep: Action[][]
 ) {
-	const firstStep = {
+	const previousStep = {
 		...questDescription.initialStep,
 		newActions: [
 			...questDescription.initialStep.newActions,
 			...newActionsPerStep[0],
 		],
+		timePoint: questDescription.initialStep.timePoint - 1,
 	};
-	const steps = [firstStep];
-	for (const actions of newActionsPerStep.slice(1)) {
+	const steps = [previousStep];
+	for (const actions of newActionsPerStep) {
 		steps.push(
 			computeNextStep(
 				steps[steps.length - 1],
@@ -116,7 +128,7 @@ export function simulateWithActions(
 			)
 		);
 	}
-	return steps;
+	return steps.slice(1);
 }
 
 /**

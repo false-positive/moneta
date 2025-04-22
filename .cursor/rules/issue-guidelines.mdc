@@ -1,0 +1,109 @@
+---
+description: Opening and managing GitHub issues
+globs: 
+alwaysApply: false
+---
+# Issue Creation Guidelines
+
+This document outlines the standard format and best practices for creating issues in the Moneta project.
+
+The repository for moneta is false-positive/moneta on GitHub.
+
+## Issue Structure
+
+### Title
+- Clear and concise
+- Start with a verb for features ("Add", "Create", "Implement") or with the component name for bugs
+- Use present tense
+
+### Labels
+Common labels include:
+- `frontend` - UI/UX related changes
+- `backend` - Server-side changes
+- `proposal` - New feature proposals
+- `bug` - Issue reports
+- `engine` - Simulation engine related
+- `state management` - XState Store state management related
+- `documentation` - Documentation updates
+- `NO ASSIGNEE` - if no one is assigned to the issue (remove when assigning people)
+- `help wanted` - Extra attention is needed, or it something is blovking it
+
+### Milestone
+All active development should be assigned to the "First Launch" milestone (#1) which targets the TUES Fest 2025 demo.
+
+## Content Guidelines
+
+### For Feature Proposals
+
+```markdown
+I propose adding [feature description in one sentence].
+
+![Image/Mockup if applicable]
+
+The core idea is to [explain the main concept and its value to users].
+
+Here are some proposed elements for the feature:
+
+* **Component/Element 1:** Description
+* **Component/Element 2:** Description
+    * Sub-detail 1
+    * Sub-detail 2
+    * Sub-detail 3
+
+[Optional: Technical/Implementation details section]
+
+This feature aims to [describe the intended impact/benefit].
+
+Key points for discussion:
+
+* [Question about implementation/design choice]
+* [Question about user experience]
+* [Question about technical approach]
+* [Question about integration with existing features]
+
+Looking forward to feedback on this proposal!
+```
+
+### For Bug Reports
+
+```markdown
+**Current Behavior:**
+[Describe what currently happens]
+
+**Expected Behavior:**
+[Describe what should happen]
+
+**Steps to Reproduce:**
+1. [First Step]
+2. [Second Step]
+3. [Additional Steps...]
+
+**Screenshots:**
+[If applicable]
+
+**Technical Details:**
+- Browser/Environment: [e.g., Chrome 121]
+- Quest Name: [if applicable]
+- Action Name: [if applicable]
+
+**Additional Context:**
+[Any other relevant information]
+```
+
+## Best Practices
+
+1. **Completeness**: Include all relevant information in the initial description
+2. **Clarity**: Use clear, specific language and avoid ambiguity
+3. **Formatting**: Use Markdown formatting for better readability
+   - `**Bold**` for section headers
+   - Lists for multiple items
+   - Code blocks for technical details
+4. **Screenshots**: Include mockups or screenshots when relevant to UI changes
+5. **Discussion**: End feature proposals with discussion points to encourage collaboration
+6. **Cross-referencing**: Link related issues using #[issue-number]
+
+## Examples
+
+See these issues for reference:
+- Feature Proposal: [End of time point screen #58](mdc:https:/github.com/false-positive/moneta/issues/58)
+- Bankruptcy Screen: [Bankruptcy notification screen #67](mdc:https:/github.com/false-positive/moneta/issues/67)

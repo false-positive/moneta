@@ -1,0 +1,239 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Action Templates Documentation
+
+Action templates are a core part of Moneta's simulation system, defining available actions that users can take during their financial journey. They are implemented in [web/lib/engine/actions/templates.ts](mdc:web/lib/engine/actions/templates.ts) and used extensively in [web/components/action-template-tree.tsx](mdc:web/components/action-template-tree.tsx).
+
+## Core Concepts
+
+### Template Types
+
+There are two types of action templates:
+
+1. **Constant Templates** (`ConstantActionTemplate`)
+   - Contains a predefined action with fixed properties
+   - Used for simple actions that don't require user input
+   - Created using `createConstantTemplate()`
+
+2. **Customizable Templates** (`CustomizableActionTemplate`)
+   - Allows user configuration through a form schema
+   - Uses Zod for input validation and form generation
+   - Created using `createCustomizableTemplate()`
+   - Combines a base action with user input to create the final action
+
+### Special Template Rules
+
+1. **Job Templates**
+   - All job-related templates MUST have `remainingSteps: Infinity`
+   - Users cannot choose job duration - it continues until they make another job choice
+   - This applies to both part-time and full-time jobs
+   - Examples: waiter jobs, software engineer positions, etc.
+
+### Template Structure
+
+Each template has these common properties:
+
+```typescript
+interface ActionTemplateBase {
+    id: number;                    // Unique identifier
+    iconImageHref: string;         // Path to template's icon
+    hardcodedPosition: {           // Position in the action tree visualization
+        x: number;
+        y: number;
+    };
+    isUnlocked: (quest: Quest) => boolean;  // Availability condition
+}
+```
+
+## Creating Templates
+
+### Base Action Properties
+
+In customizable templates, the `baseAction` property defines the unchangeable aspects of the action. It requires:
+
+```typescript
+interface RequiredActionProperties {
+    kind: ActionKind;           // The type of action (income, expense, etc.)
+    name: string;              // Display name of the action
+    shortDescription: string;  // Brief description for UI
+    llmDescription: string;   // Detailed description for AI assistant
+    remainingSteps: number;   // Duration of the action
+}
+```
+
+- Only these properties are mandatory in `baseAction`
+- Other properties (impacts, capital, etc.) are optional
+- Use `baseAction` for properties that won't change based on user input
+- The `apply` function will combine `baseAction` with user input to create the complete action
+
+### Zod Schema Best Practices
+
+Use Zod's rich feature set to create engaging and user-friendly forms:
+
+```typescript
+createCustomizableTemplate({
+    baseAction: {
+        name: "ETF Investment - One-off",
+        kind: "investment",
+        shortDescription: "Buy an ETF fund",
+        llmDescription: "Buy an ETF fund",
+        remainingSteps: 10
+    },
+    userInputSchema: z.object({
+        initialInvestment: z.coerce
+            .number()
+            .min(1000, "Minimum investment is 1,000 BGN")
+            .max(100000, "Maximum investment is 100,000 BGN")
+            .default(10000)
+            .describe("How much would you like to invest initially?"),
+            
+        monthlyContribution: z.coerce
+            .number()
+            .min(0, "Monthly contribution cannot be negative")
+            .max(10000, "Maximum monthly contribution is 10,000 BGN")
+            .default(0)
+            .describe("How much would you like to invest monthly? (Optional)"),
+    }),
+    apply: (baseAction, userInput) => ({
+        ...baseAction,
+        investmentImpact: impact({
+            repeatedPercent: historyPercent("etf"),
+            initialPrice: userInput.initialInvestment,
+            repeatedPrice: userInput.monthlyContribution
+        }),
+        // Additional properties based on user input
+    }),
+    // ... other template properties
+})
+```
+
+Key Zod Features to Use:
+
+1. **Field Descriptions**
+   - Use `.describe()` for clear field labels
+   - Descriptions appear in the UI and help users understand inputs
+   - Can include markdown formatting for rich text
+
+2. **Validation Messages**
+   - Custom error messages with `.min()`, `.max()`, etc.
+   - Provide context-specific feedback
+   - Help users understand limits and requirements
+
+3. **Default Values**
+   - Set sensible defaults with `.default()`
+   - Consider user context when setting defaults
+   - Make common choices easier
+
+4. **Type Coercion**
+   - Use `z.coerce` for automatic type conversion
+   - Helps handle string inputs from form fields
+   - Reduces manual type conversion code
+
+5. **Value Types**
+   - Only `number` values are supported
+   - Create numeric inputs automatically
+   - Dropdowns and radio buttons are *NOT* supported
+
+6. **Complex Validation**
+   - Use `.refine()` for custom validation logic
+   - Validate relationships between fields
+   - Implement business rules and constraints
+
+7. **Schema Shape**
+   - Keep all properties at the top level object
+   - Give any arbitrary descriptive name to the properties
+   - Refer to the properties by their correc tnames in `apply()`
+
+## Visual Representation
+
+Action templates are visualized in a tree structure using D3.js. Each template is represented by:
+
+- A rhombus shape node
+- An icon in the center
+- Color coding based on action kind:
+  - Investment: Amber (#f59e0b)
+  - Income: Emerald (#10b981)
+  - Expense: Rose (#ef4444)
+  - Other: Green (#34d399)
+
+## Usage in Components
+
+### Template Selection
+
+```typescript
+const [selectedTemplate, setSelectedTemplate] = useState<ActionTemplate | null>(null);
+
+// When a template is selected
+const handleActionTemplateChosen = (
+    actionTemplate: ActionTemplate,
+    userInput: z.ZodRawShape
+) => {
+    const action = applyActionTemplate(actionTemplate, userInput);
+    setNewActions([...newActions, action]);
+};
+```
+
+### Form Generation
+
+Forms for customizable templates are automatically generated based on the `userInputSchema`:
+
+```typescript
+const schema = getFormSchema(template);
+const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: template.templateKind === "user-customizable"
+        ? Object.fromEntries(
+            Object.entries(template.userInputSchema.shape).map(
+                ([name, field]) => [
+                    name,
+                    field._def.defaultValue?.() ?? 0
+                ]
+            )
+        )
+        : {}
+});
+```
+
+## Best Practices
+
+1. **Template Creation**
+   - Use `createConstantTemplate()` for fixed actions
+   - Use `createCustomizableTemplate()` for configurable actions
+   - Always provide clear descriptions and icons
+
+2. **Action Impacts**
+   - Define all impacts (bank account, investment, joy, free time)
+   - Use appropriate impact types (absolute, percent, or combined)
+   - Consider long-term effects when setting remainingSteps
+
+3. **User Input**
+   - Use Zod schemas for validation
+   - Provide sensible default values
+   - Include descriptive field labels
+
+4. **Visual Layout**
+   - Position templates logically in the tree
+   - Group related actions together
+   - Use consistent spacing between nodes
+
+5. **State Management**
+   - Track applied templates using templateId
+   - Update quest store when actions are confirmed
+   - Handle template unlocking conditions
+
+## Common Pitfalls
+
+1. **DO NOT**
+   - Modify template IDs directly
+   - Forget to handle template unlocking conditions
+   - Mix action kinds inappropriately
+   - Omit impact definitions
+
+2. **DO**
+   - Use type-safe template creation functions
+   - Validate user input thoroughly
+   - Consider performance with large template trees
+   - Maintain consistent visual hierarchy

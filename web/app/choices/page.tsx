@@ -1,15 +1,15 @@
 "use client";
 
+import { ActionTemplateTree } from "@/components/action-template-tree";
+import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
 import { WelcomeDialog } from "@/components/welcome-dialog";
-import SkillTree from "@/components/skill-tree";
-import { useState } from "react";
+import { questStore } from "@/lib/stores/quest-store";
 import { tutorialStore } from "@/lib/stores/tutorial-store";
 import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/stores/quest-store";
-import { Heart, Wallet, Clock } from "lucide-react";
-import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
+import { Clock, Heart, Wallet } from "lucide-react";
+import { useState } from "react";
 
-export default function TestPage() {
+export default function ChoicesPage() {
 	const currentTutorialStepIndex = useSelector(
 		tutorialStore,
 		(state) => state.context.currentStepIndex
@@ -53,7 +53,7 @@ export default function TestPage() {
 				What is the best financial choice in your opinion?
 			</h1>
 			<div className="h-[800px]">
-				<SkillTree />
+				<ActionTemplateTree />
 			</div>
 
 			{currentDialog === "welcome" && (

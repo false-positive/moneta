@@ -8,7 +8,7 @@ import {
 	constantPercent,
 } from ".";
 
-const noOpAction: Action = {
+export const noOpAction: Action = {
 	name: "No Op",
 	kind: "other",
 	shortDescription: "Do nothing",
@@ -19,6 +19,7 @@ const noOpAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingSteps: 1,
+	gainedExperiences: [],
 };
 
 export const lifeAction: Action = {

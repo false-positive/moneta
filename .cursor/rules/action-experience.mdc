@@ -1,0 +1,205 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Action Experience System Documentation
+
+The Action Experience system allows tracking user progression through different activities and unlocking new actions based on accumulated experience. This is implemented through a type-safe experience tracking system.
+
+## Core Concepts
+
+### Experience Types
+
+Experiences are string literals that represent different skills, knowledge, or achievements. They are defined using TypeScript's type system:
+
+```typescript
+type ExperienceTypes = 
+  | "housing"              // Housing-related experiences
+  | "stable-investments"   // Low-risk investment experience
+  | "savings-deposit"      // Experience with savings accounts
+  | "etf-investment"      // Experience with ETF investments
+  | "btc-investment"      // Experience with cryptocurrency
+  | "gold-investment"     // Experience with gold investments
+  | "work"                // General work experience
+  | "waiter"              // Specific job experience
+  | "swe"                 // Software engineering experience
+  | "swe-junior"          // Junior SWE specific experience
+  | "swe-senior";         // Senior SWE specific experience
+```
+
+### Experience Tracking
+
+Each step in the simulation tracks experiences using a Map:
+
+```typescript
+type Step = {
+  experience: Map<string, number>;  // Maps experience type to count
+  // ... other step properties
+};
+```
+
+## Using the Experience System
+
+### 1. Defining Experiences
+
+Use the `defineExperiences` helper to create a type-safe experience system:
+
+```typescript
+const { getStepExperience, experienceGain } = defineExperiences<ExperienceTypes>();
+```
+
+### 2. Adding Experiences to Actions
+
+When creating an action template, use `experienceGain` to specify gained experiences:
+
+```typescript
+const juniorSweTemplate = createConstantTemplate({
+  action: {
+    name: "Job as a junior software engineer",
+    kind: "income",
+    bankAccountImpact: impact({
+      repeatedAbsoluteDelta: 3000 * 12, // 3000 BGN monthly
+    }),
+    // Add multiple experiences
+    gainedExperiences: experienceGain([
+      "work",
+      "swe",
+      "swe-junior"
+    ]),
+    // ... other action properties
+  }
+});
+
+const savingsTemplate = createConstantTemplate({
+  action: {
+    name: "Savings Deposit",
+    // Add single experience
+    gainedExperiences: experienceGain("savings-deposit"),
+    // ... other action properties
+  }
+});
+```
+
+### 3. Checking Experience for Action Unlocking
+
+Use `getStepExperience` to check accumulated experience:
+
+```typescript
+const seniorSweTemplate = createConstantTemplate({
+  action: {
+    name: "Job as a senior software engineer",
+    // ... action properties
+  },
+  isUnlocked: (quest) => {
+    const currentStep = getCurrentStep(quest);
+    // Check years of junior experience
+    const juniorYears = getStepExperience(currentStep, "swe-junior");
+    return juniorYears >= 3;
+  }
+});
+
+const cryptoTemplate = createConstantTemplate({
+  action: {
+    name: "Bitcoin Investment",
+    // ... action properties
+  },
+  isUnlocked: (quest) => {
+    const currentStep = getCurrentStep(quest);
+    // Check for stable investment experience
+    const hasStableInvestments = 
+      getStepExperience(currentStep, "stable-investments") > 0;
+    return hasStableInvestments && currentStep.bankAccount >= 10000;
+  }
+});
+```
+
+## Best Practices
+
+1. **Type Safety**
+   - Always use `defineExperiences<T>()` with proper type definition
+   - Let TypeScript catch experience key typos at compile time
+
+2. **Experience Granularity**
+   - Use specific experiences for specialized skills (e.g., "swe-junior")
+   - Use general experiences for broader categories (e.g., "work")
+   - Grant multiple experiences when appropriate
+
+3. **Progressive Unlocking**
+   - Use experience checks to create clear progression paths
+   - Combine experience requirements with other conditions (e.g., bank balance)
+   - Consider required experience counts carefully
+
+4. **Documentation**
+   - Document experience types and their purpose
+   - Explain progression paths in comments
+   - Keep experience names consistent and clear
+
+## Common Patterns
+
+### Career Progression
+
+```typescript
+// Entry level job
+const waiterTemplate = createConstantTemplate({
+  action: {
+    gainedExperiences: experienceGain(["work", "waiter"]),
+    // ... other properties
+  }
+});
+
+// Mid-level job requiring experience
+const juniorSweTemplate = createConstantTemplate({
+  action: {
+    gainedExperiences: experienceGain(["work", "swe", "swe-junior"]),
+    // ... other properties
+  },
+  isUnlocked: (quest) => {
+    const currentStep = getCurrentStep(quest);
+    return getStepExperience(currentStep, "work") > 0;
+  }
+});
+
+// Senior position requiring specific experience
+const seniorSweTemplate = createConstantTemplate({
+  action: {
+    gainedExperiences: experienceGain(["swe", "swe-senior"]),
+    // ... other properties
+  },
+  isUnlocked: (quest) => {
+    const currentStep = getCurrentStep(quest);
+    return getStepExperience(currentStep, "swe-junior") >= 3;
+  }
+});
+```
+
+### Investment Progression
+
+```typescript
+// Basic investment
+const savingsTemplate = createConstantTemplate({
+  action: {
+    gainedExperiences: experienceGain([
+      "savings-deposit",
+      "stable-investments"
+    ]),
+    // ... other properties
+  }
+});
+
+// Advanced investment requiring experience
+const etfTemplate = createConstantTemplate({
+  action: {
+    gainedExperiences: experienceGain([
+      "etf-investment",
+      "stable-investments"
+    ]),
+    // ... other properties
+  },
+  isUnlocked: (quest) => {
+    const currentStep = getCurrentStep(quest);
+    const hasSavings = getStepExperience(currentStep, "savings-deposit") > 0;
+    return hasSavings && currentStep.bankAccount >= 5000;
+  }
+});
+```

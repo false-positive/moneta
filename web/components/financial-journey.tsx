@@ -32,7 +32,7 @@ function JourneyNode({
 	point: [number, number];
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
-	onClick: () => void;
+	onClick: (e: React.MouseEvent) => void;
 	ref?: React.RefObject<HTMLDivElement>;
 	className?: string;
 }) {
@@ -61,7 +61,7 @@ function JourneyNode({
 
 	const handleNodeClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		onClick();
+		onClick(e);
 
 		// Only route to choices if this is the currently selected timePoint
 		if (isCurrentTimePoint) {
@@ -200,9 +200,9 @@ export function FinancialJourney({
 		(state) => state.context.description.initialStep.timePoint
 	);
 
-	const stepsLength = useSelector(
+	const greatestUnlockedStepIndex = useSelector(
 		questStore,
-		(state) => state.context.steps.length
+		(state) => state.context.greatestUnlockedStepIndex
 	);
 
 	const currentTimePoint = useSelector(
@@ -220,7 +220,7 @@ export function FinancialJourney({
 				};
 			}
 
-			if (timePoint <= initialTimePoint + stepsLength - 1) {
+			if (timePoint <= initialTimePoint + greatestUnlockedStepIndex) {
 				return {
 					color: "bg-indigo-500 border-indigo-600",
 					icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
@@ -232,7 +232,7 @@ export function FinancialJourney({
 				icon: <Lock className="h-4 w-4 text-gray-500" />,
 			};
 		},
-		[initialTimePoint, stepsLength, currentTimePoint]
+		[initialTimePoint, greatestUnlockedStepIndex, currentTimePoint]
 	);
 
 	return (
