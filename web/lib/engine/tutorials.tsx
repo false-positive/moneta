@@ -4,6 +4,7 @@ import isEqual from "lodash/isEqual";
 export type TutorialSpotMarker =
 	| { kind: "welcome-dialog" }
 	| { kind: "goal-dialog" }
+	| { kind: "action-template-tree"; instance: { templateId: number } }
 	| { kind: "submit-choice-button" }
 	| { kind: "timeline" }
 	| { kind: "timeline-unit"; instance: { unit: string | number } }
@@ -50,6 +51,22 @@ export const tutorialSteps: TutorialStep[] = [
 			</>
 		),
 		popoverSide: "right",
+		blockInteractions: true,
+	},
+	{
+		marker: { kind: "action-template-tree", instance: { templateId: 12 } },
+		title: "Your First Job",
+		description: (
+			<>
+				Let's start with a basic job as a waiter.
+				<br />
+				This will give you a steady income to build upon.
+				<br />
+				Click on this node to see the details and apply for the job.
+			</>
+		),
+		popoverSide: "right",
+		// FIXME: This should be true, but we need to fix the tutorial first
 		blockInteractions: false,
 	},
 	{
@@ -109,13 +126,14 @@ export const tutorialSteps: TutorialStep[] = [
 				Click on the second step to select it as{" "}
 				<strong>current</strong>.
 				<br />
-				You already made a descicion for the first one, so now select
-				the <strong>second</strong>.
+				You already made a decision for the first one, so now select the{" "}
+				<strong>second</strong>.
 			</>
 		),
 		popoverSide: "top",
 		pulse: true,
-		blockInteractions: true,
+		// FIXME: This should be true, but we need to fix the tutorial first
+		blockInteractions: false,
 	},
 	{
 		marker: { kind: "post-action-button" },

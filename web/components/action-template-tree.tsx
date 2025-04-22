@@ -70,7 +70,10 @@ function TutorialSpotPortal({
 	return ReactDOM.createPortal(
 		<div style={{ width: "100%", height: "100%" }}>
 			<TutorialSpot
-				marker={{ kind: "action-template", instance: { templateId } }}
+				marker={{
+					kind: "action-template-tree",
+					instance: { templateId },
+				}}
 			>
 				<TutorialTrigger asChild>{children}</TutorialTrigger>
 				<TutorialPopoverContent />
@@ -210,20 +213,22 @@ function ActionTemplateTreeVisualization({
 						>
 							<TutorialSpot
 								marker={{
-									kind: "action-template",
+									kind: "action-template-tree",
 									instance: { templateId: template.id },
 								}}
 							>
-								<TutorialTrigger asChild>
-									<div
-										style={{
-											position: "absolute",
-											inset: 0,
-											pointerEvents: "auto",
-										}}
-										onClick={handleClick}
-									/>
-								</TutorialTrigger>
+								<TutorialHighlight>
+									<TutorialTrigger asChild>
+										<div
+											style={{
+												position: "absolute",
+												inset: 0,
+												pointerEvents: "auto",
+											}}
+											onClick={handleClick}
+										/>
+									</TutorialTrigger>
+								</TutorialHighlight>
 								<TutorialPopoverContent />
 							</TutorialSpot>
 						</div>
@@ -367,18 +372,23 @@ function NodeDetails({
 								unlock it!
 							</div>
 						)}
-						<Button
-							type="submit"
-							className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-							disabled={!isUnlocked}
-						>
-							{getAction(template).kind === "investment"
-								? "Invest"
-								: getAction(template).kind === "income"
-								? "Work"
-								: "Accept Expense"}
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
+						<TutorialSpot marker={{ kind: "post-action-button" }}>
+							<TutorialTrigger asChild>
+								<Button
+									type="submit"
+									className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+									disabled={!isUnlocked}
+								>
+									{getAction(template).kind === "investment"
+										? "Invest"
+										: getAction(template).kind === "income"
+										? "Work"
+										: "Accept Expense"}
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Button>
+							</TutorialTrigger>
+							<TutorialPopoverContent />
+						</TutorialSpot>
 					</>
 				)}
 			</form>
