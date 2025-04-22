@@ -17,6 +17,7 @@ test("life action", () => {
 		freeTimeHours: 2134,
 		newActions: [],
 		continuingActions: [lifeAction],
+		experience: new Map(),
 	};
 
 	const nextStep = computeNextStep(initialStep, [], "month");
@@ -40,6 +41,7 @@ test("waiter job action", () => {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [],
+		experience: new Map(),
 	};
 
 	const nextStep = computeNextStep(initialStep, [waiterJobAction], "month");
@@ -61,6 +63,7 @@ test("waiter job action with multiple steps", () => {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [],
+		experience: new Map(),
 	};
 
 	const job = (steps: number) => ({
@@ -101,6 +104,7 @@ test("savings deposit action with multiple steps", () => {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [],
+		experience: new Map(),
 	};
 
 	const invest = (steps: number, capital: number) => ({
@@ -146,6 +150,7 @@ test("multiple overlapping actions", () => {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [lifeAction],
+		experience: new Map(),
 	};
 
 	const job = (steps: number) => ({
@@ -231,6 +236,7 @@ test("pension deposit action with multiple steps", () => {
 		freeTimeHours: 100,
 		newActions: [],
 		continuingActions: [],
+		experience: new Map(),
 	};
 
 	const invest = (steps: number, capital: number) => ({
