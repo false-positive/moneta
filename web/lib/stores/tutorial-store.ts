@@ -1,15 +1,14 @@
 import { createStore } from "@xstate/store";
 import { useSelector } from "@xstate/store/react";
 import { useRef } from "react";
-import {
-	stepMatchesMarker,
-	TutorialSpotMarker,
-	tutorialSteps,
-} from "../engine/tutorials";
+import { stepMatchesMarker, TutorialSpotMarker } from "../engine/tutorials";
+import { questDescriptions } from "../engine/quests/descriptions";
+
+const initialQuestDescription = questDescriptions.tutorial;
 
 export const tutorialStore = createStore({
 	context: {
-		steps: tutorialSteps,
+		steps: initialQuestDescription.tutorialSteps,
 		currentStepIndex: -1, // Start at -1 so first nextStep brings us to index 0
 	},
 	on: {
