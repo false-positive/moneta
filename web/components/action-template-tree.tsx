@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
 	ActionTemplate,
 	applyActionTemplate,
+	CustomizableActionTemplate,
 	getAction,
 } from "@/lib/engine/actions/templates";
 import { getCurrentStep } from "@/lib/engine/quests";
@@ -32,6 +33,16 @@ import {
 	TutorialTrigger,
 } from "./tutorial";
 import { Action } from "@/lib/engine/actions";
+import { FieldValues, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "./ui/form";
 
 // D3 Action Template Tree Visualization Component
 function ActionTemplateTreeVisualization({
@@ -153,7 +164,7 @@ function ConfigurationPanel({
 	repeatedPrice,
 	setRepeatedPrice,
 }: {
-	template: ActionTemplate;
+	template: CustomizableActionTemplate;
 	endPoints: number;
 	setEndPoints: (value: number) => void;
 	initialPrice: number;
@@ -161,72 +172,59 @@ function ConfigurationPanel({
 	repeatedPrice: number;
 	setRepeatedPrice: (value: number) => void;
 }) {
-	// TODO(tech-debt): Fix this pattern of getting action from template - it's a hack that needs proper typing
-	const action =
-		template.templateKind === "constant"
-			? template.action
-			: template.initialAction;
+	// Get the shape and prepare default values
+	const fields = Object.entries(template.userInputSchema.shape);
+	const defaultValues = Object.fromEntries(
+		fields.map(([name, field]) => [name, field._def.defaultValue?.()])
+	);
 
-	if (!action.canChangeInitialPrice && !action.canChangeRepeatedPrice) {
-		return null;
+	const form = useForm({
+		resolver: zodResolver(template.userInputSchema),
+		defaultValues,
+	});
+
+	function onSubmit(data: FieldValues) {
+		console.log(data);
 	}
 
 	return (
-		<div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-			<h4 className="font-medium text-gray-700">Configuration</h4>
-			{action.kind === "investment" && (
-				<div>
-					<Label htmlFor="ticks" className="text-sm text-gray-600">
-						Years
-					</Label>
-					<Input
-						id="ticks"
-						type="number"
-						value={endPoints}
-						onChange={(e) => setEndPoints(Number(e.target.value))}
-						className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="space-y-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm"
+			>
+				<h4 className="font-medium text-gray-700">Configuration</h4>
+				{fields.map(([fieldName, fieldSchema]) => (
+					<FormField
+						key={fieldName}
+						control={form.control}
+						name={fieldName}
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel
+									htmlFor={fieldName}
+									className="text-sm text-gray-600"
+								>
+									{/* Use description if available, otherwise fallback to formatted field name */}
+									{fieldSchema.description ||
+										fieldName.charAt(0).toUpperCase() +
+											fieldName.slice(1)}
+								</FormLabel>
+								<FormControl>
+									<Input
+										id={fieldName}
+										type="number"
+										{...field}
+										className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
-				</div>
-			)}
-			{action.canChangeInitialPrice && (
-				<div>
-					<Label
-						htmlFor="initialPrice"
-						className="text-sm text-gray-600"
-					>
-						Initial Price
-					</Label>
-					<Input
-						id="initialPrice"
-						type="number"
-						value={initialPrice}
-						onChange={(e) =>
-							setInitialPrice(Number(e.target.value))
-						}
-						className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-					/>
-				</div>
-			)}
-			{action.canChangeRepeatedPrice && (
-				<div>
-					<Label
-						htmlFor="repeatedPrice"
-						className="text-sm text-gray-600"
-					>
-						Repeated Price
-					</Label>
-					<Input
-						id="repeatedPrice"
-						type="number"
-						value={repeatedPrice}
-						onChange={(e) =>
-							setRepeatedPrice(Number(e.target.value))
-						}
-						className="mt-1 focus:ring-indigo-500 focus:border-indigo-500"
-					/>
-				</div>
-			)}
-		</div>
+				))}
+			</form>
+		</Form>
 	);
 }
 
@@ -276,7 +274,7 @@ function NodeDetails({
 				</div>
 			</div>
 
-			{!wasApplied && (
+			{!wasApplied && template.templateKind === "user-customizable" && (
 				<ConfigurationPanel
 					template={template}
 					endPoints={endPoints}

@@ -45,7 +45,7 @@ interface CustomizableActionTemplate extends ActionTemplateBase {
     templateKind: "user-customizable";
     initialAction: InitialAction;
     isUnlocked: (quest: Quest, actionTemplate: CustomizableActionTemplate) => boolean;
-    userInputSchema: z.Schema;
+    userInputSchema: z.ZodObject;
     apply: (initialAction: InitialAction, userInput: unknown) => Action;
 }
 ```

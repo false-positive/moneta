@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Quest } from "../quests";
 import { lifeAction } from "./standard-actions";
 import invariant from "tiny-invariant";
+import { FieldValues } from "react-hook-form";
 
 // Things we need to display in the choices UI
 type RequiredActionKeys =
@@ -51,7 +52,7 @@ interface ConstantActionTemplate extends ActionTemplateBase {
 
 export interface CustomizableActionTemplate<
 	TInitialAction extends InitialAction = InitialAction,
-	TUserInput = unknown
+	TUserInput extends FieldValues = FieldValues
 > extends ActionTemplateBase {
 	templateKind: "user-customizable";
 
@@ -66,7 +67,7 @@ export interface CustomizableActionTemplate<
 		CustomizableActionTemplate<TInitialAction, TUserInput>
 	>;
 
-	userInputSchema: z.Schema<TUserInput>;
+	userInputSchema: z.ZodObject<TUserInput>;
 	apply: (
 		this: void,
 		initialAction: TInitialAction,
@@ -82,7 +83,7 @@ export interface CustomizableActionTemplate<
  */
 export type ActionTemplate<
 	TInitialAction extends InitialAction = InitialAction,
-	TUserInput = unknown
+	TUserInput extends FieldValues = FieldValues
 > =
 	| ConstantActionTemplate
 	| CustomizableActionTemplate<TInitialAction, TUserInput>;
@@ -91,32 +92,32 @@ let id = 0;
 
 export const createActionTemplate = <
 	TInitialAction extends InitialAction,
-	TObject
+	TUserInput extends FieldValues
 >(
 	// FIXME: Cursed type stuff
 	actionTemplate:
 		| Omit<ConstantActionTemplate, "id">
-		| Omit<CustomizableActionTemplate<TInitialAction, TObject>, "id">
-): ActionTemplate<TInitialAction, TObject> => {
+		| Omit<CustomizableActionTemplate<TInitialAction, TUserInput>, "id">
+): ActionTemplate<TInitialAction, TUserInput> => {
 	return { id: ++id, ...actionTemplate };
 };
 
 export const createActionTemplates = <
 	TInitialAction extends InitialAction,
-	TObject
+	TUserInput extends FieldValues
 >(
 	// FIXME: More cursed type stuff
 	actionTemplateArray: ReadonlyArray<
-		Parameters<typeof createActionTemplate<TInitialAction, TObject>>[0]
+		Parameters<typeof createActionTemplate<TInitialAction, TUserInput>>[0]
 	>
-): ReadonlyArray<ActionTemplate<TInitialAction, TObject>> =>
+): ReadonlyArray<ActionTemplate<TInitialAction, TUserInput>> =>
 	actionTemplateArray.map((actionTemplate) =>
 		createActionTemplate(actionTemplate)
 	);
 
 export function applyActionTemplate<
 	TInitialAction extends InitialAction,
-	TUserInput
+	TUserInput extends FieldValues
 >(
 	actionTemplate: ActionTemplate<TInitialAction, TUserInput>,
 	userInput: TUserInput
@@ -138,9 +139,10 @@ export function applyActionTemplate<
 	invariant(false);
 }
 
-export function getAction<TInitialAction extends InitialAction, TUserInput>(
-	actionTemplate: ActionTemplate<TInitialAction, TUserInput>
-) {
+export function getAction<
+	TInitialAction extends InitialAction,
+	TUserInput extends FieldValues
+>(actionTemplate: ActionTemplate<TInitialAction, TUserInput>) {
 	if (actionTemplate.templateKind === "constant") {
 		return actionTemplate.action;
 	}

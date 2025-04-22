@@ -3,6 +3,7 @@ import { lifeAction } from "@/lib/engine/actions/standard-actions";
 import { createActionTemplates } from "../../actions/templates";
 import { allActionsList as standardActions } from "../../actions/standard-actions";
 import { allActionsList as actions18 } from "../../actions/actions-18";
+import { z } from "zod";
 
 export const tutorialQuestDescription: QuestDescription = {
 	personAge: 18,
@@ -52,8 +53,19 @@ export const tutorialQuestDescription: QuestDescription = {
 			isUnlocked: () => false,
 		},
 		{
-			templateKind: "constant",
-			action: actions18.etfInvestmentOnceAction,
+			templateKind: "user-customizable",
+			initialAction: actions18.etfInvestmentOnceAction,
+			userInputSchema: z.object({
+				temporaryInitialPriceForTesting: z
+					.number()
+					.min(0)
+					.default(10000)
+					.describe("this description should be visible"),
+			}),
+			apply: (initialAction, userInput) => ({
+				...initialAction,
+				initialPrice: userInput.temporaryInitialPriceForTesting,
+			}),
 			iconImageHref: "/icons/etfInvestmentOnceAction.png",
 			hardcodedPosition: { x: 650, y: 300 },
 			isUnlocked: () => false,
