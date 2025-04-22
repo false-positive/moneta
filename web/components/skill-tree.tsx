@@ -315,8 +315,7 @@ export default function SkillTree() {
 					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
 						<div className="text-white text-lg flex items-center gap-2 font-semibold">
 							<Sparkles className="h-5 w-5" />
-							{/* To Do : add here timeframe, unhardcode */}
-							Financial Journey - Year {quest.steps.length}
+							Financial Journey - Step {quest.steps.length}
 						</div>
 					</div>
 					<div className="h-full p-3">
@@ -381,6 +380,116 @@ export default function SkillTree() {
 											)}
 									</div>
 								</div>
+								{!selectedNode.unlocked &&
+									!(
+										selectedNode.actionObject
+											.canChangeInitialPrice ||
+										selectedNode.actionObject
+											.canChangeRepeatedPrice
+									) && (
+										<div className="space-y-2 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+											<h4 className="font-medium text-gray-700">
+												Impact Details
+											</h4>
+
+											{selectedNode.actionObject
+												.bankAccountImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Bank Account Impact:
+													</span>
+													<span
+														className={`font-medium ${
+															selectedNode
+																.actionObject
+																.bankAccountImpact
+																.repeatedAbsoluteDelta <
+															0
+																? "text-red-500"
+																: "text-green-500"
+														}`}
+													>
+														{
+															selectedNode
+																.actionObject
+																.bankAccountImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														BGN
+													</span>
+												</div>
+											)}
+
+											{selectedNode.actionObject.joyImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Joy Impact:
+													</span>
+													<span className="font-medium text-purple-500">
+														{
+															selectedNode
+																.actionObject
+																.joyImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														points
+													</span>
+												</div>
+											)}
+
+											{selectedNode.actionObject
+												.freeTimeImpact
+												?.repeatedAbsoluteDelta !==
+												0 && (
+												<div className="flex items-center justify-between text-sm">
+													<span className="text-gray-600">
+														Free Time Impact:
+													</span>
+													<span
+														className={`font-medium ${
+															selectedNode
+																.actionObject
+																.freeTimeImpact
+																.repeatedAbsoluteDelta <
+															0
+																? "text-red-500"
+																: "text-green-500"
+														}`}
+													>
+														{
+															selectedNode
+																.actionObject
+																.freeTimeImpact
+																.repeatedAbsoluteDelta
+														}{" "}
+														hours/week
+													</span>
+												</div>
+											)}
+
+											<div className="flex items-center justify-between text-sm">
+												<span className="text-gray-600">
+													Duration:
+												</span>
+												<span className="font-medium text-blue-500">
+													{selectedNode.actionObject
+														.remainingSteps ===
+													Infinity
+														? "No end date"
+														: selectedNode
+																.actionObject
+																.remainingSteps ===
+														  1
+														? "Once"
+														: `${selectedNode.actionObject.remainingSteps} years`}
+												</span>
+											</div>
+										</div>
+									)}
 
 								{/* ----------- Conditional Number Inputs ----------- */}
 								{/** Example: show the number fields only if this action requires them */}
