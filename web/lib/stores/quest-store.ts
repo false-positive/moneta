@@ -38,13 +38,17 @@ export const questStore = createStore({
 		},
 		currentStepStopAction: (
 			quest,
-			event: { stepIdx: number; actionIdx: number }
+			event: { stepIndex: number; actionIndex: number }
 		) => {
 			if (quest.currentStepIndex > quest.greatestUnlockedStepIndex) {
 				return quest;
 			}
 
-			const newSteps = stopAction(quest, event.stepIdx, event.actionIdx);
+			const newSteps = stopAction(
+				quest,
+				event.stepIndex,
+				event.actionIndex
+			);
 
 			if (!newSteps) {
 				return quest;
@@ -58,7 +62,7 @@ export const questStore = createStore({
 		},
 		currentStepDeleteAction: (
 			quest,
-			event: { stepIdx: number; actionIdx: number }
+			event: { stepIndex: number; actionIndex: number }
 		) => {
 			if (quest.currentStepIndex > quest.greatestUnlockedStepIndex) {
 				return quest;
@@ -66,8 +70,8 @@ export const questStore = createStore({
 
 			const newSteps = deleteAction(
 				quest,
-				event.stepIdx,
-				event.actionIdx
+				event.stepIndex,
+				event.actionIndex
 			);
 
 			if (!newSteps) {
@@ -114,12 +118,12 @@ function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
 	return simulateWithActions(quest.description, newActionsPerStep);
 }
 
-function stopAction(quest: Quest, stepIdx: number, actionIdx: number) {
+function stopAction(quest: Quest, stepIndex: number, actionIndex: number) {
 	const newActionsPerStep = getNewActionsPerStep(quest);
 
-	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
-		newActionsPerStep[stepIdx][actionIdx].remainingSteps =
-			quest.currentStepIndex - stepIdx;
+	if (stepIndex != -1 || quest.currentStepIndex > stepIndex) {
+		newActionsPerStep[stepIndex][actionIndex].remainingSteps =
+			quest.currentStepIndex - stepIndex;
 	} else {
 		return null;
 	}
@@ -127,11 +131,11 @@ function stopAction(quest: Quest, stepIdx: number, actionIdx: number) {
 	return simulateWithActions(quest.description, newActionsPerStep);
 }
 
-function deleteAction(quest: Quest, stepIdx: number, actionIdx: number) {
+function deleteAction(quest: Quest, stepIndex: number, actionIndex: number) {
 	const newActionsPerStep = getNewActionsPerStep(quest);
 
-	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
-		newActionsPerStep[stepIdx].splice(actionIdx, 1);
+	if (stepIndex != -1 || quest.currentStepIndex > stepIndex) {
+		newActionsPerStep[stepIndex].splice(actionIndex, 1);
 	} else {
 		return null;
 	}

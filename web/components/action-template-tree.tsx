@@ -343,9 +343,9 @@ function ChatSystem({
 					<div className="flex flex-col flex-1 space-y-2 overflow-hidden p-3">
 						<div className="flex-1 overflow-y-auto border rounded-md p-2 space-y-2 bg-white dark:bg-slate-900 text-sm shadow-inner">
 							{messages.length > 0 ? (
-								messages.map((msg, idx) => (
+								messages.map((msg, index) => (
 									<div
-										key={idx}
+										key={index}
 										className={`px-3 py-2 rounded-lg max-w-[90%] break-words ${
 											msg.role === "user"
 												? "ml-auto bg-indigo-500 text-white"

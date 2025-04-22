@@ -52,8 +52,8 @@ test("stop given action", () => {
 	//TODO: Investigate possible bug related to the behavior of simulateWithActions() which duplicates the first step actions when currentStepStopAction is called on an action in the first step
 	questStore.send({
 		type: "currentStepStopAction",
-		stepIdx: 1,
-		actionIdx: 0,
+		stepIndex: 1,
+		actionIndex: 0,
 	});
 
 	const quest = questStore.get().context;
@@ -73,8 +73,8 @@ test("delete given action", () => {
 	//TODO: Investigate possible bug related to the behavior of simulateWithActions() which duplicates the first step actions when currentStepStopAction is called on an action in the first step
 	questStore.send({
 		type: "currentStepDeleteAction",
-		stepIdx: 1,
-		actionIdx: 0,
+		stepIndex: 1,
+		actionIndex: 0,
 	});
 
 	const quest = questStore.get().context;
