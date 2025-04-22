@@ -104,15 +104,16 @@ export function simulateWithActions(
 	questDescription: QuestDescription,
 	newActionsPerStep: Action[][]
 ) {
-	const firstStep = {
+	const previousStep = {
 		...questDescription.initialStep,
 		newActions: [
 			...questDescription.initialStep.newActions,
 			...newActionsPerStep[0],
 		],
+		timePoint: questDescription.initialStep.timePoint - 1,
 	};
-	const steps = [firstStep];
-	for (const actions of newActionsPerStep.slice(1)) {
+	const steps = [previousStep];
+	for (const actions of newActionsPerStep) {
 		steps.push(
 			computeNextStep(
 				steps[steps.length - 1],
@@ -121,7 +122,7 @@ export function simulateWithActions(
 			)
 		);
 	}
-	return steps;
+	return steps.slice(1);
 }
 
 /**

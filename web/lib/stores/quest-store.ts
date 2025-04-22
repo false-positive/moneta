@@ -87,22 +87,21 @@ export const questStore = createStore({
 	},
 });
 
+console.log("[Quest Store], initial quest", questStore.get());
 questStore.subscribe((snapshot) => {
 	console.log("[Quest Store], snapshot.status", snapshot.context);
 });
 
 function appendAtEndAndAdvance(quest: Quest, newActions: Action[]) {
-	const latestStep = getLatestStep(quest);
+	const newActionsPerStep = getNewActionsPerStep(quest);
 
-	latestStep.newActions = latestStep.newActions.concat(newActions);
+	newActionsPerStep[quest.currentStepIndex] = [
+		...(newActionsPerStep[quest.currentStepIndex] || []),
+		...newActions,
+	];
+	newActionsPerStep.push([]);
 
-	const nextStep = computeNextStep(
-		latestStep,
-		[],
-		quest.description.timePointKind
-	);
-
-	return [...quest.steps, nextStep];
+	return simulateWithActions(quest.description, newActionsPerStep);
 }
 
 function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
