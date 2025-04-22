@@ -222,7 +222,7 @@ export const tutorialSteps: TutorialStep[] = [
 		title: "That's it!",
 		description: (
 			<>
-				You've got the basics!
+				{"You've"} got the basics!
 				<br />
 				From now on, you can explore, experiment, and build your own
 				financial path.
