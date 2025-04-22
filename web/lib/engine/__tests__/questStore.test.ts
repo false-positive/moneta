@@ -59,7 +59,6 @@ test("stop given action", () => {
 	const quest = questStore.get().context;
 
 	const newActionsPerStep = getNewActionsPerStep(quest);
-	console.log(newActionsPerStep);
 	expect(newActionsPerStep).toEqual([[], [job(1), invest(2, 1000)], []]);
 });
 
@@ -81,6 +80,5 @@ test("delete given action", () => {
 	const quest = questStore.get().context;
 
 	const newActionsPerStep = getNewActionsPerStep(quest);
-	console.log(newActionsPerStep);
 	expect(newActionsPerStep).toEqual([[], [invest(2, 1000)], []]);
 });
