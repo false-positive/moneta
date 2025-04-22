@@ -1,0 +1,166 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Action Template Tree Visualization Guide
+
+This document provides detailed specifications for the action template tree visualization in [web/components/action-template-tree.tsx](mdc:web/components/action-template-tree.tsx).
+
+## Visual Specifications
+
+### Node Design
+- Shape: Rhombus (diamond)
+- Base size: 22px from center to each point
+- Node dimensions: 44x44px total
+- Icon size: 16x16px, centered in the rhombus
+- Stroke width: 
+  - Normal: 1.5px
+  - Applied actions: 3px
+  - Locked actions: 1px
+
+### Colors
+- Unlocked, not applied:
+  - Fill: #ffffff (white)
+  - Stroke: Category color (see below)
+  - Opacity: 1.0
+- Unlocked, applied:
+  - Fill: Category color
+  - Stroke: Category color
+  - Stroke width: 3px
+  - Opacity: 1.0
+- Locked:
+  - Fill: #f1f5f9 (slate-100)
+  - Stroke: #94a3b8 (slate-400)
+  - Opacity: 0.7
+  - Icon opacity: 0.4
+
+### Category Colors
+- Investment actions: #f59e0b (amber-500)
+- Income actions: #10b981 (emerald-500)
+- Expense actions: #ef4444 (red-500)
+- Other actions: #34d399 (emerald-400)
+- Default: #3730a3 (indigo-800)
+
+### Layout
+- Initial scale: 2.5x
+- Initial position: 
+  - X offset: -(width/2) - 400px
+  - Y offset: -(height/2) - 50px
+- Zoom constraints:
+  - Minimum scale: 0.5x
+  - Maximum scale: 5x
+
+### Interaction
+- Unlocked nodes:
+  - Cursor: pointer
+  - Click: Opens node details
+- Locked nodes:
+  - Cursor: not-allowed
+  - Click: No action
+  - Visual: Reduced opacity (0.7)
+
+## Implementation DO's
+
+1. DO maintain exact node positioning using hardcodedPosition
+2. DO center icons perfectly in nodes
+3. DO implement smooth zoom and pan
+4. DO maintain aspect ratio on window resize
+5. DO use SVG for rendering
+6. DO implement proper hit detection on the rhombus shape
+7. DO maintain exact opacity values
+8. DO preserve the exact stroke widths
+9. DO implement proper z-indexing for overlapping nodes
+10. DO maintain responsive container sizing
+
+## Implementation DON'Ts
+
+1. DON'T change the rhombus angles or proportions
+2. DON'T modify the zoom constraints
+3. DON'T change the initial view position
+4. DON'T modify the node sizes
+5. DON'T change the interaction behavior
+6. DON'T alter the color scheme
+7. DON'T modify the opacity values
+8. DON'T change the icon placement
+9. DON'T alter the stroke width values
+10. DON'T modify the cursor styles
+
+## Previous D3 Implementation
+
+The original visualization was implemented using D3.js with the following key features:
+
+1. SVG-based rendering using d3.select
+2. Zoom behavior using d3.zoom
+3. Node groups using g elements
+4. Path elements for rhombus shapes
+5. Image elements for centered icons
+6. Transform-based positioning
+7. Dynamic attribute updates based on node state
+
+When replacing the D3 implementation:
+1. Only modify the ActionTemplateTreeVisualization component
+2. Maintain the same props interface
+3. Keep the same visual output exactly
+4. Preserve all interaction features
+5. Maintain the same performance characteristics
+
+## Mathematical Specifications
+
+### Rhombus Path
+The rhombus path should be constructed using the following points:
+- Top: (0, -size)
+- Right: (size, 0)
+- Bottom: (0, size)
+- Left: (-size, 0)
+where size = 22
+
+### Zoom Transform
+The zoom transform matrix should be:
+```
+[scale 0 tx]
+[0 scale ty]
+[0 0 1]
+```
+where:
+- Initial scale = 2.5
+- Initial tx = -(width/2) - 400
+- Initial ty = -(height/2) - 50
+
+### Hit Detection
+Hit detection should use the following formula for point-in-rhombus testing:
+```typescript
+function isPointInRhombus(px: number, py: number, cx: number, cy: number, size: number): boolean {
+  const dx = Math.abs(px - cx);
+  const dy = Math.abs(py - cy);
+  return (dx / size + dy / size) <= 1;
+}
+```
+
+## Performance Requirements
+
+1. Smooth 60fps animations
+2. Immediate response to interactions
+3. No visual artifacts during zoom/pan
+4. Efficient hit detection
+5. No layout shifts
+6. Proper hardware acceleration usage
+7. Minimal memory footprint
+8. Efficient node updates
+9. No visual tearing
+10. Proper cleanup on unmount
+
+## Accessibility Requirements
+
+1. Keyboard navigation support
+2. ARIA labels for nodes
+3. Focus indicators
+4. Proper tab order
+5. Screen reader support
+6. High contrast support
+7. Touch target sizes
+8. Gesture handling
+9. Proper semantic structure
+10. Alternative text for icons
+
+Remember: The visualization must be PIXEL PERFECT with the original D3 implementation. Any deviation, no matter how small, is unacceptable.
