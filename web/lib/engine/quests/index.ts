@@ -77,6 +77,12 @@ export type Quest = {
 	 * Value will always be within the bounds of {@link QuestDescription.maxStepCount}.
 	 */
 	currentStepIndex: number;
+	/**
+	 * The index of the latest step that the user has unlocked.
+	 *
+	 * Value will always be within the bounds of {@link QuestDescription.maxStepCount}.
+	 */
+	greatestUnlockedStepIndex: number;
 };
 
 /**

@@ -1,44 +1,52 @@
-import { createStore } from "@xstate/store";
-import { Action, computeNextStep } from "@/lib/engine/actions";
+import { Action } from "@/lib/engine/actions";
 import {
 	Quest,
-	getLatestStep,
 	getNewActionsPerStep,
 	simulateWithActions,
 } from "@/lib/engine/quests";
+import { createStore } from "@xstate/store";
 import { questDescriptions } from "../engine/quests/descriptions";
 
 const initialQuestDescription = questDescriptions.tutorial;
 
 const initialQuest: Quest = {
 	description: initialQuestDescription,
-	steps: [initialQuestDescription.initialStep],
+	steps: simulateWithActions(initialQuestDescription, [
+		initialQuestDescription.initialStep.newActions,
+		...Array(initialQuestDescription.maxStepCount - 1).fill([]),
+	]),
 	currentStepIndex: 0,
+	greatestUnlockedStepIndex: 0,
 };
 
 export const questStore = createStore({
 	context: initialQuest,
 	on: {
 		newActionsAppend: (quest, event: { newActions: Action[] }) => {
-			// FIXME: maybe refactor check into a quest function
-			const newSteps =
-				quest.currentStepIndex === quest.steps.length - 1 &&
-				quest.steps.length < quest.description.maxStepCount
-					? appendAtEndAndAdvance(quest, event.newActions)
-					: appendAtCurrentStepIndex(quest, event.newActions);
+			if (quest.currentStepIndex > quest.greatestUnlockedStepIndex) {
+				return quest;
+			}
 
 			return {
 				...quest,
-				steps: newSteps,
+				steps: appendAtCurrentStepIndex(quest, event.newActions),
+				greatestUnlockedStepIndex: Math.max(
+					quest.greatestUnlockedStepIndex,
+					quest.currentStepIndex + 1
+				),
 			};
 		},
 		currentStepStopAction: (
 			quest,
 			event: { stepIdx: number; actionIdx: number }
 		) => {
+			if (quest.currentStepIndex > quest.greatestUnlockedStepIndex) {
+				return quest;
+			}
+
 			const newSteps = stopAction(quest, event.stepIdx, event.actionIdx);
 
-			if (newSteps.length == 0) {
+			if (!newSteps) {
 				return quest;
 			}
 
@@ -52,13 +60,17 @@ export const questStore = createStore({
 			quest,
 			event: { stepIdx: number; actionIdx: number }
 		) => {
+			if (quest.currentStepIndex > quest.greatestUnlockedStepIndex) {
+				return quest;
+			}
+
 			const newSteps = deleteAction(
 				quest,
 				event.stepIdx,
 				event.actionIdx
 			);
 
-			if (newSteps.length == 0) {
+			if (!newSteps) {
 				return quest;
 			}
 
@@ -91,18 +103,6 @@ questStore.subscribe((snapshot) => {
 	console.log("[Quest Store], snapshot.status", snapshot.context);
 });
 
-function appendAtEndAndAdvance(quest: Quest, newActions: Action[]) {
-	const newActionsPerStep = getNewActionsPerStep(quest);
-
-	newActionsPerStep[quest.currentStepIndex] = [
-		...(newActionsPerStep[quest.currentStepIndex] || []),
-		...newActions,
-	];
-	newActionsPerStep.push([]);
-
-	return simulateWithActions(quest.description, newActionsPerStep);
-}
-
 function appendAtCurrentStepIndex(quest: Quest, newActions: Action[]) {
 	const newActionsPerStep = getNewActionsPerStep(quest);
 
@@ -121,7 +121,7 @@ function stopAction(quest: Quest, stepIdx: number, actionIdx: number) {
 		newActionsPerStep[stepIdx][actionIdx].remainingSteps =
 			quest.currentStepIndex - stepIdx;
 	} else {
-		return [];
+		return null;
 	}
 
 	return simulateWithActions(quest.description, newActionsPerStep);
@@ -133,7 +133,7 @@ function deleteAction(quest: Quest, stepIdx: number, actionIdx: number) {
 	if (stepIdx != -1 || quest.currentStepIndex > stepIdx) {
 		newActionsPerStep[stepIdx].splice(actionIdx, 1);
 	} else {
-		return [];
+		return null;
 	}
 
 	return simulateWithActions(quest.description, newActionsPerStep);

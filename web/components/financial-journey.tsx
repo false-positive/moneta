@@ -166,13 +166,13 @@ export function FinancialJourney({
 		(state) => state.context.description.initialStep.timePoint
 	);
 
-	const stepsLength = useSelector(
+	const greatestUnlockedStepIndex = useSelector(
 		questStore,
-		(state) => state.context.steps.length
+		(state) => state.context.greatestUnlockedStepIndex
 	);
 
 	const getNodeAppearance = useCallback((timePoint: number) => {
-		if (timePoint <= initialTimePoint + stepsLength - 1)
+		if (timePoint <= initialTimePoint + greatestUnlockedStepIndex)
 			return {
 				color: "bg-indigo-500 border-indigo-600",
 				icon: <LockKeyholeOpen className="h-5 w-5 text-white" />,
