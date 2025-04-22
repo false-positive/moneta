@@ -5,13 +5,13 @@ import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
 import { Star, Crown, Medal, Award } from "lucide-react";
 import Confetti from "react-confetti";
-import { useWindowSize } from "react-use";
 
 export default function QuestCompletionPage() {
+	const [mounted, setMounted] = useState(false);
 	const [numberOfPieces, setNumberOfPieces] = useState(1000);
-	const { width, height } = useWindowSize();
 
 	useEffect(() => {
+		setMounted(true);
 		const timer = setTimeout(() => {
 			setNumberOfPieces(0);
 		}, 5000);
@@ -22,7 +22,7 @@ export default function QuestCompletionPage() {
 	const context = useSelector(questStore, (s) => s.context);
 
 	const { lastStep, timeframe, steps, goalDescription } = {
-		lastStep: context.steps[context.steps.length - 1], // Changed from currentStep
+		lastStep: context.steps[context.steps.length - 1],
 		timeframe: context.description.timePointKind,
 		steps: context.steps,
 		goalDescription: context.description.goal.description,
@@ -36,30 +36,33 @@ export default function QuestCompletionPage() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 relative overflow-hidden">
-			<Confetti
-				width={width}
-				height={height}
-				numberOfPieces={numberOfPieces}
-				recycle={true}
-				initialVelocityY={20}
-				gravity={0.15}
-				colors={[
-					"#f59e0b",
-					"#d97706",
-					"#b45309",
-					"#fbbf24",
-					"#fcd34d",
-					"#fef3c7",
-				]}
-				style={{
-					position: "fixed",
-					top: 0,
-					left: 0,
-					width: screen.width,
-					zIndex: 50,
-					pointerEvents: "none",
-				}}
-			/>
+			{mounted && (
+				<Confetti
+					width={window.innerWidth || 1920}
+					height={window.innerHeight || 1080}
+					numberOfPieces={numberOfPieces}
+					recycle={true}
+					initialVelocityY={20}
+					gravity={0.15}
+					colors={[
+						"#f59e0b",
+						"#d97706",
+						"#b45309",
+						"#fbbf24",
+						"#fcd34d",
+						"#fef3c7",
+					]}
+					style={{
+						position: "fixed",
+						top: 0,
+						left: 0,
+						width: "100vw",
+						height: "100vh",
+						zIndex: 50,
+						pointerEvents: "none",
+					}}
+				/>
+			)}
 
 			<div className="max-w-3xl mx-auto relative z-10">
 				<div className="text-center mb-8 mt-8">
