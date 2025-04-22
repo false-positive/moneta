@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TutorialSpotMarker } from "@/lib/engine/tutorials";
 import {
 	tutorialStore,
@@ -163,9 +163,12 @@ export function TutorialDialogContent() {
 		>
 			<div className="flex flex-col items-center justify-center h-full space-y-6 py-8">
 				{step.title && (
-					<h2 className="text-4xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn">
-						{step.title}
-					</h2>
+					<DialogTitle
+						className="text-4xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn"
+						asChild
+					>
+						<h2>{step.title}</h2>
+					</DialogTitle>
 				)}
 
 				<p className="text-2xl text-[#6c5ce7] text-center max-w-[500px] leading-relaxed animate-fadeIn animation-delay-100">
