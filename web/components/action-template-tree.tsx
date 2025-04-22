@@ -53,6 +53,7 @@ function ActionTemplateTreeVisualization({
 	setSelectedTemplate: (template: ActionTemplate) => void;
 	appliedActionTemplateIds: Set<number>;
 }) {
+	const quest = useSelector(questStore, (state) => state.context);
 	const svgRef = useRef<SVGSVGElement>(null);
 
 	const wasApplied = useCallback(
@@ -83,11 +84,16 @@ function ActionTemplateTreeVisualization({
 		const baseSize = 22;
 		const getNodeSize = () => baseSize;
 
+		// Filter templates to only show unlocked ones
+		const unlockedTemplates = templates.filter((template) =>
+			template.isUnlocked(quest)
+		);
+
 		// Create node groups
 		const nodeSelection = g
 			.append("g")
 			.selectAll("g")
-			.data(templates)
+			.data(unlockedTemplates)
 			.join("g")
 			.attr("cursor", "pointer")
 			.attr(
@@ -144,7 +150,7 @@ function ActionTemplateTreeVisualization({
 			zoom.transform as any,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
-	}, [templates, setSelectedTemplate, wasApplied]);
+	}, [templates, setSelectedTemplate, wasApplied, quest]);
 
 	return (
 		<div className="overflow-hidden bg-white dark:bg-slate-950 h-full shadow-inner">
