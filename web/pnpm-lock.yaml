@@ -53,6 +53,9 @@ importers:
       '@tailwindcss/oxide':
         specifier: ^4.0.15
         version: 4.1.4
+      '@vercel/edge':
+        specifier: ^1.2.1
+        version: 1.2.1
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.4.1(vite@6.3.2(@types/node@20.17.30)(jiti@2.4.2)(lightningcss@1.29.3))
@@ -1643,6 +1646,9 @@ packages:
     resolution: {integrity: sha512-uNnVmvDLZBDQ4sLFNTugTtzUH9LEoHXG46HdWaih+pK4knwi+wcz+nd0fQC92n/dH4PwPc5T8XArvlCKpfU6vQ==}
     cpu: [x64]
     os: [win32]
+
+  '@vercel/edge@1.2.1':
+    resolution: {integrity: sha512-1++yncEyIAi68D3UEOlytYb1IUcIulMWdoSzX2h9LuSeeyR7JtaIgR8DcTQ6+DmYOQn+5MCh6LY+UmK6QBByNA==}
 
   '@vitejs/plugin-react@4.4.1':
     resolution: {integrity: sha512-IpEm5ZmeXAP/osiBXVVP5KjFMzbWOonMs0NaQQl+xYnUAcq4oHUBsF2+p4MgKWG4YMmFYJU8A6sxRPuowllm6w==}
@@ -5043,6 +5049,8 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.6.1':
     optional: true
+
+  '@vercel/edge@1.2.1': {}
 
   '@vitejs/plugin-react@4.4.1(vite@6.3.2(@types/node@20.17.30)(jiti@2.4.2)(lightningcss@1.29.3))':
     dependencies:
