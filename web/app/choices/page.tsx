@@ -84,7 +84,9 @@ export default function ChoicesPage() {
 					>
 						<div className="space-y-4">
 							<div className="bg-white/20 p-2 rounded-lg">
-								<p className="text-2xl italic">"{questGoal}"</p>
+								<p className="text-2xl italic">
+									&quot;{questGoal}&quot;
+								</p>
 							</div>
 						</div>
 					</WelcomeDialog>

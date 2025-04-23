@@ -201,7 +201,7 @@ export default function QuestFailurePage() {
 					</h2>
 					<div className="bg-gray-800/70 rounded-lg p-4 mb-4">
 						<p className="text-xl text-center text-gray-200 italic">
-							"{description.goal.description}"
+							&quot;{description.goal.description}&quot;
 						</p>
 					</div>
 					<p className="text-center text-gray-300">
