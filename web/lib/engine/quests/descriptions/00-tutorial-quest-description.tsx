@@ -11,13 +11,15 @@ import {
 	ActionTemplate,
 	applyActionTemplate,
 	createConstantTemplate,
+	createCustomizableTemplate,
 } from "../../actions/templates";
+import { z } from "zod";
 
 const { getStepExperience, experienceGain } = defineExperiences<
 	"housing" | "work" | "waiter" | "car"
 >();
 
-const INITIAL_BANK_ACCOUNT = 100;
+const INITIAL_BANK_ACCOUNT = 500;
 const CAR_PRICE = 5000;
 
 const lifeActionTemplate = createConstantTemplate({
@@ -141,9 +143,48 @@ export const tutorialQuestDescription: QuestDescription = {
 				gainedExperiences: experienceGain("car"),
 			},
 			iconImageHref: "/icons/carPurchaseAction.svg",
-			hardcodedPosition: { x: 650, y: 300 },
+			hardcodedPosition: { x: 625, y: 275 },
 			isUnlocked: (quest) =>
 				getCurrentStep(quest).bankAccount >= CAR_PRICE,
+		}),
+		createCustomizableTemplate({
+			baseAction: {
+				name: "Partying",
+				kind: "expense",
+				shortDescription: "Going out and partying with friends",
+				llmDescription:
+					"Regular social activities and parties with friends - good for joy but costs money and time",
+				remainingSteps: 12, // one year commitment
+				freeTimeImpact: absoluteImpact(-4), // base hours per week
+			},
+			userInputSchema: z.object({
+				monthlyBudget: z.coerce
+					.number()
+					.min(50, "Minimum monthly party budget is 50 BGN")
+					.max(1000, "Maximum monthly party budget is 1,000 BGN")
+					.default(200)
+					.describe("Monthly party budget"),
+				frequency: z.coerce
+					.number()
+					.min(1, "Minimum once per month")
+					.max(8, "Maximum twice per week")
+					.default(4)
+					.describe("Times per month"),
+			}),
+			apply: (baseAction, userInput) => ({
+				...noOpAction,
+				...baseAction,
+				bankAccountImpact: absoluteImpact(
+					-(userInput.monthlyBudget * 12)
+				), // yearly impact
+				joyImpact: absoluteImpact(
+					Math.min(30, userInput.frequency * 3)
+				), // joy scales with frequency but caps at 30
+				freeTimeImpact: absoluteImpact(-(userInput.frequency * 4)), // 4 hours per party
+			}),
+			iconImageHref: "/icons/partyingAction.png",
+			hardcodedPosition: { x: 550, y: 300 },
+			isUnlocked: () => true,
 		}),
 	] satisfies readonly ActionTemplate[],
 	tutorialSteps: [
