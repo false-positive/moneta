@@ -59,7 +59,7 @@ function JourneyNode({
 	const isCurrentTutorialNode =
 		currentStep?.marker.kind === "journey-node" &&
 		"instance" in currentStep.marker &&
-		currentStep.marker.instance.timePoint === timePoint;
+		currentStep.marker.instance.timeUnit === timeUnit;
 
 	const handleNodeClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
