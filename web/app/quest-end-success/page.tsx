@@ -5,8 +5,9 @@ import { useSelector } from "@xstate/store/react";
 import { questStore } from "@/lib/stores/quest-store";
 import { Star, Crown, Medal, Award } from "lucide-react";
 import Confetti from "react-confetti";
+import { FlowingMoneyBackground } from "@/components/flowing-money-background";
 
-export default function QuestCompletionPage() {
+export default function QuestEndSucessPage() {
 	const [mounted, setMounted] = useState(false);
 	const [numberOfPieces, setNumberOfPieces] = useState(1000);
 
@@ -36,6 +37,7 @@ export default function QuestCompletionPage() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 relative overflow-hidden">
+			<FlowingMoneyBackground color="#818cf8" opacity={0.08} />
 			{mounted && (
 				<Confetti
 					width={window.innerWidth || 1920}

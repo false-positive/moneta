@@ -21,6 +21,8 @@ test("simulate with actions", () => {
 		timePointKind: "year",
 		goal: {
 			description: "John wants to save 100000 BGN",
+			challengeText: "Buy your first car",
+			ageText: "You are 20 years old",
 			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 		},
 		actionTemplates: [],

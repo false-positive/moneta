@@ -8,7 +8,11 @@ import {
 	applyActionTemplate,
 	getAction,
 } from "@/lib/engine/actions/templates";
-import { getCurrentStep } from "@/lib/engine/quests";
+import {
+	getCurrentStep,
+	getFailedMetrics,
+	isQuestCompleted,
+} from "@/lib/engine/quests";
 import { questStore } from "@/lib/stores/quest-store";
 import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
@@ -334,20 +338,28 @@ function NodeDetails({
 							</div>
 						)}
 						<TutorialSpot marker={{ kind: "post-action-button" }}>
-							<TutorialTrigger asChild>
-								<Button
-									type="submit"
-									className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-									disabled={!isUnlocked}
-								>
-									{getAction(template).kind === "investment"
-										? "Invest"
-										: getAction(template).kind === "income"
-										? "Work"
-										: "Accept Expense"}
-									<ArrowRight className="ml-2 h-4 w-4" />
-								</Button>
-							</TutorialTrigger>
+							<div className="w-full">
+								<TutorialTrigger asChild>
+									<Button
+										type="submit"
+										className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+										disabled={!isUnlocked}
+										onClick={(e) => {
+											e.stopPropagation();
+											form.handleSubmit(onSubmit)(e);
+										}}
+									>
+										{getAction(template).kind ===
+										"investment"
+											? "Invest"
+											: getAction(template).kind ===
+											  "income"
+											? "Work"
+											: "Accept Expense"}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Button>
+								</TutorialTrigger>
+							</div>
 							<TutorialPopoverContent />
 						</TutorialSpot>
 					</>
@@ -526,7 +538,14 @@ export function ActionTemplateTree() {
 			type: "newActionsAppend",
 			newActions,
 		});
-		router.push("/simulation");
+
+		if (isQuestCompleted(questStore.get().context)) {
+			router.push("/quest-end-success");
+		} else if (getFailedMetrics(currentStep).any) {
+			router.push("/quest-end-failed");
+		} else {
+			router.push("/simulation");
+		}
 	};
 
 	const sendHint = async (question = "") => {

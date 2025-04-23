@@ -325,6 +325,8 @@ export default function Simulation() {
 																			step.timePoint ===
 																			currentStep.timePoint
 																	),
+																greatestUnlockedStepIndex:
+																	context.greatestUnlockedStepIndex,
 															}
 														)}
 														currentTimePoint={
