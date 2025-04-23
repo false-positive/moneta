@@ -383,12 +383,12 @@ function NodeDetails({
 								<TutorialTrigger asChild>
 									<Button
 										type="submit"
-										className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+										className="w-full bg-indigo-600 hover:opacity-90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
 										disabled={!isUnlocked}
-										onClick={(e) => {
-											e.stopPropagation();
-											form.handleSubmit(onSubmit)(e);
-										}}
+										// onClick={(e) => {
+										// 	e.stopPropagation();
+										// 	form.handleSubmit(onSubmit)(e);
+										// }}
 									>
 										{getAction(template).kind ===
 										"investment"
@@ -456,7 +456,7 @@ function ChatSystem({
 				}`}
 			>
 				<div className="flex flex-col h-full border-0 shadow-md overflow-hidden rounded-md">
-					<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+					<div className="pb-2 pt-3 px-4 bg-indigo-600 rounded-t-lg">
 						<div className="text-white text-lg flex items-center gap-2 font-semibold">
 							<Lightbulb className="h-5 w-5" />
 							Advisor Chat
@@ -518,7 +518,7 @@ function ChatSystem({
 							/>
 							<Button
 								type="submit"
-								className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white"
+								className="bg-indigo-600 hover:opacity-90 text-white"
 							>
 								<Send className="h-4 w-4" />
 							</Button>
@@ -683,7 +683,7 @@ export function ActionTemplateTree() {
 				<TutorialHighlight>
 					<div className="flex-1">
 						<div className="h-full border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-							<div className="pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+							<div className="pb-2 pt-3 px-4 bg-indigo-600 rounded-t-lg">
 								<div className="text-white text-lg flex items-center gap-2 font-semibold">
 									<Sparkles className="h-5 w-5" />
 									<span>
@@ -715,7 +715,7 @@ export function ActionTemplateTree() {
 
 			<div className="w-full md:w-80 relative">
 				<div className="border-0 shadow-md overflow-hidden rounded-md bg-white dark:bg-slate-900">
-					<div className="flex items-start justify-between pb-2 pt-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-lg">
+					<div className="flex items-start justify-between pb-2 pt-3 px-4 bg-indigo-600 rounded-t-lg">
 						<div>
 							<div className="text-white text-lg flex items-center gap-2 font-semibold">
 								<Zap className="h-5 w-5" />
@@ -768,13 +768,14 @@ export function ActionTemplateTree() {
 					setMessages={setMessages}
 				/>
 
-				<div className="absolute bottom-4 right-4">
+				{/* Move the button container outside the main content area */}
+				<div className="w-full flex justify-end mt-8 pt-4">
 					<TutorialSpot marker={{ kind: "submit-choice-button" }}>
 						<TutorialTrigger asChild>
 							<Button
 								onClick={handleSubmit}
 								disabled={newActions.length === 0}
-								className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
+								className="bg-indigo-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
 							>
 								Test this choice
 								<ArrowRight className="ml-3 h-6 w-6" />

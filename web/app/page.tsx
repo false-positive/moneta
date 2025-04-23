@@ -17,14 +17,14 @@ export default function Home() {
 			<div className="relative z-10 w-full flex flex-col items-center">
 				<header className="w-full flex flex-col items-center justify-center mb-20">
 					<div
-						className="bg-[#8e44ad] text-white p-4 rounded-full mb-4"
+						className="bg-purple-800 text-white p-4 rounded-full mb-4"
 						style={{
 							boxShadow: "0 0 15px rgba(142, 68, 173, 0.5)",
 						}}
 					>
 						<Coins size={48} />
 					</div>
-					<h1 className="text-6xl font-extrabold text-[#6c3483] tracking-wider">
+					<h1 className="text-6xl font-extrabold text-purple-800 tracking-wider">
 						MONETA
 					</h1>
 				</header>
@@ -37,7 +37,7 @@ export default function Home() {
 					>
 						<Link href="/quest-selection" className="block w-full">
 							<Button
-								className="w-full bg-[#8e44ad] hover:bg-[#9b59b6] text-white py-12 rounded-2xl text-3xl font-extrabold transition-all duration-300 border-2 border-[#9b59b6]"
+								className="w-full bg-purple-800 hover:bg-[#9b59b6] text-white py-12 rounded-2xl text-3xl font-extrabold transition-all duration-300 border-2 border-[#9b59b6]"
 								style={{
 									boxShadow:
 										"0 0 15px rgba(142, 68, 173, 0.5)",

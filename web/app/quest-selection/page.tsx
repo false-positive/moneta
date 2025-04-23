@@ -10,7 +10,6 @@ import {
 	questDescriptions,
 	questSelectionList,
 } from "@/lib/engine/quests/descriptions";
-import { tutorialStore } from "@/lib/stores/tutorial-store";
 import { FlowingMoneyBackground } from "@/components/flowing-money-background";
 
 export default function QuestSelection() {
@@ -18,8 +17,7 @@ export default function QuestSelection() {
 	const router = useRouter();
 
 	const handleStartTutorial = () => {
-		tutorialStore.send({ type: "nextStep" });
-		router.push("/choices");
+		router.push("/quest-introduction");
 	};
 
 	useEffect(() => {
@@ -30,7 +28,7 @@ export default function QuestSelection() {
 	}, []);
 
 	return (
-		<main className="min-h-screen bg-gradient-to-b from-purple-50 to-white p-8 flex items-center justify-center relative overflow-hidden">
+		<main className="min-h-screen bg-purple-50 p-8 flex items-center justify-center relative overflow-hidden">
 			<FlowingMoneyBackground color="#9333ea" opacity={0.08} />
 
 			<div className="w-full max-w-4xl relative z-10">

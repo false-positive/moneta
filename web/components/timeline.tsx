@@ -137,7 +137,7 @@ export function Timeline({
 			<div className="min-w-[800px] mb-1">
 				<div className="relative mb-6">
 					<div
-						className="h-0.5 bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 absolute top-3"
+						className="h-0.5 bg-indigo-400 absolute top-3"
 						style={{ width: `${timeUnits.length * 80}px` }}
 					/>
 
@@ -161,7 +161,7 @@ export function Timeline({
 									<TutorialTrigger
 										className={`text-xs font-bold cursor-pointer px-2 py-0.5 rounded-full transition-all transform hover:scale-110 ${
 											selectedUnit === unit
-												? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md"
+												? "bg-indigo-600 text-white shadow-md"
 												: "bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600"
 										}`}
 										onClick={() => handleUnitClick(unit)}

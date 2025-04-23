@@ -34,7 +34,7 @@ export default function QuestFailurePage() {
 	}[description.timePointKind];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 p-4 relative overflow-hidden">
+		<div className="min-h-screen bg-gray-900 p-4 relative overflow-hidden">
 			<div className="absolute inset-0 bg-gray-950 z-0 overflow-hidden">
 				{mounted && (
 					<div className="relative w-full h-full">
@@ -195,7 +195,7 @@ export default function QuestFailurePage() {
 					</h1>
 				</div>
 
-				<div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl shadow-lg p-6 mb-8 border border-gray-700 transform transition-all hover:scale-[1.01]">
+				<div className="bg-gray-900 rounded-xl shadow-lg p-6 mb-8 border border-gray-700 transform transition-all hover:scale-[1.01]">
 					<h2 className="text-2xl font-bold text-center text-red-400 mb-4">
 						Goal not achieved
 					</h2>
@@ -246,7 +246,7 @@ export default function QuestFailurePage() {
 								] && (
 									<div
 										key={key}
-										className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-5 border border-gray-700 shadow-sm"
+										className="bg-gray-900 rounded-lg p-5 border border-gray-700 shadow-sm"
 									>
 										<div className="flex items-center mb-3">
 											<div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-700 mr-4">
@@ -294,7 +294,7 @@ export default function QuestFailurePage() {
 						].map(({ title, value, failed, showBar, barValue }) => (
 							<div
 								key={title}
-								className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-5 text-center border border-gray-700 shadow-sm"
+								className="bg-gray-900 rounded-lg p-5 text-center border border-gray-700 shadow-sm"
 							>
 								<h3 className="text-lg font-bold text-gray-200 mb-1">
 									{title}
@@ -322,7 +322,7 @@ export default function QuestFailurePage() {
 
 				<div className="flex justify-center mb-12">
 					<button
-						className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105"
+						className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105"
 						onClick={() =>
 							(window.location.href = "/quest-selection")
 						}

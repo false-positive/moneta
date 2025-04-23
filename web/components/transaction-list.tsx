@@ -61,9 +61,7 @@ export function TransactionList({
 			id: action.name,
 			name: action.name,
 			amount,
-			date: isActive
-				? `Started: Year ${timing.startTimePoint}`
-				: `${timing.startTimePoint} - ${timing.endTimePoint}`,
+			date: `${timing.startTimePoint} - ${timing.endTimePoint}`,
 			type: action.kind,
 			isActive,
 		};
@@ -125,9 +123,8 @@ export function TransactionList({
 				</div>
 				<div className="flex items-center gap-2">
 					<span className={`text-sm font-semibold ${colors.text}`}>
-						{colors.sign}${item.amount.toLocaleString()}
+						{colors.sign} {item.amount.toLocaleString()} lv
 					</span>
-					<span className="text-xs text-gray-500">{item.date}</span>
 				</div>
 			</div>
 		);
@@ -139,7 +136,7 @@ export function TransactionList({
 	}, [activeTransactions, inactiveTransactions]);
 
 	return (
-		<div className="bg-white rounded-lg p-2 shadow-md">
+		<div className="bg-white rounded-lg p-2">
 			<h3 className="text-xs font-bold text-indigo-900 mb-2">
 				Transactions
 			</h3>
