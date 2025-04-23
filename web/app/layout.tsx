@@ -4,6 +4,7 @@ import "./globals.css";
 import { ResetDemo } from "@/components/reset-demo";
 import { TutorialOverlay } from "@/components/tutorial-overlay";
 import { Footer } from "@/components/footer";
+import { PostHogProvider } from "./providers";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -31,10 +32,12 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
 			>
-				<ResetDemo />
-				<TutorialOverlay />
-				<div className="flex-1 flex flex-col">{children}</div>
-				<Footer />
+				<PostHogProvider>
+					<ResetDemo />
+					<TutorialOverlay />
+					<div className="flex-1 flex flex-col">{children}</div>
+					<Footer />
+				</PostHogProvider>
 			</body>
 		</html>
 	);
