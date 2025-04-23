@@ -68,7 +68,7 @@ export default function QuestIntroductionPage() {
 					<div className="space-y-4">
 						<div className="p-4 rounded-lg bg-purple-50">
 							<p className="text-2xl text-center font-medium text-purple-900">
-								"{questGoal}"
+								&quot;{questGoal}&quot;
 							</p>
 						</div>
 						<p className="text-lg text-center text-gray-600">
