@@ -72,7 +72,7 @@ export const tutorialQuestDescription: QuestDescription = {
 		description: "Save enough money to buy your first car",
 		challengeText: "Buy your first car!",
 		ageText: "You are 18 years old...",
-		goalReached: ({ lastStep }) => lastStep.bankAccount >= 15000,
+		goalReached: ({}) => false,
 	},
 	actionTemplates: [
 		lifeActionTemplate,
