@@ -48,7 +48,7 @@ export function SpendingGraph({
 	const chartData = useMemo(() => {
 		let accumulatedNetWorth = 0; // Track net worth outside the map
 
-		return timeUnits.map((unit, index) => {
+		return timeUnits.map((unit) => {
 			// Find actions that are active at this time point
 			const activeActions = actionTimings.filter(
 				(timing) =>
@@ -208,6 +208,7 @@ export function SpendingGraph({
 						<ChartTooltip
 							content={
 								<ChartTooltipContent
+									// @ts-expect-error Because of the way the data is structured, the tooltip content is not typed correctly.
 									formatter={(
 										value: string | number,
 										name: string | number
