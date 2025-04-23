@@ -208,6 +208,7 @@ export function SpendingGraph({
 						<ChartTooltip
 							content={
 								<ChartTooltipContent
+									// @ts-expect-error Because of the way the data is structured, the tooltip content is not typed correctly.
 									formatter={(
 										value: string | number,
 										name: string | number

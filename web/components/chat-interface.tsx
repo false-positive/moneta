@@ -16,7 +16,15 @@ export default function ChatInterface({
 	scenarioConfig,
 }: {
 	handleDiscovery: (discovery: string, step: number) => void;
-	scenarioConfig: Record<string, unknown>;
+	scenarioConfig: {
+		scenario: {
+			targets: {
+				bank_account_target: number;
+				joy_target: number;
+				free_time_target: number;
+			};
+		};
+	};
 }) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");

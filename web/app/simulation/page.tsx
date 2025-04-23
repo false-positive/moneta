@@ -313,6 +313,7 @@ export default function Simulation() {
 													<TransactionList
 														actionTimings={getActionDurations(
 															{
+																...context,
 																description:
 																	context.description,
 																steps: allSteps,
