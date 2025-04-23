@@ -36,7 +36,7 @@ export default function QuestEndSucessPage() {
 	const freeTimePercentage = Math.min(100, lastStep.freeTimeHours);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white p-4 relative overflow-hidden">
+		<div className="min-h-screen bg-[#6c3483] p-4 relative overflow-hidden">
 			<FlowingMoneyBackground color="#818cf8" opacity={0.08} />
 			{mounted && (
 				<Confetti
@@ -81,7 +81,7 @@ export default function QuestEndSucessPage() {
 					</h1>
 				</div>
 
-				<div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl shadow-lg p-6 mb-8 border border-amber-200 transform transition-all hover:scale-[1.01]">
+				<div className="bg-amber-50 rounded-xl shadow-lg p-6 mb-8 border border-amber-200 transform transition-all hover:scale-[1.01]">
 					<h2 className="text-2xl font-bold text-center text-amber-800 mb-4">
 						Goal Achieved
 					</h2>
@@ -109,7 +109,7 @@ export default function QuestEndSucessPage() {
 					</h2>
 
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-						<div className="bg-gradient-to-br from-amber-50 to-white rounded-lg p-5 text-center border border-amber-100 shadow-sm">
+						<div className="bg-amber-50 rounded-lg p-5 text-center border border-amber-100 shadow-sm">
 							<div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 mb-3">
 								<Star className="h-8 w-8 text-amber-600" />
 							</div>
@@ -136,19 +136,19 @@ export default function QuestEndSucessPage() {
 							</p>
 						</div>
 
-						<div className="bg-gradient-to-br from-amber-50 to-white rounded-lg p-5 text-center border border-amber-100 shadow-sm flex flex-col items-center justify-center">
+						<div className="bg-amber-50 rounded-lg p-5 text-center border border-amber-100 shadow-sm flex flex-col items-center justify-center">
 							<div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 mb-3">
 								<Award className="h-8 w-8 text-amber-600" />
 							</div>
 							<h3 className="text-lg font-bold text-amber-800 mb-1">
-								Wealth
+								Assets
 							</h3>
 							<div className="text-3xl font-bold text-amber-600 mb-2">
-								${moneyAmount.toLocaleString()}
+								{moneyAmount.toLocaleString()} lv
 							</div>
 						</div>
 
-						<div className="bg-gradient-to-br from-amber-50 to-white rounded-lg p-5 text-center border border-amber-100 shadow-sm">
+						<div className="bg-amber-50 rounded-lg p-5 text-center border border-amber-100 shadow-sm">
 							<div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 mb-3">
 								<Medal className="h-8 w-8 text-amber-600" />
 							</div>
@@ -179,7 +179,7 @@ export default function QuestEndSucessPage() {
 
 				<div className="flex justify-center mb-12">
 					<button
-						className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105"
+						className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all transform hover:scale-105"
 						onClick={() => (window.location.href = "/")}
 					>
 						Start New Adventure

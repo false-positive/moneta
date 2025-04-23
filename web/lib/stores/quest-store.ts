@@ -81,7 +81,8 @@ export const questStore = createStore({
 			return {
 				...quest,
 				steps: newSteps,
-				currentStepIndex: newSteps.length - 1,
+				// currentStepIndex: newSteps.length - 1,
+				// Remvoed this - RETURN IF SIM BREAKS
 			};
 		},
 		currentStepIndexChange: (

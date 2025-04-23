@@ -137,7 +137,7 @@ export function SpendingGraph({
 	};
 
 	return (
-		<div className="h-full flex flex-col bg-white rounded-lg p-2 shadow-md">
+		<div className="h-full flex flex-col bg-white rounded-lg p-2">
 			<h3 className="text-xs font-bold text-indigo-900 mb-2">
 				Financial Analysis
 			</h3>

@@ -2,152 +2,22 @@
 
 import { ActionTemplateTree } from "@/components/action-template-tree";
 import { TutorialDialogContent, TutorialSpot } from "@/components/tutorial";
-import { WelcomeDialog } from "@/components/welcome-dialog";
-import { questStore } from "@/lib/stores/quest-store";
-import { tutorialStore } from "@/lib/stores/tutorial-store";
-import { useSelector } from "@xstate/store/react";
-import { Clock, Heart, Wallet } from "lucide-react";
-import { useState } from "react";
 import { FlowingMoneyBackground } from "@/components/flowing-money-background";
 
 export default function ChoicesPage() {
-	const currentTutorialStepIndex = useSelector(
-		tutorialStore,
-		(state) => state.context.currentStepIndex
-	);
-	const [currentDialog, setCurrentDialog] = useState<
-		"welcome" | "goals" | "metrics" | "none"
-	>(currentTutorialStepIndex < 0 ? "welcome" : "none");
-
-	const questGoal = useSelector(
-		questStore,
-		(state) => state.context.description.goal.description
-	);
-
-	const initialMetrics = useSelector(
-		questStore,
-		(state) => state.context.description.initialStep
-	);
-
-	const handleWelcomeNext = () => {
-		setCurrentDialog("goals");
-	};
-
-	const handleGoalsNext = () => {
-		setCurrentDialog("metrics");
-	};
-
-	const handleMetricsNext = () => {
-		// Only start tutorial after metrics dialog is closed
-		setCurrentDialog("none");
-		// setTimeout(() => {
-		tutorialStore.send({ type: "nextStep" });
-		// }, 100);
-	};
-
 	return (
 		<main className="min-h-screen bg-gradient-to-b from-indigo-50 to-white relative overflow-hidden flex flex-col">
 			<FlowingMoneyBackground color="#6366f1" opacity={0.08} />
-			<div className="relative z-10 flex-1 p-4">
+			<div className="relative z-10 flex-1 p-4 container mx-auto max-w-6xl text-center">
 				<TutorialSpot marker={{ kind: "welcome-dialog" }}>
 					<TutorialDialogContent />
 				</TutorialSpot>
-				<h1 className="text-3xl font-bold mb-6">
+				<h1 className="text-3xl font-bold mb-6 mt-10 text-center text-[#6c3483]">
 					What is the best financial choice in your opinion?
 				</h1>
-				<div className="h-[calc(100vh-200px)]">
+				<div className="h-[calc(100vh-200px)] mx-auto">
 					<ActionTemplateTree />
 				</div>
-
-				{currentDialog === "welcome" && (
-					<WelcomeDialog
-						key={"welcome-dialog"}
-						isOpen={true}
-						title="Are you ready?"
-						onNext={handleWelcomeNext}
-					>
-						<div className="space-y-4">
-							<p>
-								This is the start of your first financial
-								journey!
-							</p>
-						</div>
-					</WelcomeDialog>
-				)}
-
-				{currentDialog === "goals" && (
-					<WelcomeDialog
-						key={"welcome-dialog"}
-						isOpen={true}
-						title="Your goal is to..."
-						onNext={handleGoalsNext}
-					>
-						<div className="space-y-4">
-							<div className="bg-white/20 p-2 rounded-lg">
-								<p className="text-2xl italic">
-									&quot;{questGoal}&quot;
-								</p>
-							</div>
-						</div>
-					</WelcomeDialog>
-				)}
-
-				{currentDialog === "metrics" && (
-					<WelcomeDialog
-						key={"welcome-dialog"}
-						isOpen={true}
-						title="Your starting position"
-						onNext={handleMetricsNext}
-					>
-						<div className="space-y-6">
-							<p>Here are your initial metrics:</p>
-
-							<div className="flex justify-around items-center">
-								<div className="text-center">
-									<div className="flex items-center gap-2 justify-center mb-1">
-										<Wallet className="h-4 w-4 text-amber-500" />
-										<span className="text-sm text-muted-foreground">
-											Assets
-										</span>
-									</div>
-									<div className="text-lg font-medium">
-										{initialMetrics.bankAccount.toLocaleString()}{" "}
-										BGN
-									</div>
-								</div>
-
-								<div className="text-center">
-									<div className="flex items-center gap-2 justify-center mb-1">
-										<Heart className="h-4 w-4 text-rose-500" />
-										<span className="text-sm text-muted-foreground">
-											Joy
-										</span>
-									</div>
-									<div className="text-lg font-medium">
-										{initialMetrics.joy}%
-									</div>
-								</div>
-
-								<div className="text-center">
-									<div className="flex items-center gap-2 justify-center mb-1">
-										<Clock className="h-4 w-4 text-blue-500" />
-										<span className="text-sm text-muted-foreground">
-											Free Time
-										</span>
-									</div>
-									<div className="text-lg font-medium">
-										{initialMetrics.freeTimeHours}h
-									</div>
-								</div>
-							</div>
-
-							<p className="text-sm text-muted-foreground">
-								These metrics will change based on your
-								decisions throughout the journey.
-							</p>
-						</div>
-					</WelcomeDialog>
-				)}
 			</div>
 		</main>
 	);
