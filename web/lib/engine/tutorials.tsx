@@ -11,7 +11,7 @@ export type TutorialSpotMarker =
 	| { kind: "post-action-button" }
 	| { kind: "metrics-card" }
 	| { kind: "decision-roadmap" }
-	| { kind: "journey-node"; instance: { timePoint: number } }
+	| { kind: "journey-node"; instance: { timeUnit: string | number } }
 	| { kind: "financial-data" }
 	| { kind: "steps-done-dialog" }
 	| { kind: "graphs" }

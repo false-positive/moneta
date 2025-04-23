@@ -76,6 +76,11 @@ export default function Simulation() {
 		return data;
 	}, [context]); // Recompute when context changes
 
+	const currentStepIndex = useSelector(
+		questStore,
+		(s) => s.context.currentStepIndex
+	);
+
 	// Calculate action timings (when actions start/end)
 	const actionTimings = useMemo(() => {
 		const timings = getActionDurations(context);
@@ -84,10 +89,9 @@ export default function Simulation() {
 	}, [context]); // Recompute when steps change
 
 	// Handle selection of a specific time point in the journey
-	const handleStepSelect = (timePoint: number) => {
-		const newIndex = allSteps.findIndex(
-			(step) => step.timePoint === timePoint
-		);
+	const handleStepSelect = (timeUnit: string | number) => {
+		// @ts-expect-error because we know the first unit is a string
+		const newIndex = currentUnits.indexOf(timeUnit);
 
 		if (newIndex !== -1) {
 			questStore.send({
@@ -175,15 +179,15 @@ export default function Simulation() {
 												<Timeline
 													timeUnits={currentUnits}
 													selectedUnit={
-														currentStep.timePoint
+														currentUnits[
+															currentStepIndex
+														]
 													}
 													nowMarker={
 														currentStep.timePoint
 													}
-													onUnitClick={(unit) =>
-														handleStepSelect(
-															Number(unit)
-														)
+													onUnitClick={
+														handleStepSelect
 													}
 													actionTimings={actionTimings.map(
 														(timing) => ({

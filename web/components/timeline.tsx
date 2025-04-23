@@ -121,7 +121,7 @@ export function Timeline({
 	};
 
 	const handleUnitClick = (unit: string | number) => {
-		onUnitClick(Number(unit));
+		onUnitClick(unit);
 	};
 
 	const lastTimePoint = timeUnits[timeUnits.length - 1];

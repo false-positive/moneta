@@ -21,6 +21,7 @@ interface FinancialJourneyProps {
 
 function JourneyNode({
 	timePoint,
+	timeUnit,
 	point,
 	nodeColor,
 	nodeIcon,
@@ -29,6 +30,7 @@ function JourneyNode({
 	className,
 }: {
 	timePoint: number;
+	timeUnit: string | number;
 	point: [number, number];
 	nodeColor: string;
 	nodeIcon: React.ReactNode;
@@ -57,7 +59,7 @@ function JourneyNode({
 	const isCurrentTutorialNode =
 		currentStep?.marker.kind === "journey-node" &&
 		"instance" in currentStep.marker &&
-		currentStep.marker.instance.timePoint === timePoint;
+		currentStep.marker.instance.timeUnit === timeUnit;
 
 	const handleNodeClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -99,7 +101,7 @@ function JourneyNode({
 				>
 					{nodeIcon}
 					<div className="absolute -bottom-8 bg-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
-						{timePoint}
+						{timeUnit}
 					</div>
 				</div>
 
@@ -143,9 +145,14 @@ export function FinancialJourney({
 }: FinancialJourneyProps) {
 	const [minWidth, setMinWidth] = useState(0);
 
+	const initialTimePoint = useSelector(
+		questStore,
+		(state) => state.context.description.initialStep.timePoint
+	);
+
 	const timePoints = useMemo(
-		() => timeUnits.filter((unit) => typeof unit === "number") as number[],
-		[timeUnits]
+		() => timeUnits.map((_, index) => initialTimePoint + index),
+		[timeUnits, initialTimePoint]
 	);
 
 	const pathPoints = useMemo(() => {
@@ -194,11 +201,6 @@ export function FinancialJourney({
 			setMinWidth(Math.max(...pathPoints.map((p) => p[0])) + 100);
 		}
 	}, [pathPoints, minWidth]);
-
-	const initialTimePoint = useSelector(
-		questStore,
-		(state) => state.context.description.initialStep.timePoint
-	);
 
 	const greatestUnlockedStepIndex = useSelector(
 		questStore,
@@ -289,6 +291,8 @@ export function FinancialJourney({
 					const point = pathPoints[index];
 					const { color, icon } = getNodeAppearance(timePoint);
 
+					const timeUnit = timeUnits[index];
+
 					const numericTimePoint = Number(timePoint);
 					console.log(
 						"Creating marker for timePoint:",
@@ -300,12 +304,13 @@ export function FinancialJourney({
 							key={timePoint}
 							marker={{
 								kind: "journey-node" as const,
-								instance: { timePoint: numericTimePoint },
+								instance: { timeUnit },
 							}}
 						>
 							<TutorialTrigger asChild>
 								<JourneyNode
 									timePoint={timePoint}
+									timeUnit={timeUnit}
 									point={point}
 									nodeColor={color}
 									nodeIcon={icon}

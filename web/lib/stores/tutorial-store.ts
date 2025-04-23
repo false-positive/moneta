@@ -48,3 +48,14 @@ console.log("[Tutorial Store]", tutorialStore.getSnapshot());
 tutorialStore.subscribe((snapshot) => {
 	console.log("[Tutorial Store]", snapshot);
 });
+
+// HACK: Global shortcut to advance the tutorial if it gets bugged and is stuck
+if (typeof window !== "undefined") {
+	console.log("Adding event listener for tutorial shortcut");
+	document.addEventListener("keydown", (e) => {
+		console.log(e);
+		if (e.key === "T" && e.ctrlKey && e.shiftKey && e.altKey) {
+			tutorialStore.send({ type: "nextStep" });
+		}
+	});
+}

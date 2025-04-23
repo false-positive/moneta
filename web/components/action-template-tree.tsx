@@ -735,7 +735,7 @@ export function ActionTemplateTree() {
 						<TutorialTrigger asChild>
 							<Button
 								onClick={handleSubmit}
-								disabled={newActions.length === 0}
+								// disabled={newActions.length === 0}
 								className="bg-indigo-600 hover:opacity-90 text-white shadow-lg px-10 py-8 text-xl font-bold rounded-xl"
 							>
 								Test this choice
