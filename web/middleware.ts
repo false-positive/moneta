@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
 	if (isTester || (await isAccessAllowed(userId))) {
 		const response = NextResponse.next();
 		if (request.nextUrl.searchParams.has(TESTER_PARAM)) {
-			response.cookies.set(TESTER_PARAM, "1");
+			response.cookies.set(TESTER_COOKIE, "1");
 		}
 		return response;
 	}
