@@ -15,7 +15,13 @@ export function TutorialOverlay() {
 			state.context.currentStepIndex >= state.context.steps.length - 1
 	);
 
-	if (!currentStep?.blockInteractions || isLastStep) return null;
+	const hasNoMoreSteps = useSelector(
+		tutorialStore,
+		(state) => state.context.currentStepIndex >= state.context.steps.length
+	);
+
+	if (!currentStep?.blockInteractions || isLastStep || hasNoMoreSteps)
+		return null;
 
 	return (
 		<>
