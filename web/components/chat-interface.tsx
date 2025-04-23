@@ -264,7 +264,7 @@ export default function ChatInterface({
 	return (
 		<div className="h-full flex items-center justify-center">
 			<div className="w-full h-2/3 bg-white rounded-xl shadow-md overflow-hidden">
-				<div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 flex items-center justify-between">
+				<div className="bg-indigo-600py-3 px-4 flex items-center justify-between">
 					<h2 className="text-white font-bold flex items-center gap-2">
 						<MessageSquare className="h-4 w-4" />
 					</h2>
@@ -287,7 +287,7 @@ export default function ChatInterface({
 									}`}
 								>
 									{!isUser && (
-										<div className="flex items-center justify-center mr-2 w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+										<div className="flex items-center justify-center mr-2 w-8 h-8 rounded-full bg-indigo-500 to-purple-500 text-white">
 											<User className="h-4 w-4" />
 										</div>
 									)}
@@ -360,7 +360,7 @@ export default function ChatInterface({
 								isWaitingForResponse ||
 								!input.trim()
 							}
-							className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
+							className="bg-indigo-600hover:opacity-90"
 						>
 							<Send className="h-4 w-4" />
 						</Button>

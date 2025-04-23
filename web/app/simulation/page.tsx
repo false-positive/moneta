@@ -116,7 +116,7 @@ export default function Simulation() {
 	}, [currentStep]);
 
 	return (
-		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white flex justify-center">
+		<main className="min-h-screen p-4 bg-indigo-50 flex justify-center">
 			<div className="max-w-6xl w-full">
 				<div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-md">
 					<h1 className="text-2xl font-bold text-indigo-900 flex items-center gap-2">
