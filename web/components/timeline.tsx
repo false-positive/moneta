@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { type Action } from "@/lib/engine/actions";
+import { questStore } from "@/lib/stores/quest-store";
+import { Trash2 } from "lucide-react";
 import {
-	TutorialHighlight,
 	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
@@ -59,6 +60,62 @@ export function Timeline({
 }: TimelineProps) {
 	const [eventDetailsOpen, setEventDetailsOpen] = useState(false);
 	const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+	const [selectedTimingIndex, setSelectedTimingIndex] = useState<
+		number | null
+	>(null);
+
+	const handleDeleteAction = () => {
+		if (
+			selectedAction?.templateId !== undefined &&
+			selectedTimingIndex !== null
+		) {
+			const timing = actionTimings[selectedTimingIndex];
+
+			const stepIndex = timeUnits.findIndex(
+				(unit) => Number(unit) === timing.startTimePoint
+			);
+
+			if (stepIndex === -1) {
+				console.error(
+					"Could not find step index for timePoint:",
+					timing.startTimePoint
+				);
+				return;
+			}
+
+			const quest = questStore.get().context;
+			if (!quest.steps || stepIndex >= quest.steps.length) {
+				console.error("Invalid step index:", stepIndex);
+				return;
+			}
+
+			const step = quest.steps[stepIndex];
+			if (!step || !step.newActions) {
+				console.error("Step or newActions not found:", stepIndex);
+				return;
+			}
+
+			const actionIndex = step.newActions.findIndex(
+				(a) => a.templateId === selectedAction.templateId
+			);
+
+			if (actionIndex !== -1) {
+				questStore.send({
+					type: "currentStepDeleteAction",
+					stepIndex,
+					actionIndex,
+				});
+				setEventDetailsOpen(false);
+				setSelectedAction(null);
+				setSelectedTimingIndex(null);
+			} else {
+				console.error(
+					"Action not found in step:",
+					selectedAction.templateId
+				);
+			}
+		}
+	};
 
 	const handleUnitClick = (unit: string | number) => {
 		onUnitClick(Number(unit));
@@ -74,11 +131,6 @@ export function Timeline({
 					: lastTimePoint
 				: timing.endTimePoint,
 	}));
-
-	useEffect(() => {
-		console.log("Action Timings:", normalizedActionTimings);
-		console.log("Time Units:", timeUnits);
-	}, []);
 
 	return (
 		<div className="w-full overflow-x-auto">
@@ -157,10 +209,8 @@ export function Timeline({
 							const left = startIndex * 75;
 							const width = timeSpan * 80;
 
-							const joyImpact = timing.action.joyImpact;
-
 							const colors = getActionColors(
-								joyImpact,
+								timing.action.joyImpact,
 								selectedUnit === startTimePoint ||
 									selectedUnit === endTimePoint
 							);
@@ -193,12 +243,11 @@ export function Timeline({
 												setSelectedAction(
 													timing.action
 												);
+												setSelectedTimingIndex(index);
 												setEventDetailsOpen(true);
 											}}
 										>
-											<span className="text-center whitespace-nowrap overflow-hidden text-ellipsis px-2 text-[10px]">
-												{timing.action.name}
-											</span>
+											{timing.action.name}
 										</div>
 									</div>
 								</div>
@@ -225,7 +274,16 @@ export function Timeline({
 							{selectedAction?.kind}
 						</div>
 					</div>
-					<DialogFooter>
+					<DialogFooter className="flex justify-between items-center">
+						<Button
+							onClick={handleDeleteAction}
+							variant="destructive"
+							className="bg-rose-600 hover:bg-rose-700"
+							disabled={!selectedAction?.templateId}
+						>
+							<Trash2 className="h-4 w-4 mr-1" />
+							Delete Action
+						</Button>
 						<Button
 							onClick={() => setEventDetailsOpen(false)}
 							variant="secondary"
