@@ -19,6 +19,7 @@ const noOpAction: Action = {
 	joyImpact: noImpact,
 	freeTimeImpact: noImpact,
 	remainingSteps: 1,
+	gainedExperiences: [],
 };
 
 export const liveWithParentsAction: Action = {

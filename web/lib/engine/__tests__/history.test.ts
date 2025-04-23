@@ -15,13 +15,18 @@ test("simulate with actions", () => {
 			freeTimeHours: 100,
 			newActions: [],
 			continuingActions: [],
+			experience: new Map(),
 		},
 		maxStepCount: 5,
 		timePointKind: "year",
 		goal: {
 			description: "John wants to save 100000 BGN",
+			challengeText: "Buy your first car",
+			ageText: "You are 20 years old",
 			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 		},
+		actionTemplates: [],
+		tutorialSteps: [],
 	};
 
 	const invest = (steps: number, capital: number) => ({

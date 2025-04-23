@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { type Action } from "@/lib/engine/actions";
+import { MetricImpact, type Action } from "@/lib/engine/actions";
 import { questStore } from "@/lib/stores/quest-store";
 import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import {
 	TutorialPopoverContent,
 	TutorialSpot,
@@ -33,7 +33,10 @@ interface TimelineProps {
 	actionTimings: ActionTiming[];
 }
 
-const getActionColors = (joyImpact: any, isSelected: boolean = false) => {
+const getActionColors = (
+	joyImpact: MetricImpact,
+	isSelected: boolean = false
+) => {
 	const joyValue = joyImpact.repeatedAbsoluteDelta;
 
 	if (joyValue > 0) {
@@ -200,9 +203,6 @@ export function Timeline({
 
 							const startIndex = timeUnits.findIndex(
 								(unit) => Number(unit) === startTimePoint
-							);
-							const endIndex = timeUnits.findIndex(
-								(unit) => Number(unit) === endTimePoint
 							);
 
 							const timeSpan = endTimePoint - startTimePoint + 1;

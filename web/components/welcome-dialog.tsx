@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -30,9 +30,14 @@ export function WelcomeDialog({
 				} bg-transparent border-none shadow-none animate-fadeIn`}
 			>
 				<div className="flex flex-col items-center justify-center h-full space-y-6 py-8">
-					<h2 className="text-5xl font-bold text-purple-600 text-center tracking-wide animate-fadeIn">
-						{title}
-					</h2>
+					<DialogTitle
+						className="text-5xl font-bold text-[#6c5ce7] text-center tracking-wide animate-fadeIn"
+						asChild
+					>
+						<h2 className="text-5xl font-bold text-purple-600 text-center tracking-wide animate-fadeIn">
+							{title}
+						</h2>
+					</DialogTitle>
 					<div className="text-2xl text-purple-600 text-center max-w-[500px] leading-relaxed animate-fadeIn animation-delay-100">
 						{children}
 					</div>

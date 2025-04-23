@@ -35,13 +35,18 @@ test("get new actions per step", () => {
 			freeTimeHours: 100,
 			newActions: [],
 			continuingActions: [lifeAction],
+			experience: new Map(),
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
 		goal: {
 			description: "John wants to save 100000 BGN",
+			challengeText: "Buy your first car",
+			ageText: "You are 20 years old",
 			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 		},
+		actionTemplates: [],
+		tutorialSteps: [],
 	};
 
 	const quest: Quest = {
@@ -56,6 +61,7 @@ test("get new actions per step", () => {
 				freeTimeHours: 100,
 				newActions: [],
 				continuingActions: [lifeAction],
+				experience: new Map(),
 			},
 			{
 				timePoint: 2,
@@ -64,6 +70,7 @@ test("get new actions per step", () => {
 				freeTimeHours: 100,
 				newActions: [job(1)],
 				continuingActions: [lifeAction],
+				experience: new Map(),
 			},
 			{
 				timePoint: 3,
@@ -72,6 +79,7 @@ test("get new actions per step", () => {
 				freeTimeHours: 100,
 				newActions: [invest(2, 1000)],
 				continuingActions: [lifeAction, job(1)],
+				experience: new Map(),
 			},
 			{
 				timePoint: 4,
@@ -84,6 +92,7 @@ test("get new actions per step", () => {
 					job(0),
 					invest(1, 1000 * 1.002),
 				],
+				experience: new Map(),
 			},
 			{
 				timePoint: 5,
@@ -95,9 +104,11 @@ test("get new actions per step", () => {
 					lifeAction,
 					invest(0, 1000 * 1.002 * 1.002),
 				],
+				experience: new Map(),
 			},
 		],
 		currentStepIndex: 0,
+		greatestUnlockedStepIndex: 5,
 	};
 
 	const newActionsPerStep = getNewActionsPerStep(quest);
@@ -124,13 +135,18 @@ test("simulate with actions", () => {
 			freeTimeHours: 100,
 			newActions: [],
 			continuingActions: [lifeAction],
+			experience: new Map(),
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
 		goal: {
 			description: "John wants to save 100000 BGN",
+			challengeText: "Buy your first car",
+			ageText: "You are 20 years old",
 			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 		},
+		actionTemplates: [],
+		tutorialSteps: [],
 	};
 
 	const job = (steps: number) => ({
@@ -225,13 +241,18 @@ test("get action durations", () => {
 			freeTimeHours: 100,
 			newActions: [],
 			continuingActions: [lifeAction],
+			experience: new Map(),
 		},
 		maxStepCount: 5,
 		timePointKind: "week",
 		goal: {
 			description: "John wants to save 100000 BGN",
+			challengeText: "Buy your first car",
+			ageText: "You are 20 years old",
 			goalReached: ({ lastStep }) => lastStep.bankAccount >= 100000,
 		},
+		actionTemplates: [],
+		tutorialSteps: [],
 	};
 
 	const job = (steps: number) => ({
@@ -257,6 +278,7 @@ test("get action durations", () => {
 				freeTimeHours: 100,
 				newActions: [],
 				continuingActions: [lifeAction],
+				experience: new Map(),
 			},
 			{
 				timePoint: 2,
@@ -265,6 +287,7 @@ test("get action durations", () => {
 				freeTimeHours: 100,
 				newActions: [job(1)],
 				continuingActions: [lifeAction],
+				experience: new Map(),
 			},
 			{
 				timePoint: 3,
@@ -273,6 +296,7 @@ test("get action durations", () => {
 				freeTimeHours: 100,
 				newActions: [invest(2, 1000)],
 				continuingActions: [lifeAction, job(1)],
+				experience: new Map(),
 			},
 			{
 				timePoint: 4,
@@ -285,6 +309,7 @@ test("get action durations", () => {
 					job(0),
 					invest(1, 1000 * 1.002),
 				],
+				experience: new Map(),
 			},
 			{
 				timePoint: 5,
@@ -296,9 +321,11 @@ test("get action durations", () => {
 					lifeAction,
 					invest(0, 1000 * 1.002 * 1.002),
 				],
+				experience: new Map(),
 			},
 		],
 		currentStepIndex: 0,
+		greatestUnlockedStepIndex: 5,
 	};
 
 	const actionDurations = getActionDurations(quest);

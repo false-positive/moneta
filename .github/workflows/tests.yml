@@ -1,12 +1,16 @@
-name: Tests
+name: Tests # XXX: This only tests the web app, so maybe we should rename?
 
 on:
   pull_request:
     paths:
       - "web/**"
-  # push:
-  #   paths:
-  #     - "web/**"
+    branches:
+      - master
+  push:
+    paths:
+      - "web/**"
+    branches:
+      - master
 
 jobs:
   test:
@@ -25,41 +29,14 @@ jobs:
           cache: "npm"
           cache-dependency-path: web/package-lock.json
 
-      - name: Remove broken directories to make tests pass (temporary hack)
-        run: rm -rf app components
-
-      - name: Add dummy app directory to make tests pass (temporary hack)
-        run: |
-          mkdir -p app
-
-          cat > app/layout.tsx << 'EOL'
-          export default function RootLayout({
-            children,
-          }: {
-            children: React.ReactNode;
-          }) {
-            return (
-              <html lang="en">
-                <body>{children}</body>
-              </html>
-            );
-          }
-          EOL
-
-          cat > app/page.tsx << 'EOL'
-          export default function Page() {
-            return <div>Hello World</div>;
-          }
-          EOL
-
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run typecheck
-      #   run: npm run typecheck
+      - name: Run typecheck
+        run: npm run typecheck
 
-      # - name: Run lint
-      #   run: npm run lint
+      - name: Run lint
+        run: npm run lint
 
       # - name: Run tests
       #   run: npm run test

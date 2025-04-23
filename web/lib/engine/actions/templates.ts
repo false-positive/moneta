@@ -1,9 +1,7 @@
-import { Action, ActionKind } from ".";
-import { z } from "zod";
-import { Quest } from "../quests";
-import { lifeAction } from "./standard-actions";
 import invariant from "tiny-invariant";
-import { FieldValues } from "react-hook-form";
+import { z } from "zod";
+import { Action, ActionKind } from ".";
+import { Quest } from "../quests";
 
 /**
  * The required properties that must be present in any action template.
@@ -203,8 +201,7 @@ export function applyActionTemplate<TUserInput extends z.ZodRawShape>(
 	}
 
 	// @ts-expect-error: This will never be reached and if it does, it's a bug
-	actionTemplate.templateKind;
-	invariant(false);
+	invariant(false, actionTemplate.templateKind);
 }
 
 /**
@@ -225,6 +222,5 @@ export function getAction(actionTemplate: ActionTemplate) {
 	}
 
 	// @ts-expect-error: This will never be reached and if it does, it's a bug
-	actionTemplate.templateKind;
-	invariant(false);
+	invariant(false, actionTemplate.templateKind);
 }
