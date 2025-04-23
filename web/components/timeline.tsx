@@ -63,7 +63,7 @@ export function Timeline({
 	const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
 	const handleUnitClick = (unit: string | number) => {
-		onUnitClick(Number(unit));
+		onUnitClick(unit);
 	};
 
 	const lastTimePoint = timeUnits[timeUnits.length - 1];
