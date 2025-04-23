@@ -114,7 +114,7 @@ export function MetricsCard({
 								</div>
 							</div>
 							<div className="text-sm font-bold text-blue-900 ml-1">
-								${Math.round(metrics.assets).toLocaleString()}
+								{Math.round(metrics.assets).toLocaleString()} lv
 							</div>
 							<div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1">
 								<div
@@ -140,19 +140,19 @@ export function MetricsCard({
 								<div className="flex justify-between">
 									<span>Bank Account:</span>
 									<span>
-										$
 										{Math.round(
 											metrics.assets
-										).toLocaleString()}
+										).toLocaleString()}{" "}
+										lv
 									</span>
 								</div>
 								<div className="flex justify-between">
 									<span>Investments:</span>
 									<span>
-										$
 										{Math.round(
 											metrics.investmentCapital
-										).toLocaleString()}
+										).toLocaleString()}{" "}
+										lv
 									</span>
 								</div>
 							</div>
@@ -222,7 +222,7 @@ export function MetricsCard({
 						<span className="text-xs font-bold">Income</span>
 					</div>
 					<span className="text-lg font-bold text-emerald-700">
-						${Math.round(metrics.income).toLocaleString()}
+						{Math.round(metrics.income).toLocaleString()} lv
 					</span>
 				</div>
 				<div className="flex flex-col items-center bg-rose-50 p-2 rounded-lg">
@@ -231,7 +231,7 @@ export function MetricsCard({
 						<span className="text-xs font-bold">Expenses</span>
 					</div>
 					<span className="text-lg font-bold text-rose-700">
-						${Math.round(metrics.expenses).toLocaleString()}
+						{Math.round(metrics.expenses).toLocaleString()} lv
 					</span>
 				</div>
 			</div>

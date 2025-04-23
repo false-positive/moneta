@@ -141,10 +141,10 @@ export default function QuestEndSucessPage() {
 								<Award className="h-8 w-8 text-amber-600" />
 							</div>
 							<h3 className="text-lg font-bold text-amber-800 mb-1">
-								Wealth
+								Assets
 							</h3>
 							<div className="text-3xl font-bold text-amber-600 mb-2">
-								${moneyAmount.toLocaleString()}
+								{moneyAmount.toLocaleString()} lv
 							</div>
 						</div>
 

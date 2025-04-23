@@ -279,8 +279,8 @@ export default function QuestFailurePage() {
 								barValue: metrics.joy,
 							},
 							{
-								title: "Wealth",
-								value: `$${metrics.money.toLocaleString()}`,
+								title: "Assets",
+								value: `${metrics.money.toLocaleString()} lv`,
 								failed: failedMetrics.bankAccount,
 								showBar: false,
 							},
