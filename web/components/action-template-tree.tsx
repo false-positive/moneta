@@ -8,7 +8,11 @@ import {
 	applyActionTemplate,
 	getAction,
 } from "@/lib/engine/actions/templates";
-import { getCurrentStep } from "@/lib/engine/quests";
+import {
+	getCurrentStep,
+	getFailedMetrics,
+	isQuestCompleted,
+} from "@/lib/engine/quests";
 import { questStore } from "@/lib/stores/quest-store";
 import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
@@ -573,7 +577,14 @@ export function ActionTemplateTree() {
 			type: "newActionsAppend",
 			newActions,
 		});
-		router.push("/simulation");
+
+		if (isQuestCompleted(questStore.get().context)) {
+			router.push("/quest-end-success");
+		} else if (getFailedMetrics(currentStep).any) {
+			router.push("/quest-end-failed");
+		} else {
+			router.push("/simulation");
+		}
 	};
 
 	const sendHint = async (question = "") => {

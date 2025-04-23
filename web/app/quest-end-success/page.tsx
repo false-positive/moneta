@@ -7,7 +7,7 @@ import { Star, Crown, Medal, Award } from "lucide-react";
 import Confetti from "react-confetti";
 import { FlowingMoneyBackground } from "@/components/flowing-money-background";
 
-export default function QuestCompletionPage() {
+export default function QuestEndSucessPage() {
 	const [mounted, setMounted] = useState(false);
 	const [numberOfPieces, setNumberOfPieces] = useState(1000);
 

@@ -195,3 +195,16 @@ export function isQuestCompleted(quest: Quest) {
 		quest,
 	});
 }
+
+export function getFailedMetrics(step: Step) {
+	const isBankAccountFailed = step.bankAccount < 0;
+	const isJoyFailed = step.joy < 0;
+	const isFreeTimeHoursFailed = step.freeTimeHours < 0;
+
+	return {
+		bankAccount: isBankAccountFailed,
+		joy: isJoyFailed,
+		freeTimeHours: isFreeTimeHoursFailed,
+		any: isBankAccountFailed || isJoyFailed || isFreeTimeHoursFailed,
+	};
+}
