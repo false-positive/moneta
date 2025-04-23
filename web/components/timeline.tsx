@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { type Action } from "@/lib/engine/actions";
+import { MetricImpact, type Action } from "@/lib/engine/actions";
+import { useEffect, useState } from "react";
 import {
-	TutorialHighlight,
 	TutorialPopoverContent,
 	TutorialSpot,
 	TutorialTrigger,
@@ -32,7 +31,10 @@ interface TimelineProps {
 	actionTimings: ActionTiming[];
 }
 
-const getActionColors = (joyImpact: any, isSelected: boolean = false) => {
+const getActionColors = (
+	joyImpact: MetricImpact,
+	isSelected: boolean = false
+) => {
 	const joyValue = joyImpact.repeatedAbsoluteDelta;
 
 	if (joyValue > 0) {
@@ -78,7 +80,7 @@ export function Timeline({
 	useEffect(() => {
 		console.log("Action Timings:", normalizedActionTimings);
 		console.log("Time Units:", timeUnits);
-	}, []);
+	}, [normalizedActionTimings, timeUnits]);
 
 	return (
 		<div className="w-full overflow-x-auto">
@@ -148,9 +150,6 @@ export function Timeline({
 
 							const startIndex = timeUnits.findIndex(
 								(unit) => Number(unit) === startTimePoint
-							);
-							const endIndex = timeUnits.findIndex(
-								(unit) => Number(unit) === endTimePoint
 							);
 
 							const timeSpan = endTimePoint - startTimePoint + 1;

@@ -1,30 +1,10 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useSelector } from "@xstate/store/react";
-import { questStore } from "@/lib/stores/quest-store";
-import { getActionDurations } from "@/lib/engine/quests";
-import { type Step } from "@/lib/engine/actions";
 import { FinancialJourney } from "@/components/financial-journey";
 import { MetricsCard } from "@/components/metrics-card";
-import { TransactionList } from "@/components/transaction-list";
 import { SpendingGraph } from "@/components/spending-graph";
 import { Timeline } from "@/components/timeline";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	Trophy,
-	ChevronDown,
-	ChevronUp,
-	BarChart3,
-	Clock,
-	Route,
-} from "lucide-react";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { TimePointKind } from "@/lib/engine/actions";
+import { TransactionList } from "@/components/transaction-list";
 import {
 	TutorialDialogContent,
 	TutorialHighlight,
@@ -33,16 +13,24 @@ import {
 	TutorialTrigger,
 } from "@/components/tutorial";
 import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-	DialogFooter,
-} from "@/components/ui/dialog";
-import { X } from "lucide-react";
-import { tutorialStore } from "@/lib/stores/tutorial-store";
-import { Button } from "@/components/ui/button";
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TimePointKind, type Step } from "@/lib/engine/actions";
+import { getActionDurations } from "@/lib/engine/quests";
+import { questStore } from "@/lib/stores/quest-store";
+import { useSelector } from "@xstate/store/react";
+import {
+	BarChart3,
+	ChevronDown,
+	ChevronUp,
+	Clock,
+	Route,
+	Trophy,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 const yearUnits = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const monthUnits = [
@@ -66,13 +54,6 @@ export default function Simulation() {
 	const [isYearStatsOpen, setIsYearStatsOpen] = useState(true);
 	const [isTimelineOpen, setIsTimelineOpen] = useState(true);
 	const [isFinancialDataOpen, setIsFinancialDataOpen] = useState(true);
-	const [showExitConfirmation, setShowExitConfirmation] = useState(false);
-
-	// Add this selector to check if tutorial is active
-	const isTutorialActive = useSelector(
-		tutorialStore,
-		(state) => state.context.currentStepIndex < state.context.steps.length
-	);
 
 	// Get current simulation state from XState store
 	const context = useSelector(questStore, (s) => s.context);
@@ -100,7 +81,7 @@ export default function Simulation() {
 		const timings = getActionDurations(context);
 
 		return timings;
-	}, [context.steps]); // Recompute when steps change
+	}, [context]); // Recompute when steps change
 
 	// Handle selection of a specific time point in the journey
 	const handleStepSelect = (timePoint: number) => {
@@ -129,10 +110,6 @@ export default function Simulation() {
 	useEffect(() => {
 		console.log("Current step:", currentStep);
 	}, [currentStep]);
-
-	const handleEndTutorial = () => {
-		console.log("Tutorial ended by user");
-	};
 
 	return (
 		<main className="min-h-screen p-4 bg-gradient-to-b from-indigo-50 to-white flex justify-center">
@@ -336,6 +313,7 @@ export default function Simulation() {
 													<TransactionList
 														actionTimings={getActionDurations(
 															{
+																...context,
 																description:
 																	context.description,
 																steps: allSteps,

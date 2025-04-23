@@ -532,7 +532,7 @@ export const tutorialQuestDescription: QuestDescription = {
 			title: "Your First Job",
 			description: (
 				<>
-					Let's start with a basic job as a waiter.
+					{"Let's"} start with a basic job as a waiter.
 					<br />
 					This will give you a steady income to build upon.
 					<br />

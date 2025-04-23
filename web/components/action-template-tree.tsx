@@ -13,7 +13,6 @@ import { questStore } from "@/lib/stores/quest-store";
 import { useSelector } from "@xstate/store/react";
 import * as d3 from "d3";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ReactDOM from "react-dom";
 
 import { Action } from "@/lib/engine/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,44 +43,6 @@ import {
 	FormLabel,
 	FormMessage,
 } from "./ui/form";
-
-// Safe Portal Component for Tutorial Spot
-function TutorialSpotPortal({
-	children,
-	container,
-	templateId,
-}: {
-	children: React.ReactNode;
-	container: HTMLElement | null;
-	templateId: number;
-}) {
-	const [mounted, setMounted] = useState(false);
-
-	useEffect(() => {
-		if (container) {
-			setMounted(true);
-		}
-	}, [container]);
-
-	if (!mounted || !container) {
-		return null;
-	}
-
-	return ReactDOM.createPortal(
-		<div style={{ width: "100%", height: "100%" }}>
-			<TutorialSpot
-				marker={{
-					kind: "action-template-tree",
-					instance: { templateId },
-				}}
-			>
-				<TutorialTrigger asChild>{children}</TutorialTrigger>
-				<TutorialPopoverContent />
-			</TutorialSpot>
-		</div>,
-		container
-	);
-}
 
 // D3 Action Template Tree Visualization Component with React Integration
 function ActionTemplateTreeVisualization({
@@ -136,9 +97,9 @@ function ActionTemplateTreeVisualization({
 			});
 
 		const svg = d3.select(svgRef.current);
-		svg.call(zoom as any);
+		svg.call(zoom);
 		svg.call(
-			zoom.transform as any,
+			zoom.transform,
 			d3.zoomIdentity.translate(initialX, initialY).scale(initialScale)
 		);
 
@@ -616,7 +577,7 @@ export function ActionTemplateTree() {
 					},
 				]);
 			}
-		} catch (error) {
+		} catch {
 			setMessages((prev) => [
 				...prev,
 				{
