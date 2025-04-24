@@ -597,7 +597,7 @@ export function ActionTemplateTree() {
 				});
 			}
 
-			const response = await fetch("http://192.168.74.18:5000/hint", {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/hint`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
